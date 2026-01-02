@@ -336,7 +336,11 @@ class MapEditor(ctk.CTk):
             for d in self.data_list:
                 if d['uid'] == self.current_uid: d.update({k:v for k,v in dr.items() if v is not None})
         else: self.data_list.append(dr)
-        self.write_csv(); self.current_uid=None; self.temp_coords=None; self.refresh_map(); self.clear_ui()
+        # CSVとJSONの両方を書き出す
+        self.write_csv()
+        self.write_json() 
+        
+        self.current_uid=None; self.temp_coords=None; self.refresh_map(); self.clear_ui()
 
     def load_to_ui(self, data):
         self.clear_ui(); self.ent_name_jp.insert(0, data.get('name_jp', '')); self.ent_name_en.insert(0, data.get('name_en', ''))
@@ -372,6 +376,15 @@ class MapEditor(ctk.CTk):
     def write_csv(self):
         fields = ["uid", "x", "y", "name_jp", "name_en", "category", "importance", "tags", "memo_jp", "memo_en", "updated_at", "f1", "f2"]
         with open(self.config["save_file"], "w", newline="", encoding="utf-8-sig") as f: writer = csv.DictWriter(f, fieldnames=fields); writer.writeheader(); writer.writerows(self.data_list)
+    def write_json(self):
+        # CSVのファイル名（master_data.csv）を map_data.json に置換してパスを作成
+        json_file = self.config["save_file"].replace(".csv", ".json")
+        try:
+            with open(json_file, "w", encoding="utf-8") as f:
+                json.dump(self.data_list, f, indent=4, ensure_ascii=False)
+            print(f"JSON saved to {json_file}")
+        except Exception as e:
+            messagebox.showerror("JSON保存エラー", f"JSONの書き出しに失敗しました: {e}")
     def load_csv(self):
         if os.path.exists(self.config["save_file"]):
             with open(self.config["save_file"], "r", encoding="utf-8-sig") as f: self.data_list = [dict(row, x=int(row['x']), y=int(row['y'])) for row in csv.DictReader(f)]
