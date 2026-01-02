@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>VEIN Unofficial Map</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        /* スマホ向けに全画面表示する設定 */
+        body { margin: 0; padding: 0; background-color: #1a1a1a; }
+        #map { width: 100vw; height: 100vh; }
+        
+        /* ロゴなどの微調整 */
+        .leaflet-control-attribution { font-size: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // ===============================================
+        // 設定エリア (必要に応じて変えてください)
+        // ===============================================
+        
+        // 1. 最大ズームレベル
+        // tilesフォルダの中にある一番大きい数字のフォルダ名を見て、ここに入れてください
+        // (Pythonスクリプトの実行ログに「最大ズームレベル: 4」などと出ていた数字です)
+        const MAX_ZOOM = 5; 
+
+        // 2. 地図の背景色
+        const BG_COLOR = '#1a1a1a';
+
+        // ===============================================
+
+        // 地図の初期化 (CRS.Simple は、地球ではなく平面の画像を扱う設定)
+        var map = L.map('map', {
+            crs: L.CRS.Simple,
+            minZoom: 0,
+            maxZoom: MAX_ZOOM,
+            zoomControl: false // スマホで見やすくするため、ズームボタンを消す（ピンチ操作でOK）
+        });
+
+        // 座標の中心をセット (仮置き)
+        map.setView([-100, 100], 2);
+
+        // タイル画像を読み込む設定
+        L.tileLayer('tiles/{z}/{x}/{y}.png', {
+            tileSize: 256,
+            noWrap: true,
+            attribution: 'Map Data &copy; VEIN | Unofficial Guide'
+        }).addTo(map);
+
+        // --- ここからマーカーのテスト ---
+        
+        // 試しに1つピンを立ててみます (座標 y, x)
+        // ※CRS.Simpleでは [縦(y), 横(x)] の順になることが多いので注意して調整します
+        var marker = L.marker([-100, 100]).addTo(map);
+        marker.bindPopup("<b>Center Marker</b><br>地図の中心です。");
+
+        // クリックした場所の座標を表示する機能 (開発用)
+        // これを使って、後でピンを置きたい場所の座標を調べます
+        map.on('click', function(e) {
+            var coord = e.latlng;
+            L.popup()
+                .setLatLng(coord)
+                .setContent("座標: " + coord.lat.toFixed(1) + ", " + coord.lng.toFixed(1))
+                .openOn(map);
+            console.log("Clicked at:", coord);
+        });
+
+    </script>
+</body>
+</html>
