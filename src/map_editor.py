@@ -26,7 +26,7 @@ os.makedirs(SCREENSHOT_DIR, exist_ok=True)
 BASE_SLOTS = {
     "資源系": ["RES_PLANT", "RES_MINERAL", "RES_OTHER"],
     "アイテム系": ["ITEM_WEAPON", "ITEM_GEAR", "ITEM_OTHER"],
-    "場所・施設": ["LOC_BASE", "LOC_SETTLE", "LOC_CAVE", "LOC_POI"],
+    "場所・施設": ["LOC_BASE", "LOC_SETTLE", "LOC_CAVEorMINE", "LOC_POI"],
     "人物系": ["CHAR_NPC", "CHAR_TRADER", "CHAR_OTHER"],
     "その他": ["MISC_ENEMY", "MISC_QUEST", "MISC_OTHER"]
 }
