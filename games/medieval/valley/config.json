@@ -1,0 +1,27 @@
+{
+    "title": "Strategy Map Editor - valley",
+    "orig_w": 4000,
+    "orig_h": 2828,
+    "map_file": "valley.png",
+    "save_file": "master_data.csv",
+    "cat_mapping": {
+        "RES_PLANT": "植物",
+        "RES_MINERAL": "鉱物",
+        "RES_OTHER": "",
+        "ITEM_WEAPON": "",
+        "ITEM_GEAR": "ツール類",
+        "ITEM_OTHER": "その他アイテム",
+        "LOC_BASE": "拠点",
+        "LOC_SETTLE": "",
+        "LOC_CAVEorMINE": "洞窟・坑道",
+        "LOC_POI": "ランドマーク",
+        "CHAR_NPC": "重要NPC",
+        "CHAR_TRADER": "",
+        "CHAR_OTHER": "",
+        "MISC_ENEMY": "敵",
+        "MISC_QUEST": "クエスト",
+        "MISC_OTHER": ""
+    },
+    "flag1_label": "",
+    "flag2_label": ""
+}
