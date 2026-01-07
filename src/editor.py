@@ -404,6 +404,7 @@ class MapEditor(ctk.CTkToplevel):
         if not n_jp and not self.current_uid: return
         rev_map = {v: k for k, v in self.cat_mapping.items()}
 
+        # 改行を <br> に変換したものを一時変数に入れる
         memo_jp_text = self.txt_memo_jp.get("1.0", "end-1c").replace("\n", "<br>")
         memo_en_text = self.txt_memo_en.get("1.0", "end-1c").replace("\n", "<br>")
         
@@ -415,8 +416,9 @@ class MapEditor(ctk.CTkToplevel):
             'name_en': self.ent_name_en.get(),
             'category': rev_map.get(self.cmb_cat.get(), "MISC_OTHER"),
             'importance': self.cmb_imp.get(),
-            'memo_jp': self.txt_memo_jp.get("1.0", "end-1c"),
-            'memo_en': self.txt_memo_en.get("1.0", "end-1c")
+            # ★正しくはこうです
+            'memo_jp': memo_jp_text, 
+            'memo_en': memo_en_text
         }
         if self.current_uid:
             for d in self.data_list:
