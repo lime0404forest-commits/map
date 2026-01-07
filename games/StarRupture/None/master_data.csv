@@ -1,2 +1,5 @@
 ﻿uid,x,y,name_jp,name_en,category,importance,memo_jp,memo_en
 p_1767799892,1588.0221515956457,816.4038675947062,遺体,Dead Body,ITEM_OTHER,1,戦時債権12<br>ピストル弾薬23<br>ツノメドリ3,
+p_1767807182,2272.401850887892,1411.678916195188,ストレージボックス,Storage Box,MISC_QUEST,1,設計図：スタビライザ,BluePrint：Stabilizer
+p_1767807380,1610.3368926551493,932.5918931087734,ドローンの残骸,Drone Wreck,ITEM_GEAR,1,損傷したマザーボード,
+p_1767807479,1970.446633558537,808.8618795676094,遺体,Dead Body,ITEM_OTHER,1,戦時債権10,War Bond 10
