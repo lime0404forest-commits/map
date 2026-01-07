@@ -7,6 +7,8 @@ import csv
 import math
 from datetime import datetime
 from PIL import Image, ImageTk
+
+# 外部モジュールのインポート
 from .constants import GAMES_ROOT
 from .utils import save_cropped_image_with_annotations
 
@@ -16,32 +18,40 @@ class MapEditor(ctk.CTkToplevel):
         self.game_path = os.path.join(GAMES_ROOT, game_name, region_name)
         self.tile_dir = os.path.join(self.game_path, "tiles")
         
+        # 1. コンフィグ読み込み
         config_p = os.path.join(self.game_path, "config.json")
-        with open(config_p, "r", encoding="utf-8") as f: self.config = json.load(f)
+        with open(config_p, "r", encoding="utf-8") as f: 
+            self.config = json.load(f)
         
+        # 2. 画像サイズの取得と記録
         if "orig_w" not in self.config:
             m_path = os.path.join(self.game_path, self.config.get("map_file", "map.png"))
             if os.path.exists(m_path):
-                with Image.open(m_path) as tmp: self.config["orig_w"], self.config["orig_h"] = tmp.size
-                with open(config_p, "w", encoding="utf-8") as f: json.dump(self.config, f, indent=4, ensure_ascii=False)
+                with Image.open(m_path) as tmp: 
+                    self.config["orig_w"], self.config["orig_h"] = tmp.size
+                with open(config_p, "w", encoding="utf-8") as f: 
+                    json.dump(self.config, f, indent=4, ensure_ascii=False)
 
         self.orig_w = self.config["orig_w"]
         self.orig_h = self.config["orig_h"]
-        self.orig_max_dim = max(self.orig_w, self.orig_h)
         
+        # 3. ズームレベルの特定
         zooms = [int(d) for d in os.listdir(self.tile_dir) if d.isdigit()]
         self.max_zoom = max(zooms) if zooms else 0
-        self.zoom = float(self.max_zoom) - 0.5
         
+        # ★★★ 健全な設計：分母をタイルの器のサイズに同期 ★★★
+        self.orig_max_dim = (2 ** self.max_zoom) * 256 
+        
+        self.zoom = float(self.max_zoom) - 0.5
         self.title(f"Editor - {game_name} ({region_name})")
         self.geometry("1650x950")
         
+        # 状態変数
         self.data_list = []
         self.current_uid = None
         self.temp_coords = None
         self.is_autoscrolling = False
         self.tile_cache = {}
-        
         self.is_crop_mode = False
         self.crop_box = {"x": 100, "y": 100, "w": 640, "h": 360}
         self.drag_mode = None
@@ -60,9 +70,11 @@ class MapEditor(ctk.CTkToplevel):
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
         
+        # キャンバス
         self.canvas = tk.Canvas(self, bg="#0d0d0d", highlightthickness=0)
         self.canvas.grid(row=0, column=1, sticky="nsew")
         
+        # サイドバー
         self.sidebar = ctk.CTkFrame(self, width=450, corner_radius=0)
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         
@@ -74,6 +86,7 @@ class MapEditor(ctk.CTkToplevel):
         self.scroll_body = ctk.CTkScrollableFrame(self.sidebar, fg_color="transparent")
         self.scroll_body.pack(expand=True, fill="both", padx=10, pady=10)
         
+        # フィルタ
         f_filter = ctk.CTkFrame(self.scroll_body, fg_color="#161616")
         f_filter.pack(fill="x", padx=10, pady=5)
         
@@ -86,6 +99,7 @@ class MapEditor(ctk.CTkToplevel):
         for n in self.display_names:
             ctk.CTkCheckBox(f_filter, text=n, variable=self.filter_vars[n], command=self.refresh_map).pack(anchor="w", padx=15, pady=3)
 
+        # 入力項目
         self.ent_name_jp = self.create_input("▼ 日本語名")
         self.ent_name_en = self.create_input("▼ 英語名")
         ctk.CTkLabel(self.scroll_body, text="▼ カテゴリ").pack(anchor="w", padx=20, pady=(10,0))
@@ -98,6 +112,7 @@ class MapEditor(ctk.CTkToplevel):
         self.txt_memo_jp = self.create_textbox("▼ 詳細メモ (日本語)")
         self.txt_memo_en = self.create_textbox("▼ Memo (English)")
 
+        # フッターボタン
         f_foot = ctk.CTkFrame(self.sidebar, fg_color="transparent")
         f_foot.pack(fill="x", side=tk.BOTTOM, padx=20, pady=20)
         ctk.CTkButton(f_foot, text="ピン保存 (Ctrl+Enter)", command=self.save_data, fg_color="#2980b9", height=50, font=("Meiryo", 14, "bold")).pack(fill="x", pady=5)
@@ -116,6 +131,7 @@ class MapEditor(ctk.CTkToplevel):
         self.btn_arrow = ctk.CTkButton(f_ann, text="🏹 矢印", command=lambda: self.set_tool("arrow"), state="disabled", width=110, fg_color="#3b8ed0")
         self.btn_arrow.pack(side=tk.LEFT, padx=2)
 
+        # バインド
         self.canvas.bind("<MouseWheel>", self.on_zoom)
         self.canvas.bind("<Button-1>", self.on_left_down)
         self.canvas.bind("<B1-Motion>", self.on_left_drag)
@@ -168,7 +184,7 @@ class MapEditor(ctk.CTkToplevel):
             px, py = d['x']*r, d['y']*r
             self.canvas.create_oval(px-6, py-6, px+6, py+6, fill="#f1c40f" if (d['uid']==self.current_uid) else "#e67e22", outline="white", width=2)
 
-        # ★★★ 新規登録用の一時マーカー（これが抜けていました！） ★★★
+        # 一時マーカー
         if self.temp_coords and not self.current_uid:
             tx, ty = self.temp_coords[0]*r, self.temp_coords[1]*r
             self.canvas.create_line(tx-15, ty, tx+15, ty, fill="cyan", width=2)

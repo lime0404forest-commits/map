@@ -1,0 +1,3 @@
+# Ignore all tiles in this directory
+*
+!.gitignore
