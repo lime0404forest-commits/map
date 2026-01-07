@@ -403,6 +403,10 @@ class MapEditor(ctk.CTkToplevel):
         n_jp = self.ent_name_jp.get()
         if not n_jp and not self.current_uid: return
         rev_map = {v: k for k, v in self.cat_mapping.items()}
+
+        memo_jp_text = self.txt_memo_jp.get("1.0", "end-1c").replace("\n", "<br>")
+        memo_en_text = self.txt_memo_en.get("1.0", "end-1c").replace("\n", "<br>")
+        
         dr = {
             'uid': self.current_uid or f"p_{int(datetime.now().timestamp())}",
             'x': self.temp_coords[0] if not self.current_uid else None,
