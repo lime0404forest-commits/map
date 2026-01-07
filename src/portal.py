@@ -4,6 +4,7 @@ import shutil
 import tkinter as tk
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
+# 以下のモジュールはプロジェクト内に存在することを前提としています
 from .constants import GAMES_ROOT
 from .editor import MapEditor
 from .utils import create_tiles_from_image
@@ -17,11 +18,18 @@ class Portal(ctk.CTk):
         self.setup_main_ui()
 
     def setup_main_ui(self):
-        for child in self.winfo_children(): child.destroy()
+        # 画面初期化
+        for child in self.winfo_children(): 
+            child.destroy()
+            
         ctk.CTkLabel(self, text="Game Selection", font=("Meiryo", 26, "bold")).pack(pady=25)
         
         self.scroll = ctk.CTkScrollableFrame(self, width=520, height=550)
         self.scroll.pack(pady=10, padx=20, fill="both", expand=True)
+
+        # GAMES_ROOTが存在しない場合のハンドリング（念のため）
+        if not os.path.exists(GAMES_ROOT):
+            os.makedirs(GAMES_ROOT)
 
         games = [d for d in os.listdir(GAMES_ROOT) if os.path.isdir(os.path.join(GAMES_ROOT, d))]
         for g in games:
@@ -35,7 +43,9 @@ class Portal(ctk.CTk):
                      command=self.add_game).pack(pady=25)
 
     def show_regions(self, game_name):
-        for child in self.winfo_children(): child.destroy()
+        for child in self.winfo_children(): 
+            child.destroy()
+            
         self.current_game = game_name
         
         f_nav = ctk.CTkFrame(self, fg_color="transparent")
@@ -61,18 +71,32 @@ class Portal(ctk.CTk):
                      command=self.setup_new_region).pack(pady=25)
 
     def add_game(self):
-        name = filedialog.askstring("新規登録", "ゲームタイトルを入力")
+        # 【修正】CTkInputDialogを使用（以前のエラー箇所）
+        dialog = ctk.CTkInputDialog(text="ゲームタイトルを入力", title="新規登録")
+        name = dialog.get_input()
+        
         if name:
             os.makedirs(os.path.join(GAMES_ROOT, name), exist_ok=True)
             self.setup_main_ui()
 
     def setup_new_region(self):
-        reg_name = filedialog.askstring("新規マップ", "地域名 (例: Valley)")
-        if not reg_name: return
+        # 【修正】CTkInputDialogを使用（以前のエラー箇所）
+        dialog = ctk.CTkInputDialog(text="地域名 (例: Valley)", title="新規マップ")
+        reg_name = dialog.get_input()
+        
+        if not reg_name: 
+            return
+            
+        # 画像選択はtkinter標準のfiledialogを使用（これは正しい）
         img_path = filedialog.askopenfilename(title="地図画像を選択")
-        if not img_path: return
+        if not img_path: 
+            return
         
         target_dir = os.path.join(GAMES_ROOT, self.current_game, reg_name)
+        if os.path.exists(target_dir):
+            messagebox.showerror("エラー", "その地域名は既に存在します")
+            return
+
         os.makedirs(target_dir, exist_ok=True)
         
         self.process_new_map(img_path, target_dir)
@@ -102,9 +126,14 @@ class Portal(ctk.CTk):
             messagebox.showinfo("完了", "タイル化が完了しました！")
         except Exception as e:
             messagebox.showerror("エラー", f"失敗しました: {e}")
+            # 失敗時は作りかけのディレクトリを掃除する等の処理があっても良い
         finally:
             popup.destroy()
 
     def launch_editor(self, game, region):
         self.withdraw()
         MapEditor(self, game, region)
+
+if __name__ == "__main__":
+    app = Portal()
+    app.mainloop()

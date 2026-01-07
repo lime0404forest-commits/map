@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 import customtkinter as ctk
 import os
 import json
@@ -6,7 +7,6 @@ import csv
 import math
 from datetime import datetime
 from PIL import Image, ImageTk
-from tkinter import messagebox
 from .constants import GAMES_ROOT
 from .utils import save_cropped_image_with_annotations
 
@@ -16,7 +16,6 @@ class MapEditor(ctk.CTkToplevel):
         self.game_path = os.path.join(GAMES_ROOT, game_name, region_name)
         self.tile_dir = os.path.join(self.game_path, "tiles")
         
-        # 設定ロードと自動修復
         config_p = os.path.join(self.game_path, "config.json")
         with open(config_p, "r", encoding="utf-8") as f: self.config = json.load(f)
         
@@ -37,14 +36,12 @@ class MapEditor(ctk.CTkToplevel):
         self.title(f"Editor - {game_name} ({region_name})")
         self.geometry("1650x950")
         
-        # 内部変数
         self.data_list = []
         self.current_uid = None
         self.temp_coords = None
         self.is_autoscrolling = False
         self.tile_cache = {}
         
-        # クロップ/アノテーション関連
         self.is_crop_mode = False
         self.crop_box = {"x": 100, "y": 100, "w": 640, "h": 360}
         self.drag_mode = None
@@ -54,11 +51,8 @@ class MapEditor(ctk.CTkToplevel):
 
         self.setup_ui()
         self.load_csv()
-        
-        # 起動時の描画安定化
         self.update_idletasks()
         self.after(100, self.refresh_map)
-        
         self.run_autoscroll_loop()
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
@@ -72,7 +66,6 @@ class MapEditor(ctk.CTkToplevel):
         self.sidebar = ctk.CTkFrame(self, width=450, corner_radius=0)
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         
-        # 座標表示
         f_top = ctk.CTkFrame(self.sidebar, fg_color="#34495e", corner_radius=0)
         f_top.pack(fill="x")
         self.lbl_coords = ctk.CTkLabel(f_top, text="座標: ---", font=("Meiryo", 16, "bold"))
@@ -81,8 +74,6 @@ class MapEditor(ctk.CTkToplevel):
         self.scroll_body = ctk.CTkScrollableFrame(self.sidebar, fg_color="transparent")
         self.scroll_body.pack(expand=True, fill="both", padx=10, pady=10)
         
-        # フィルタ
-        ctk.CTkLabel(self.scroll_body, text="表示フィルタ", font=("Meiryo", 13, "bold")).pack(anchor="w", padx=15, pady=(10, 5))
         f_filter = ctk.CTkFrame(self.scroll_body, fg_color="#161616")
         f_filter.pack(fill="x", padx=10, pady=5)
         
@@ -95,7 +86,6 @@ class MapEditor(ctk.CTkToplevel):
         for n in self.display_names:
             ctk.CTkCheckBox(f_filter, text=n, variable=self.filter_vars[n], command=self.refresh_map).pack(anchor="w", padx=15, pady=3)
 
-        # フォーム
         self.ent_name_jp = self.create_input("▼ 日本語名")
         self.ent_name_en = self.create_input("▼ 英語名")
         ctk.CTkLabel(self.scroll_body, text="▼ カテゴリ").pack(anchor="w", padx=20, pady=(10,0))
@@ -108,7 +98,6 @@ class MapEditor(ctk.CTkToplevel):
         self.txt_memo_jp = self.create_textbox("▼ 詳細メモ (日本語)")
         self.txt_memo_en = self.create_textbox("▼ Memo (English)")
 
-        # ボタン類
         f_foot = ctk.CTkFrame(self.sidebar, fg_color="transparent")
         f_foot.pack(fill="x", side=tk.BOTTOM, padx=20, pady=20)
         ctk.CTkButton(f_foot, text="ピン保存 (Ctrl+Enter)", command=self.save_data, fg_color="#2980b9", height=50, font=("Meiryo", 14, "bold")).pack(fill="x", pady=5)
@@ -127,7 +116,6 @@ class MapEditor(ctk.CTkToplevel):
         self.btn_arrow = ctk.CTkButton(f_ann, text="🏹 矢印", command=lambda: self.set_tool("arrow"), state="disabled", width=110, fg_color="#3b8ed0")
         self.btn_arrow.pack(side=tk.LEFT, padx=2)
 
-        # バインド
         self.canvas.bind("<MouseWheel>", self.on_zoom)
         self.canvas.bind("<Button-1>", self.on_left_down)
         self.canvas.bind("<B1-Motion>", self.on_left_drag)
@@ -162,6 +150,7 @@ class MapEditor(ctk.CTkToplevel):
         ts = int(256 * s_diff)
         vl, vt = self.canvas.canvasx(0), self.canvas.canvasy(0)
         
+        # タイル
         for tx in range(int(vl//ts), int((vl+cw)//ts)+1):
             for ty in range(int(vt//ts), int((vt+ch)//ts)+1):
                 path = os.path.join(self.tile_dir, str(z_src), str(tx), f"{ty}.webp")
@@ -171,12 +160,22 @@ class MapEditor(ctk.CTkToplevel):
                         self.tile_cache[key] = ImageTk.PhotoImage(Image.open(path).resize((ts, ts), Image.Resampling.NEAREST))
                     self.canvas.create_image(tx*ts, ty*ts, anchor="nw", image=self.tile_cache[key])
 
+        # 既存ピン
         for d in self.data_list:
             cn = self.cat_mapping.get(d['category'], "")
             if cn in self.filter_vars and not self.filter_vars[cn].get(): continue
+            if self.show_incomplete_only.get() and all([d.get('name_jp'), d.get('memo_jp')]): continue
             px, py = d['x']*r, d['y']*r
             self.canvas.create_oval(px-6, py-6, px+6, py+6, fill="#f1c40f" if (d['uid']==self.current_uid) else "#e67e22", outline="white", width=2)
 
+        # ★★★ 新規登録用の一時マーカー（これが抜けていました！） ★★★
+        if self.temp_coords and not self.current_uid:
+            tx, ty = self.temp_coords[0]*r, self.temp_coords[1]*r
+            self.canvas.create_line(tx-15, ty, tx+15, ty, fill="cyan", width=2)
+            self.canvas.create_line(tx, ty-15, tx, ty+15, fill="cyan", width=2)
+            self.canvas.create_oval(tx-8, ty-8, tx+8, ty+8, outline="cyan", width=2)
+
+        # クロップ関連
         if self.is_crop_mode:
             bx, by, bw, bh = self.crop_box["x"]*r, self.crop_box["y"]*r, self.crop_box["w"]*r, self.crop_box["h"]*r
             self.canvas.create_rectangle(bx, by, bx+bw, by+bh, outline="#2ecc71", width=3, dash=(10,5))
@@ -184,11 +183,18 @@ class MapEditor(ctk.CTkToplevel):
             
             if self.here_pos:
                 hx, hy = self.here_pos["x"]*r, self.here_pos["y"]*r
-                self.canvas.create_oval(hx-20, hy-20, hx+20, hy+20, outline="red", width=5)
-                self.canvas.create_text(hx, hy-38, text="HERE", fill="red", font=("Arial Black", 16, "bold"))
+                self.canvas.create_oval(hx-20, hy-20, hx+20, hy+20, outline="white", width=4)
+                self.canvas.create_oval(hx-20, hy-20, hx+20, hy+20, outline="#e74c3c", width=3)
+                txt = "HERE"
+                font_spec = ("Arial Black", 14, "bold")
+                for ox, oy in [(-1,0), (1,0), (0,-1), (0,1)]:
+                    self.canvas.create_text(hx+ox, hy-45+oy, text=txt, fill="white", font=font_spec)
+                self.canvas.create_text(hx, hy-45, text=txt, fill="#e74c3c", font=font_spec)
+            
             if self.arrow_pos:
                 ax, ay = self.arrow_pos["x"]*r, self.arrow_pos["y"]*r
-                self.canvas.create_line(ax+50, ay+50, ax+10, ay+10, fill="red", width=8, arrow=tk.LAST, arrowshape=(20,25,10))
+                self.canvas.create_line(ax+60, ay+60, ax+10, ay+10, fill="white", width=16, arrow=tk.LAST, arrowshape=(24, 30, 10))
+                self.canvas.create_line(ax+60, ay+60, ax+10, ay+10, fill="#e74c3c", width=12, arrow=tk.LAST, arrowshape=(22, 28, 8))
 
         self.canvas.config(scrollregion=(0, 0, self.orig_w*r, self.orig_h*r))
 
@@ -264,7 +270,7 @@ class MapEditor(ctk.CTkToplevel):
         self.btn_crop_exec.configure(state=st)
         self.btn_here.configure(state=st, fg_color="#3b8ed0")
         self.btn_arrow.configure(state=st, fg_color="#3b8ed0")
-        self.btn_crop_mode.configure(text="✂ 終了" if self.is_crop_mode else "✂ クロップ開始")
+        self.btn_crop_mode.configure(text="✂ クロップ終了" if self.is_crop_mode else "✂ クロップ開始")
         if not self.is_crop_mode: self.here_pos = self.arrow_pos = None
         self.refresh_map()
 
@@ -282,7 +288,6 @@ class MapEditor(ctk.CTkToplevel):
         self.refresh_map()
 
     def execute_crop(self):
-        # 委譲した処理を呼び出す
         try:
             path, sdir = save_cropped_image_with_annotations(
                 self.game_path, 

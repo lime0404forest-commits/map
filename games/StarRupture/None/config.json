@@ -1,0 +1,11 @@
+{
+    "orig_w": 2985,
+    "orig_h": 3155,
+    "map_file": "map.png",
+    "save_file": "master_data.csv",
+    "cat_mapping": {
+        "LOC_BASE": "拠点",
+        "RES_MINERAL": "鉱物",
+        "LOC_POI": "ランドマーク"
+    }
+}
