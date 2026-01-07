@@ -4,8 +4,24 @@
     "map_file": "map.png",
     "save_file": "master_data.csv",
     "cat_mapping": {
-        "LOC_BASE": "拠点",
+        "RES_PLANT": "",
         "RES_MINERAL": "鉱物",
-        "LOC_POI": "ランドマーク"
+        "RES_OTHER": "",
+        "ITEM_WEAPON": "",
+        "ITEM_GEAR": "",
+        "ITEM_OTHER": "遺体・ドローンの残骸",
+        "LOC_BASE": "拠点",
+        "LOC_SETTLE": "",
+        "LOC_CAVEorMINE": "地下洞窟",
+        "LOC_POI": "POI",
+        "CHAR_NPC": "",
+        "CHAR_TRADER": "",
+        "CHAR_OTHER": "",
+        "MISC_ENEMY": "",
+        "MISC_QUEST": "",
+        "MISC_OTHER": "",
+        "LOC_MEMO": "",
+        "LOC_SPARE_1": "",
+        "LOC_SPARE_2": ""
     }
 }

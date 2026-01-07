@@ -1,13 +1,12 @@
+import customtkinter as ctk
+import tkinter as tk
+from tkinter import filedialog, messagebox
 import os
 import json
 import shutil
-import tkinter as tk
-import customtkinter as ctk
-from tkinter import filedialog, messagebox
-# 以下のモジュールはプロジェクト内に存在することを前提としています
 from .constants import GAMES_ROOT
 from .editor import MapEditor
-from .utils import create_tiles_from_image
+from .utils import create_tiles_from_image # ★utilsを使うように修正
 
 class Portal(ctk.CTk):
     def __init__(self):
@@ -18,18 +17,11 @@ class Portal(ctk.CTk):
         self.setup_main_ui()
 
     def setup_main_ui(self):
-        # 画面初期化
-        for child in self.winfo_children(): 
-            child.destroy()
-            
+        for child in self.winfo_children(): child.destroy()
         ctk.CTkLabel(self, text="Game Selection", font=("Meiryo", 26, "bold")).pack(pady=25)
         
         self.scroll = ctk.CTkScrollableFrame(self, width=520, height=550)
         self.scroll.pack(pady=10, padx=20, fill="both", expand=True)
-
-        # GAMES_ROOTが存在しない場合のハンドリング（念のため）
-        if not os.path.exists(GAMES_ROOT):
-            os.makedirs(GAMES_ROOT)
 
         games = [d for d in os.listdir(GAMES_ROOT) if os.path.isdir(os.path.join(GAMES_ROOT, d))]
         for g in games:
@@ -43,9 +35,7 @@ class Portal(ctk.CTk):
                      command=self.add_game).pack(pady=25)
 
     def show_regions(self, game_name):
-        for child in self.winfo_children(): 
-            child.destroy()
-            
+        for child in self.winfo_children(): child.destroy()
         self.current_game = game_name
         
         f_nav = ctk.CTkFrame(self, fg_color="transparent")
@@ -53,7 +43,6 @@ class Portal(ctk.CTk):
         ctk.CTkButton(f_nav, text="<< Back", width=80, command=self.setup_main_ui).pack(side=tk.LEFT)
         
         ctk.CTkLabel(self, text=f"{game_name}", font=("Meiryo", 24, "bold")).pack(pady=5)
-        ctk.CTkLabel(self, text="Select Region Map", font=("Meiryo", 14), text_color="gray").pack()
         
         reg_scroll = ctk.CTkScrollableFrame(self, width=520, height=450)
         reg_scroll.pack(pady=10, padx=20, fill="both", expand=True)
@@ -71,69 +60,56 @@ class Portal(ctk.CTk):
                      command=self.setup_new_region).pack(pady=25)
 
     def add_game(self):
-        # 【修正】CTkInputDialogを使用（以前のエラー箇所）
-        dialog = ctk.CTkInputDialog(text="ゲームタイトルを入力", title="新規登録")
-        name = dialog.get_input()
-        
+        name = filedialog.askstring("新規登録", "ゲームタイトルを入力してください")
         if name:
             os.makedirs(os.path.join(GAMES_ROOT, name), exist_ok=True)
             self.setup_main_ui()
 
     def setup_new_region(self):
-        # 【修正】CTkInputDialogを使用（以前のエラー箇所）
-        dialog = ctk.CTkInputDialog(text="地域名 (例: Valley)", title="新規マップ")
-        reg_name = dialog.get_input()
-        
-        if not reg_name: 
-            return
-            
-        # 画像選択はtkinter標準のfiledialogを使用（これは正しい）
+        reg_name = filedialog.askstring("新規マップ", "地域名を入力してください (例: Valley)")
+        if not reg_name: return
         img_path = filedialog.askopenfilename(title="地図画像を選択")
-        if not img_path: 
-            return
+        if not img_path: return
         
         target_dir = os.path.join(GAMES_ROOT, self.current_game, reg_name)
-        if os.path.exists(target_dir):
-            messagebox.showerror("エラー", "その地域名は既に存在します")
-            return
-
         os.makedirs(target_dir, exist_ok=True)
         
+        # 処理実行
         self.process_new_map(img_path, target_dir)
         self.show_regions(self.current_game)
 
     def process_new_map(self, src_img, target_dir):
         popup = ctk.CTkToplevel(self)
-        popup.geometry("300x150")
+        popup.geometry("350x180")
+        popup.title("Processing...")
         popup.attributes("-topmost", True)
-        ctk.CTkLabel(popup, text="タイル化を実行中...\n完了までお待ちください", font=("Meiryo", 14)).pack(expand=True)
+        ctk.CTkLabel(popup, text="タイル化を実行中です...\n完了までお待ちください", font=("Meiryo", 14)).pack(expand=True)
         self.update()
 
         try:
-            # Utilsの関数を呼び出し
-            w, h = create_tiles_from_image(src_img, target_dir)
+            # ★ここで utils.py の関数を呼び出す（重複コード削除）
+            orig_w, orig_h = create_tiles_from_image(src_img, target_dir)
             
-            # 設定ファイルの保存
+            # Config生成
+            default_mapping = {
+                "LOC_BASE": "拠点", "LOC_ENEMY": "敵・ボス", 
+                "LOC_RESOURCE": "資源・素材", "LOC_TREASURE": "宝箱", "LOC_MEMO": "メモ"
+            }
             config = {
-                "orig_w": w, "orig_h": h,
+                "orig_w": orig_w, "orig_h": orig_h,
                 "map_file": "map.png",
                 "save_file": "master_data.csv",
-                "cat_mapping": {"LOC_BASE":"拠点", "RES_MINERAL":"鉱物", "LOC_POI":"ランドマーク"}
+                "cat_mapping": default_mapping
             }
             with open(os.path.join(target_dir, "config.json"), "w", encoding="utf-8") as f:
                 json.dump(config, f, indent=4, ensure_ascii=False)
-                
-            messagebox.showinfo("完了", "タイル化が完了しました！")
+            
+            messagebox.showinfo("完了", "タイル化が成功しました！")
         except Exception as e:
             messagebox.showerror("エラー", f"失敗しました: {e}")
-            # 失敗時は作りかけのディレクトリを掃除する等の処理があっても良い
         finally:
             popup.destroy()
 
     def launch_editor(self, game, region):
         self.withdraw()
         MapEditor(self, game, region)
-
-if __name__ == "__main__":
-    app = Portal()
-    app.mainloop()

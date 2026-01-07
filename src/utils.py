@@ -7,15 +7,14 @@ from datetime import datetime
 def create_tiles_from_image(src_img_path, target_dir):
     """
     画像を読み込み、正方形の台紙の左上に貼り付けてからタイル化する。
-    また、タイル画像がGit管理対象にならないよう .gitignore を自動生成する。
     """
     img = Image.open(src_img_path).convert('RGB')
     original_w, original_h = img.size
     
-    # 元画像をそのままコピー（config生成やエディタでの読み込みに使用）
+    # 元画像をそのままコピー
     shutil.copy(src_img_path, os.path.join(target_dir, "map.png"))
     
-    # 1. 必要なキャンバスサイズ（2の累乗）を計算
+    # キャンバスサイズ計算（ズレ防止）
     max_dim = max(original_w, original_h)
     max_zoom = math.ceil(math.log(max_dim / 256, 2))
     canvas_size = (2 ** max_zoom) * 256
@@ -23,30 +22,22 @@ def create_tiles_from_image(src_img_path, target_dir):
     print(f"--- タイル生成開始 ---")
     print(f"元サイズ: {original_w}x{original_h} -> 台紙サイズ: {canvas_size}x{canvas_size} (MaxZoom: {max_zoom})")
 
-    # 2. 黒い背景を作成し、元画像を「左上(0,0)」に貼り付ける
     base_image = Image.new('RGB', (canvas_size, canvas_size), (0, 0, 0))
     base_image.paste(img, (0, 0)) 
     
     tile_dir = os.path.join(target_dir, "tiles")
-    
-    # ★修正箇所: ファイルを書き込む前にディレクトリを作成する
-    os.makedirs(tile_dir, exist_ok=True) 
+    os.makedirs(tile_dir, exist_ok=True)
 
-    # --- .gitignore の生成 ---
+    # .gitignore 生成
     gitignore_path = os.path.join(tile_dir, ".gitignore")
     if not os.path.exists(gitignore_path):
         with open(gitignore_path, "w", encoding="utf-8") as f:
-            f.write("# Ignore all tiles in this directory\n")
-            f.write("*\n")
-            f.write("!.gitignore\n")
-        print(f"Notice: .gitignore generated in {tile_dir}")
+            f.write("# Ignore all tiles\n*\n!.gitignore\n")
 
-    # 3. ズームレベルごとに縮小してタイル分割
+    # タイル生成ループ
     for zoom in range(max_zoom, -1, -1):
         num_tiles = 2 ** zoom
         current_dim = num_tiles * 256
-        
-        # リサイズ（高品質なLANCZOSフィルタを使用）
         if zoom == max_zoom:
             resized_img = base_image
         else:
@@ -58,21 +49,12 @@ def create_tiles_from_image(src_img_path, target_dir):
         for x in range(num_tiles):
             x_dir = os.path.join(z_dir, str(x))
             os.makedirs(x_dir, exist_ok=True)
-            
             for y in range(num_tiles):
-                box = (
-                    x * 256, 
-                    y * 256, 
-                    (x + 1) * 256, 
-                    (y + 1) * 256
-                )
-                tile = resized_img.crop(box)
-                # 保存（webp形式）
+                tile = resized_img.crop((x*256, y*256, (x+1)*256, (y+1)*256))
                 tile.save(os.path.join(x_dir, f"{y}.webp"), "WEBP", quality=80)
         
-        print(f"Zoom level {zoom} 完了")
+        print(f"Zoom {zoom} 完了")
 
-    print(f"--- すべてのタイル生成が完了しました ---")
     return original_w, original_h
 
 def save_cropped_image_with_annotations(game_path, map_file, crop_box, orig_w, orig_h, here_pos, arrow_pos):
@@ -104,9 +86,8 @@ def save_cropped_image_with_annotations(game_path, map_file, crop_box, orig_w, o
         
         if here_pos:
             hx, hy = here_pos["x"] - left, here_pos["y"] - top
-            r_in, r_out = 18, 20
-            draw.ellipse([hx-r_out, hy-r_out, hx+r_out, hy+r_out], outline="white", width=4)
-            draw.ellipse([hx-r_in, hy-r_in, hx+r_in, hy+r_in], outline="#e74c3c", width=4)
+            draw.ellipse([hx-20, hy-20, hx+20, hy+20], outline="white", width=4)
+            draw.ellipse([hx-18, hy-18, hx+18, hy+18], outline="#e74c3c", width=4)
             draw.text((hx, hy-30), "HERE", font=font, fill="#e74c3c", stroke_width=2, stroke_fill="white", anchor="md")
         
         if arrow_pos:
@@ -118,5 +99,4 @@ def save_cropped_image_with_annotations(game_path, map_file, crop_box, orig_w, o
             draw.polygon([(ax + 5, ay + 5), (ax + 35, ay + 12), (ax + 12, ay + 35)], fill="#e74c3c")
             
         cropped.save(save_path, "PNG")
-        
     return save_path, save_dir

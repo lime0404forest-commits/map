@@ -5,59 +5,114 @@ import os
 import json
 import csv
 import math
+import subprocess
 from datetime import datetime
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageDraw
 
-# 外部モジュールのインポート
 from .constants import GAMES_ROOT
 from .utils import save_cropped_image_with_annotations
 
+# 役割定義（SettingsWindowで使用）
+BASE_SLOTS = {
+    "資源系": ["RES_PLANT", "RES_MINERAL", "RES_OTHER"],
+    "アイテム系": ["ITEM_WEAPON", "ITEM_GEAR", "ITEM_OTHER"],
+    "場所・施設": ["LOC_BASE", "LOC_SETTLE", "LOC_CAVEorMINE", "LOC_POI"],
+    "人物系": ["CHAR_NPC", "CHAR_TRADER", "CHAR_OTHER"],
+    "その他": ["MISC_ENEMY", "MISC_QUEST", "MISC_OTHER", "LOC_MEMO", "LOC_SPARE_1", "LOC_SPARE_2"]
+}
+
+# ==========================================
+# 環境設定ウィンドウ（ここに復活）
+# ==========================================
+class SettingsWindow(ctk.CTkToplevel):
+    def __init__(self, parent, config_path, current_config):
+        super().__init__(parent)
+        self.title("環境設定")
+        self.geometry("550x850")
+        self.attributes("-topmost", True)
+        self.parent = parent
+        self.config_path = config_path
+        self.config = current_config
+        self.setup_ui()
+
+    def setup_ui(self):
+        scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
+        scroll.pack(expand=True, fill="both", padx=10, pady=10)
+        lbl_f = ("Meiryo", 12, "bold")
+        
+        self.cat_entries = {}
+        # 現在の設定値を読み込んでフォーム生成
+        for group, slots in BASE_SLOTS.items():
+            ctk.CTkLabel(scroll, text=f"■ {group}", font=lbl_f).pack(anchor="w", pady=(20, 5))
+            for slot_id in slots:
+                val = self.config.get("cat_mapping", {}).get(slot_id, "")
+                self.cat_entries[slot_id] = self.create_mapping_input(scroll, slot_id, val)
+
+        ctk.CTkButton(self, text="設定を保存して反映", command=self.apply, fg_color="#27ae60", height=45).pack(pady=20)
+
+    def create_mapping_input(self, m, slot_id, v):
+        f = ctk.CTkFrame(m, fg_color="transparent"); f.pack(fill="x", pady=2)
+        ctk.CTkLabel(f, text=f"{slot_id} :", width=120, anchor="e", font=("Consolas", 10)).pack(side=tk.LEFT)
+        ent = ctk.CTkEntry(f, width=280, placeholder_text="未設定なら非表示"); ent.insert(0, v); ent.pack(side=tk.LEFT, padx=5); return ent
+
+    def apply(self):
+        new_mapping = {slot: ent.get() for slot, ent in self.cat_entries.items()}
+        self.config["cat_mapping"] = new_mapping
+        
+        # JSON保存
+        with open(self.config_path, "w", encoding="utf-8") as f:
+            json.dump(self.config, f, indent=4, ensure_ascii=False)
+        
+        messagebox.showinfo("完了", "設定を保存しました。画面を更新します。")
+        self.destroy()
+        # 親エディタのリロードを呼び出す
+        self.parent.reload_config()
+
+
+# ==========================================
+# メインエディタ
+# ==========================================
 class MapEditor(ctk.CTkToplevel):
     def __init__(self, master, game_name, region_name):
         super().__init__(master)
         self.game_path = os.path.join(GAMES_ROOT, game_name, region_name)
         self.tile_dir = os.path.join(self.game_path, "tiles")
+        self.config_path = os.path.join(self.game_path, "config.json")
         
         # 1. コンフィグ読み込み
-        config_p = os.path.join(self.game_path, "config.json")
-        with open(config_p, "r", encoding="utf-8") as f: 
-            self.config = json.load(f)
+        self.load_config()
         
-        # 2. 画像サイズの取得と記録
+        # 2. 画像サイズ確保
         if "orig_w" not in self.config:
             m_path = os.path.join(self.game_path, self.config.get("map_file", "map.png"))
             if os.path.exists(m_path):
-                with Image.open(m_path) as tmp: 
-                    self.config["orig_w"], self.config["orig_h"] = tmp.size
-                with open(config_p, "w", encoding="utf-8") as f: 
+                with Image.open(m_path) as tmp: self.config["orig_w"], self.config["orig_h"] = tmp.size
+                with open(self.config_path, "w", encoding="utf-8") as f: 
                     json.dump(self.config, f, indent=4, ensure_ascii=False)
 
-        self.orig_w = self.config["orig_w"]
-        self.orig_h = self.config["orig_h"]
+        self.orig_w, self.orig_h = self.config["orig_w"], self.config["orig_h"]
         
-        # 3. ズームレベルの特定
+        # 3. ズームレベル計算
         zooms = [int(d) for d in os.listdir(self.tile_dir) if d.isdigit()]
         self.max_zoom = max(zooms) if zooms else 0
+        self.zoom = float(self.max_zoom) - 0.5
         
-        # ★★★ 健全な設計：分母をタイルの器のサイズに同期 ★★★
+        # ★★★ 健全な設計：座標計算の分母をタイルシステム全体サイズに同期 ★★★
         self.orig_max_dim = (2 ** self.max_zoom) * 256 
         
-        self.zoom = float(self.max_zoom) - 0.5
         self.title(f"Editor - {game_name} ({region_name})")
         self.geometry("1650x950")
         
-        # 状態変数
-        self.data_list = []
-        self.current_uid = None
-        self.temp_coords = None
-        self.is_autoscrolling = False
-        self.tile_cache = {}
+        # 内部変数
+        self.data_list, self.current_uid, self.temp_coords = [], None, None
+        self.is_autoscrolling, self.tile_cache = False, {}
+        
+        # クロップ/アノテーション
         self.is_crop_mode = False
         self.crop_box = {"x": 100, "y": 100, "w": 640, "h": 360}
         self.drag_mode = None
         self.active_tool = None
-        self.here_pos = None
-        self.arrow_pos = None
+        self.here_pos = None; self.arrow_pos = None
 
         self.setup_ui()
         self.load_csv()
@@ -66,18 +121,38 @@ class MapEditor(ctk.CTkToplevel):
         self.run_autoscroll_loop()
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
-    def setup_ui(self):
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_rowconfigure(0, weight=1)
+    def load_config(self):
+        with open(self.config_path, "r", encoding="utf-8") as f: 
+            self.config = json.load(f)
+
+    # 設定画面から呼ばれるリロード処理
+    def reload_config(self):
+        self.load_config()
+        # カテゴリリストの再構築
+        self.cat_mapping = self.config.get("cat_mapping", {})
+        self.display_names = [v for v in self.cat_mapping.values() if v.strip()]
+        # プルダウンの選択肢更新
+        self.cmb_cat.configure(values=self.display_names)
+        # フィルタチェックボックスの更新（簡易的に全オンに戻す）
+        for widget in self.f_filter.winfo_children():
+            if isinstance(widget, ctk.CTkCheckBox) and widget.cget("text") != "⚠️ 未完成項目のみ":
+                widget.destroy()
         
-        # キャンバス
+        self.filter_vars = {n: tk.BooleanVar(value=True) for n in self.display_names}
+        for n in self.display_names:
+            ctk.CTkCheckBox(self.f_filter, text=n, variable=self.filter_vars[n], command=self.refresh_map).pack(anchor="w", padx=15, pady=3)
+        
+        self.refresh_map()
+
+    def setup_ui(self):
+        self.grid_columnconfigure(1, weight=1); self.grid_rowconfigure(0, weight=1)
         self.canvas = tk.Canvas(self, bg="#0d0d0d", highlightthickness=0)
         self.canvas.grid(row=0, column=1, sticky="nsew")
         
-        # サイドバー
         self.sidebar = ctk.CTkFrame(self, width=450, corner_radius=0)
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         
+        # サイドバー内容
         f_top = ctk.CTkFrame(self.sidebar, fg_color="#34495e", corner_radius=0)
         f_top.pack(fill="x")
         self.lbl_coords = ctk.CTkLabel(f_top, text="座標: ---", font=("Meiryo", 16, "bold"))
@@ -87,19 +162,20 @@ class MapEditor(ctk.CTkToplevel):
         self.scroll_body.pack(expand=True, fill="both", padx=10, pady=10)
         
         # フィルタ
-        f_filter = ctk.CTkFrame(self.scroll_body, fg_color="#161616")
-        f_filter.pack(fill="x", padx=10, pady=5)
+        ctk.CTkLabel(self.scroll_body, text="表示フィルタ", font=("Meiryo", 13, "bold")).pack(anchor="w", padx=15, pady=(10, 5))
+        self.f_filter = ctk.CTkFrame(self.scroll_body, fg_color="#161616")
+        self.f_filter.pack(fill="x", padx=10, pady=5)
         
         self.cat_mapping = self.config.get("cat_mapping", {})
         self.display_names = [v for v in self.cat_mapping.values() if v.strip()]
         self.filter_vars = {n: tk.BooleanVar(value=True) for n in self.display_names}
         self.show_incomplete_only = tk.BooleanVar(value=False)
         
-        ctk.CTkCheckBox(f_filter, text="⚠️ 未完成のみ", variable=self.show_incomplete_only, command=self.refresh_map, text_color="#e74c3c").pack(anchor="w", padx=15, pady=8)
+        ctk.CTkCheckBox(self.f_filter, text="⚠️ 未完成項目のみ", variable=self.show_incomplete_only, command=self.refresh_map, text_color="#e74c3c").pack(anchor="w", padx=15, pady=8)
         for n in self.display_names:
-            ctk.CTkCheckBox(f_filter, text=n, variable=self.filter_vars[n], command=self.refresh_map).pack(anchor="w", padx=15, pady=3)
+            ctk.CTkCheckBox(self.f_filter, text=n, variable=self.filter_vars[n], command=self.refresh_map).pack(anchor="w", padx=15, pady=3)
 
-        # 入力項目
+        # 入力フォーム
         self.ent_name_jp = self.create_input("▼ 日本語名")
         self.ent_name_en = self.create_input("▼ 英語名")
         ctk.CTkLabel(self.scroll_body, text="▼ カテゴリ").pack(anchor="w", padx=20, pady=(10,0))
@@ -117,6 +193,10 @@ class MapEditor(ctk.CTkToplevel):
         f_foot.pack(fill="x", side=tk.BOTTOM, padx=20, pady=20)
         ctk.CTkButton(f_foot, text="ピン保存 (Ctrl+Enter)", command=self.save_data, fg_color="#2980b9", height=50, font=("Meiryo", 14, "bold")).pack(fill="x", pady=5)
         
+        # ★復活した設定ボタン
+        ctk.CTkButton(f_foot, text="⚙ 環境設定 (カテゴリ編集)", command=self.open_settings, fg_color="#7f8c8d", height=30).pack(fill="x", pady=(5, 10))
+
+        # クロップツール
         f_crop = ctk.CTkFrame(f_foot, fg_color="#2c3e50")
         f_crop.pack(fill="x", pady=10)
         self.btn_crop_mode = ctk.CTkButton(f_crop, text="✂ クロップ開始", command=self.toggle_crop_mode, fg_color="#e67e22", width=140)
@@ -124,6 +204,7 @@ class MapEditor(ctk.CTkToplevel):
         self.btn_crop_exec = ctk.CTkButton(f_crop, text="保存実行", command=self.execute_crop, state="disabled", fg_color="#27ae60", width=100)
         self.btn_crop_exec.pack(side=tk.LEFT, pady=10)
         
+        # アノテーションツール
         f_ann = ctk.CTkFrame(f_foot, fg_color="transparent")
         f_ann.pack(fill="x")
         self.btn_here = ctk.CTkButton(f_ann, text="🔴 Here!", command=lambda: self.set_tool("here"), state="disabled", width=110, fg_color="#3b8ed0")
@@ -151,6 +232,10 @@ class MapEditor(ctk.CTkToplevel):
         txt = ctk.CTkTextbox(self.scroll_body, height=100)
         txt.pack(fill="x", padx=20, pady=5)
         return txt
+
+    # ★設定ウィンドウを開く
+    def open_settings(self):
+        SettingsWindow(self, self.config_path, self.config)
 
     def get_ratio(self):
         return ((2 ** self.zoom) * 256) / self.orig_max_dim
@@ -223,12 +308,9 @@ class MapEditor(ctk.CTkToplevel):
             b = self.crop_box
             bx, by, bw, bh = b["x"]*r, b["y"]*r, b["w"]*r, b["h"]*r
             if (bx+bw-20 <= mx <= bx+bw+5) and (by+bh-20 <= my <= by+bh+5):
-                self.drag_mode = "resize_br"
-                return
+                self.drag_mode = "resize_br"; return
             elif (b["x"] <= cx <= b["x"]+b["w"]) and (b["y"] <= cy <= b["y"]+b["h"]):
-                self.drag_mode = "move"
-                self.drag_offset = (cx - b["x"], cy - b["y"])
-                return
+                self.drag_mode = "move"; self.drag_offset = (cx - b["x"], cy - b["y"]); return
 
         self.drag_start = (event.x, event.y)
         self.has_dragged = False
