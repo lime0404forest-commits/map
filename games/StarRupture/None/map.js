@@ -43,7 +43,7 @@
         'RES_OTHER': styles.other, 'LOC_SETTLE': styles.other, 'CHAR_NPC': styles.other,
         'CHAR_TRADER': styles.other, 'CHAR_OTHER': styles.other, 'MISC_ENEMY': styles.other,
         'LOC_ENEMY': styles.other, 'MISC_QUEST': styles.other, 'MISC_OTHER': styles.other,
-        'LOC_MEMO': styles.other, 'LOC_SPARE_1': styles.other, 'LOC_SPARE_2': styles.other
+        'LOC_MEMO': styles.other
     };
 
     // マップ初期化
