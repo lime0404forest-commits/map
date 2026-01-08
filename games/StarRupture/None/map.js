@@ -21,7 +21,7 @@
         warbond:   { emoji: '💀', color: '#e74c3c', label: isJa ? '戦時債権' : 'War Bonds' },
         point:     { emoji: '💎', color: '#f1c40f', label: isJa ? 'ポイント交換' : 'Point Items' },
         lem:       { emoji: '⚡', color: '#9b59b6', label: isJa ? 'LEM' : 'LEM Gear' },
-        cave:      { emoji: '🕳️', color: '#7f8c8d', label: isJa ? '地下洞窟' : 'Caves' },
+        cave:      { emoji: '⛏️', color: '#7f8c8d', label: isJa ? '地下洞窟' : 'Caves' },
         monolith:  { emoji: '🗿', color: '#1abc9c', label: isJa ? 'モノリス' : 'Monoliths' },
         other:     { emoji: null, color: '#95a5a6', label: isJa ? 'その他' : 'Others' },
         trash:     { emoji: '❌', color: '#555555', label: isJa ? '調査済み(空)' : 'Checked(Empty)' }
