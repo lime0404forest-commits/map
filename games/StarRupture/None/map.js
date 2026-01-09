@@ -17,26 +17,16 @@
         warbond:   { emoji: '💀', color: '#e74c3c', label: isJa ? '戦時債権' : 'War Bonds' },
         point:     { emoji: '💎', color: '#f1c40f', label: isJa ? 'ポイント交換' : 'Point Items' },
         lem:       { emoji: '⚡', color: '#9b59b6', label: isJa ? 'LEM' : 'LEM Gear' },
-        cave:      { emoji: '⛏️', color: '#7f8c8d', label: isJa ? '地下洞窟' : 'Caves' }, // ここをつるはしに変更
+        cave:      { emoji: '⛏️', color: '#7f8c8d', label: isJa ? '地下洞窟' : 'Caves' },
         monolith:  { emoji: '🗿', color: '#1abc9c', label: isJa ? 'モノリス' : 'Monoliths' },
         other:     { emoji: null, color: '#95a5a6', label: isJa ? 'その他' : 'Others' },
         trash:     { emoji: '❌', color: '#555555', label: isJa ? '調査済み(空)' : 'Checked(Empty)' }
     };
 
     var catMapping = {
-        'LOC_SPARE_2': styles.scanner,
-        'LOC_BASE': styles.start,
-        'ITEM_WEAPON': styles.blueprint,
-        'ITEM_OTHER': styles.warbond,
-        'ITEM_GEAR': styles.point,
-        'ITEM_SPARE_1': styles.lem,
-        'LOC_CAVEorMINE': styles.cave,
-        'LOC_POI': styles.monolith,
-        'MISC_OTHER': styles.trash,
-        
-        // --- その他（丸ピン）グループ ---
-        // ★重要：ここから LOC_SPARE_1 や LOC_SPARE_2 を完全に削除しました。
-        // これらが残っていると、上の設定が「丸ピン」で上書きされてしまいます。
+        'LOC_SPARE_2': styles.scanner, 'LOC_BASE': styles.start, 'ITEM_WEAPON': styles.blueprint,
+        'ITEM_OTHER': styles.warbond, 'ITEM_GEAR': styles.point, 'ITEM_SPARE_1': styles.lem,
+        'LOC_CAVEorMINE': styles.cave, 'LOC_POI': styles.monolith, 'MISC_OTHER': styles.trash,
         'LOC_TREASURE': styles.other, 'RES_PLANT': styles.other, 'RES_MINERAL': styles.other,
         'RES_OTHER': styles.other, 'LOC_SETTLE': styles.other, 'CHAR_NPC': styles.other,
         'CHAR_TRADER': styles.other, 'CHAR_OTHER': styles.other, 'MISC_ENEMY': styles.other,
@@ -75,11 +65,9 @@
             var cols = rows[i].split(',');
             if (cols.length < 6) continue;
 
-            var x = parseFloat(cols[1]);
-            var y = parseFloat(cols[2]);
+            var x = parseFloat(cols[1]); var y = parseFloat(cols[2]);
             if (isNaN(x) || isNaN(y)) continue;
 
-            // カテゴリ名を大文字にして空白を除く
             var category = cols[5] ? cols[5].trim().toUpperCase() : "";
             if (category === 'MISC_OTHER' && !isDebug) continue;
 
@@ -113,6 +101,16 @@
             }
             p += '</div>';
             marker.bindPopup(p);
+
+            // ★ここが追加・変更点：ツールチップ（メモ表示）の設定
+            var tooltipText = memo ? memo : name; // メモがあればメモ、なければ名前
+            
+            marker.bindTooltip(tooltipText, {
+                direction: 'right', // 右側に表示（ピンの邪魔をしない）
+                sticky: true,       // マウスの動きに追従（重なり回避）
+                className: 'item-tooltip', // CSSでデザイン調整
+                opacity: 0.9
+            });
 
             if (!layers[style.label]) { layers[style.label] = L.layerGroup(); }
             marker.addTo(layers[style.label]);
