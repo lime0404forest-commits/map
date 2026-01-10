@@ -1,6 +1,7 @@
 (function() {
-    console.log("Map Script Loaded via GitHub (Fixed Version)");
+    console.log("Map Script Loaded via GitHub (Final Debug Version)");
 
+    // ★設定：フォルダが0～5ならmaxZoomは5
     var maxZoom = 5; 
     var imgW = 6253;
     var imgH = 7104;
@@ -26,7 +27,7 @@
 
     var catMapping = {
         'LOC_SPARE_2': styles.scanner, 'LOC_BASE': styles.start, 'ITEM_WEAPON': styles.blueprint,
-        'ITEM_OTHER': styles.warbond, 'ITEM_GEAR': styles.point, 'LOC_SPARE_1': styles.lem, // ←CSVに合わせてITEM_SPARE_1を修正
+        'ITEM_OTHER': styles.warbond, 'ITEM_GEAR': styles.point, 'LOC_SPARE_1': styles.lem,
         'LOC_CAVEorMINE': styles.cave, 'LOC_POI': styles.monolith, 'MISC_OTHER': styles.trash,
         'LOC_TREASURE': styles.other, 'RES_PLANT': styles.other, 'RES_MINERAL': styles.other,
         'RES_OTHER': styles.other, 'LOC_SETTLE': styles.other, 'CHAR_NPC': styles.other,
@@ -34,7 +35,9 @@
         'LOC_ENEMY': styles.other, 'MISC_QUEST': styles.other, 'LOC_MEMO': styles.other
     };
 
-    var map = L.map('game-map', {
+    // ★修正点：ここを 'var map =' から 'window.map =' に変えました。
+    // これでコンソールから map.project(...) が使えるようになります！
+    window.map = L.map('game-map', {
         crs: L.CRS.Simple, minZoom: 0, maxZoom: maxZoom, zoom: 2, maxBoundsViscosity: 0.8, preferCanvas: true
     });
 
@@ -66,7 +69,7 @@
         var rows = text.trim().split('\n');
         var layers = {};
 
-        // カンマ区切りだが引用符を考慮する正規表現パース
+        // カンマ区切り修正（"a,b",c に対応）
         function parseCSVRow(row) {
             const result = [];
             let current = '';
@@ -138,14 +141,11 @@
         var overlayMaps = {};
         Object.keys(styles).forEach(key => {
             if (key === 'trash' && !isDebug) return;
-            var styleObj = styles[key];
-            var lbl = styleObj.label;
+            var lbl = styles[key].label;
             
             if (layers[lbl]) {
                 overlayMaps[lbl] = layers[lbl];
-                
-                // ★ 1. 初期状態で表示しないカテゴリの判定
-                // モノリス(monolith), ジオスキャナー(scanner), 地下洞窟(cave) はAddToしない
+                // 初期非表示リスト
                 const hiddenKeys = ['monolith', 'scanner', 'cave'];
                 if (!hiddenKeys.includes(key)) {
                     layers[lbl].addTo(map);
