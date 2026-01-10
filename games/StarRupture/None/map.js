@@ -1,14 +1,13 @@
 (function() {
-    console.log("Map Script Loaded via GitHub (Final Fixed Version 2)");
+    console.log("Map Script Loaded via GitHub (Final Fixed Version 4)");
 
     var maxZoom = 5; 
     var imgW = 6253;
     var imgH = 7104;
+    var mapPadding = 1500; 
 
     var csvUrl = 'https://raw.githubusercontent.com/lime0404forest-commits/map/main/games/StarRupture/None/master_data.csv';
-    
-    // キャッシュ対策URL
-    var tileUrl = 'https://lost-in-games.com/starrupture-map/tiles/{z}/{x}/{y}.webp?v=20260111_FINAL';
+    var tileUrl = 'https://lost-in-games.com/starrupture-map/tiles/{z}/{x}/{y}.webp?v=20260111_FINAL3';
 
     var isJa = (document.documentElement.lang || navigator.language).toLowerCase().indexOf('ja') === 0;
     var isDebug = new URLSearchParams(window.location.search).get('debug') === 'true';
@@ -18,7 +17,10 @@
         start:     { emoji: '🚀', color: '#ffffff', label: isJa ? '開始地点' : 'Start Point' },
         blueprint: { emoji: '📜', color: '#3498db', label: isJa ? '設計図' : 'Blueprints' },
         warbond:   { emoji: '💀', color: '#e74c3c', label: isJa ? '戦時債権' : 'War Bonds' },
-        point:     { emoji: '💎', color: '#f1c40f', label: isJa ? 'ポイント交換' : 'Point Items' },
+        
+        // ★修正1：名称を「換金アイテム」に変更
+        point:     { emoji: '💎', color: '#f1c40f', label: isJa ? '換金アイテム' : 'Cash Items' },
+        
         lem:       { emoji: '⚡', color: '#9b59b6', label: isJa ? 'LEM' : 'LEM Gear' },
         cave:      { emoji: '⛏️', color: '#7f8c8d', label: isJa ? '地下洞窟' : 'Caves' },
         monolith:  { emoji: '🗿', color: '#1abc9c', label: isJa ? 'モノリス' : 'Monoliths' },
@@ -33,10 +35,7 @@
         'ITEM_OTHER': styles.warbond, 
         'ITEM_GEAR': styles.point, 
         'LOC_SPARE_1': styles.lem,
-        
-        // ★修正：ここをすべて大文字に修正しました（プログラム側が大文字変換して比較するため）
         'LOC_CAVEORMINE': styles.cave, 
-        
         'LOC_POI': styles.monolith, 
         'MISC_OTHER': styles.trash,
         'LOC_TREASURE': styles.other, 
@@ -54,18 +53,29 @@
     };
 
     window.map = L.map('game-map', {
-        crs: L.CRS.Simple, minZoom: 0, maxZoom: maxZoom, zoom: 2, maxBoundsViscosity: 0.8, preferCanvas: true
+        crs: L.CRS.Simple, 
+        minZoom: 0, 
+        maxZoom: maxZoom, 
+        zoom: 2, 
+        maxBoundsViscosity: 0.8, 
+        preferCanvas: true
     });
 
-    var bounds = new L.LatLngBounds(
+    var imageBounds = new L.LatLngBounds(
         map.unproject([0, imgH], maxZoom),
         map.unproject([imgW, 0], maxZoom)
     );
-    map.setMaxBounds(bounds);
-    map.fitBounds(bounds);
+
+    var paddedBounds = new L.LatLngBounds(
+        map.unproject([-mapPadding, imgH + mapPadding], maxZoom),
+        map.unproject([imgW + mapPadding, -mapPadding], maxZoom)
+    );
+
+    map.setMaxBounds(paddedBounds);
+    map.fitBounds(imageBounds);
 
     L.tileLayer(tileUrl, { 
-        minZoom: 0, maxZoom: maxZoom, tileSize: 256, noWrap: true, bounds: bounds, attribution: 'Map Data', tms: false
+        minZoom: 0, maxZoom: maxZoom, tileSize: 256, noWrap: true, bounds: imageBounds, attribution: 'Map Data', tms: false
     }).addTo(map);
 
     function updateZoomClass() {
@@ -110,7 +120,6 @@
             var y = parseFloat(cols[2]);
             if (isNaN(x) || isNaN(y)) continue;
 
-            // ★ここで大文字変換(.toUpperCase)されているので、マッピング側も大文字必須でした
             var category = cols[5] ? cols[5].trim().toUpperCase() : "";
             if (category === 'MISC_OTHER' && !isDebug) continue;
 
@@ -162,8 +171,10 @@
             
             if (layers[lbl]) {
                 overlayMaps[lbl] = layers[lbl];
-                // 初期非表示リスト
-                const hiddenKeys = ['monolith', 'scanner', 'cave'];
+                
+                // ★修正2：初期非表示リストに 'point' (換金アイテム) を追加
+                const hiddenKeys = ['monolith', 'scanner', 'cave', 'other', 'point'];
+                
                 if (!hiddenKeys.includes(key)) {
                     layers[lbl].addTo(map);
                 }
