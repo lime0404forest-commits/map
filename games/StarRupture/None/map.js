@@ -2,8 +2,8 @@
     console.log("Map Script Loaded via GitHub");
 
     var maxZoom = 4;
-    var imgW = 2985;
-    var imgH = 3155;
+    var imgW = 6253;
+    var imgH = 7104;
     var csvUrl = 'https://raw.githubusercontent.com/lime0404forest-commits/map/main/games/StarRupture/None/master_data.csv';
     var tileUrl = 'https://lost-in-games.com/starrupture-map/tiles/{z}/{x}/{y}.webp';
 

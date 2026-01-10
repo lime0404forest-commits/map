@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import tkinter as tk
 from tkinter import filedialog, messagebox
+from tkinter import simpledialog
 import os
 import json
 import shutil
@@ -66,7 +67,7 @@ class Portal(ctk.CTk):
             self.setup_main_ui()
 
     def setup_new_region(self):
-        reg_name = filedialog.askstring("新規マップ", "地域名を入力してください (例: Valley)")
+        reg_name = simpledialog.askstring("新規マップ", "地域名を入力してください (例: Valley)")
         if not reg_name: return
         img_path = filedialog.askopenfilename(title="地図画像を選択")
         if not img_path: return
