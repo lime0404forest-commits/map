@@ -22,7 +22,7 @@ BASE_SLOTS = {
 }
 
 # ==========================================
-# 環境設定ウィンドウ（ここに復活）
+# 環境設定ウィンドウ
 # ==========================================
 class SettingsWindow(ctk.CTkToplevel):
     def __init__(self, parent, config_path, current_config):
@@ -104,8 +104,14 @@ class MapEditor(ctk.CTkToplevel):
         self.geometry("1650x950")
         
         # 内部変数
-        self.data_list, self.current_uid, self.temp_coords = [], None, None
-        self.is_autoscrolling, self.tile_cache = False, {}
+        self.data_list = []
+        self.current_uid = None
+        self.temp_coords = None
+        self.is_autoscrolling = False
+        self.tile_cache = {}
+        
+        # 位置編集モード用の変数
+        self.edit_pos_mode_uid = None
         
         # クロップ/アノテーション
         self.is_crop_mode = False
@@ -193,7 +199,11 @@ class MapEditor(ctk.CTkToplevel):
         f_foot.pack(fill="x", side=tk.BOTTOM, padx=20, pady=20)
         ctk.CTkButton(f_foot, text="ピン保存 (Ctrl+Enter)", command=self.save_data, fg_color="#2980b9", height=50, font=("Meiryo", 14, "bold")).pack(fill="x", pady=5)
         
-        # ★復活した設定ボタン
+        # ★位置修正ボタン
+        self.btn_edit_pos = ctk.CTkButton(f_foot, text="📍 ピン位置修正モード", command=self.start_edit_pos_mode, fg_color="#d35400", height=35)
+        self.btn_edit_pos.pack(fill="x", pady=(5, 15))
+
+        # 設定ボタン
         ctk.CTkButton(f_foot, text="⚙ 環境設定 (カテゴリ編集)", command=self.open_settings, fg_color="#7f8c8d", height=30).pack(fill="x", pady=(5, 10))
 
         # クロップツール
@@ -233,12 +243,21 @@ class MapEditor(ctk.CTkToplevel):
         txt.pack(fill="x", padx=20, pady=5)
         return txt
 
-    # ★設定ウィンドウを開く
     def open_settings(self):
         SettingsWindow(self, self.config_path, self.config)
 
     def get_ratio(self):
         return ((2 ** self.zoom) * 256) / self.orig_max_dim
+
+    # ★位置修正モード開始
+    def start_edit_pos_mode(self):
+        if not self.current_uid:
+            messagebox.showwarning("注意", "位置を修正したいピンを選択してください。")
+            return
+        
+        self.edit_pos_mode_uid = self.current_uid
+        messagebox.showinfo("位置修正モード", "新しい場所をクリックしてください。\n(元の場所には黄色い枠が表示されます)")
+        self.refresh_map()
 
     def refresh_map(self):
         self.canvas.delete("all")
@@ -251,7 +270,7 @@ class MapEditor(ctk.CTkToplevel):
         ts = int(256 * s_diff)
         vl, vt = self.canvas.canvasx(0), self.canvas.canvasy(0)
         
-        # タイル
+        # タイル描画
         for tx in range(int(vl//ts), int((vl+cw)//ts)+1):
             for ty in range(int(vt//ts), int((vt+ch)//ts)+1):
                 path = os.path.join(self.tile_dir, str(z_src), str(tx), f"{ty}.webp")
@@ -261,13 +280,19 @@ class MapEditor(ctk.CTkToplevel):
                         self.tile_cache[key] = ImageTk.PhotoImage(Image.open(path).resize((ts, ts), Image.Resampling.NEAREST))
                     self.canvas.create_image(tx*ts, ty*ts, anchor="nw", image=self.tile_cache[key])
 
-        # 既存ピン
+        # 既存ピン描画
         for d in self.data_list:
             cn = self.cat_mapping.get(d['category'], "")
             if cn in self.filter_vars and not self.filter_vars[cn].get(): continue
             if self.show_incomplete_only.get() and all([d.get('name_jp'), d.get('memo_jp')]): continue
             px, py = d['x']*r, d['y']*r
-            self.canvas.create_oval(px-6, py-6, px+6, py+6, fill="#f1c40f" if (d['uid']==self.current_uid) else "#e67e22", outline="white", width=2)
+            
+            # 位置修正モード中のターゲットの場合、黄色い「ゴースト」枠だけを表示
+            if self.edit_pos_mode_uid == d['uid']:
+                self.canvas.create_oval(px-15, py-15, px+15, py+15, outline="yellow", width=2, dash=(4,2))
+                self.canvas.create_text(px, py-25, text="元の位置", fill="yellow", font=("Meiryo", 10, "bold"))
+            else:
+                self.canvas.create_oval(px-6, py-6, px+6, py+6, fill="#f1c40f" if (d['uid']==self.current_uid) else "#e67e22", outline="white", width=2)
 
         # 一時マーカー
         if self.temp_coords and not self.current_uid:
@@ -304,6 +329,7 @@ class MapEditor(ctk.CTkToplevel):
         mx, my = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         cx, cy = mx/r, my/r
         
+        # クロップ操作
         if self.is_crop_mode and not self.active_tool:
             b = self.crop_box
             bx, by, bw, bh = b["x"]*r, b["y"]*r, b["w"]*r, b["h"]*r
@@ -339,11 +365,28 @@ class MapEditor(ctk.CTkToplevel):
             r = self.get_ratio()
             cx, cy = self.canvas.canvasx(event.x)/r, self.canvas.canvasy(event.y)/r
             
+            # クロップツール系
             if self.is_crop_mode and self.active_tool:
                 if self.active_tool == "here": self.here_pos = {"x": cx, "y": cy}
                 elif self.active_tool == "arrow": self.arrow_pos = {"x": cx, "y": cy}
                 self.refresh_map(); return
 
+            # ★位置修正モード中のクリック処理
+            if self.edit_pos_mode_uid:
+                for d in self.data_list:
+                    if d['uid'] == self.edit_pos_mode_uid:
+                        d['x'], d['y'] = cx, cy
+                        if self.current_uid == d['uid']:
+                            self.lbl_coords.configure(text=f"座標: ({int(cx)}, {int(cy)})")
+                        break
+                
+                self.write_files()
+                self.edit_pos_mode_uid = None
+                self.refresh_map()
+                print("座標を更新しました")
+                return
+
+            # 通常のピン選択
             for d in self.data_list:
                 if abs(d['x']-cx)<(16/r) and abs(d['y']-cy)<(16/r):
                     self.current_uid = d['uid']; self.load_to_ui(d); self.refresh_map(); return
@@ -352,14 +395,60 @@ class MapEditor(ctk.CTkToplevel):
             self.lbl_coords.configure(text=f"座標: ({int(cx)}, {int(cy)})")
             self.refresh_map()
 
+    # ★【修正完了】カーソル位置基準のズーム処理
     def on_zoom(self, event):
-        old_r, mx, my = self.get_ratio(), self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
-        self.zoom = max(0, min(self.zoom + (0.2 if event.delta > 0 else -0.2), float(self.max_zoom) + 2.5))
+        # 1. ズーム前の状態を保存
+        # 現在のビュー左上のCanvas座標
+        view_left = self.canvas.canvasx(0)
+        view_top = self.canvas.canvasy(0)
+        
+        # カーソル位置のCanvas座標
+        mouse_canvas_x = view_left + event.x
+        mouse_canvas_y = view_top + event.y
+        
+        # ズーム前の全体サイズ
+        r_old = self.get_ratio()
+        total_w_old = self.orig_w * r_old
+        total_h_old = self.orig_h * r_old
+        
+        if total_w_old == 0 or total_h_old == 0: return
+
+        # カーソル位置が「地図全体の左上から何％の位置にあるか」を計算 (0.0～1.0)
+        ratio_x = mouse_canvas_x / total_w_old
+        ratio_y = mouse_canvas_y / total_h_old
+
+        # 2. ズーム倍率の変更
+        delta = 0.2 if event.delta > 0 else -0.2
+        new_zoom = self.zoom + delta
+        if new_zoom < 0: new_zoom = 0
+        if new_zoom > self.max_zoom + 2.5: new_zoom = self.max_zoom + 2.5
+        
+        if new_zoom == self.zoom: return
+        self.zoom = new_zoom
+
+        # 3. 画面更新（再描画とscrollregion更新）
         self.refresh_map()
-        new_r = self.get_ratio()
-        f = new_r / old_r
-        self.canvas.xview_moveto((mx*f - event.x)/(self.orig_max_dim * new_r))
-        self.canvas.yview_moveto((my*f - event.y)/(self.orig_max_dim * new_r))
+        
+        # 4. 新しいスクロール位置の計算
+        r_new = self.get_ratio()
+        total_w_new = self.orig_w * r_new
+        total_h_new = self.orig_h * r_new
+        
+        # カーソルが指していた「地図上の地点」の新しいCanvas座標
+        new_mouse_canvas_x = total_w_new * ratio_x
+        new_mouse_canvas_y = total_h_new * ratio_y
+        
+        # その地点が「画面上のカーソル位置(event.x, event.y)」に来るように、左上の位置を逆算
+        new_view_left = new_mouse_canvas_x - event.x
+        new_view_top = new_mouse_canvas_y - event.y
+        
+        # xview_moveto, yview_moveto に渡す「割合」に変換
+        fraction_x = new_view_left / total_w_new
+        fraction_y = new_view_top / total_h_new
+        
+        self.canvas.xview_moveto(fraction_x)
+        self.canvas.yview_moveto(fraction_y)
+
 
     def toggle_crop_mode(self):
         self.is_crop_mode = not self.is_crop_mode
@@ -404,7 +493,6 @@ class MapEditor(ctk.CTkToplevel):
         if not n_jp and not self.current_uid: return
         rev_map = {v: k for k, v in self.cat_mapping.items()}
 
-        # 改行を <br> に変換したものを一時変数に入れる
         memo_jp_text = self.txt_memo_jp.get("1.0", "end-1c").replace("\n", "<br>")
         memo_en_text = self.txt_memo_en.get("1.0", "end-1c").replace("\n", "<br>")
         
@@ -416,7 +504,6 @@ class MapEditor(ctk.CTkToplevel):
             'name_en': self.ent_name_en.get(),
             'category': rev_map.get(self.cmb_cat.get(), "MISC_OTHER"),
             'importance': self.cmb_imp.get(),
-            # ★正しくはこうです
             'memo_jp': memo_jp_text, 
             'memo_en': memo_en_text
         }
@@ -450,8 +537,8 @@ class MapEditor(ctk.CTkToplevel):
         self.ent_name_en.insert(0, d.get('name_en',''))
         self.cmb_cat.set(self.cat_mapping.get(d.get('category',''), ""))
         self.cmb_imp.set(d.get('importance','1'))
-        self.txt_memo_jp.insert("1.0", d.get('memo_jp',''))
-        self.txt_memo_en.insert("1.0", d.get('memo_en',''))
+        self.txt_memo_jp.insert("1.0", d.get('memo_jp','').replace("<br>", "\n"))
+        self.txt_memo_en.insert("1.0", d.get('memo_en','').replace("<br>", "\n"))
 
     def clear_ui(self):
         self.ent_name_jp.delete(0, tk.END)
