@@ -1,13 +1,14 @@
 (function() {
-    console.log("Map Script Loaded via GitHub (Final Debug Version)");
+    console.log("Map Script Loaded via GitHub (Final Fixed Version 2)");
 
-    // ★設定：フォルダが0～5ならmaxZoomは5
     var maxZoom = 5; 
     var imgW = 6253;
     var imgH = 7104;
 
     var csvUrl = 'https://raw.githubusercontent.com/lime0404forest-commits/map/main/games/StarRupture/None/master_data.csv';
-    var tileUrl = 'https://lost-in-games.com/starrupture-map/tiles/{z}/{x}/{y}.webp?v=20260111';
+    
+    // キャッシュ対策URL
+    var tileUrl = 'https://lost-in-games.com/starrupture-map/tiles/{z}/{x}/{y}.webp?v=20260111_FINAL';
 
     var isJa = (document.documentElement.lang || navigator.language).toLowerCase().indexOf('ja') === 0;
     var isDebug = new URLSearchParams(window.location.search).get('debug') === 'true';
@@ -26,17 +27,32 @@
     };
 
     var catMapping = {
-        'LOC_SPARE_2': styles.scanner, 'LOC_BASE': styles.start, 'ITEM_WEAPON': styles.blueprint,
-        'ITEM_OTHER': styles.warbond, 'ITEM_GEAR': styles.point, 'LOC_SPARE_1': styles.lem,
-        'LOC_CAVEorMINE': styles.cave, 'LOC_POI': styles.monolith, 'MISC_OTHER': styles.trash,
-        'LOC_TREASURE': styles.other, 'RES_PLANT': styles.other, 'RES_MINERAL': styles.other,
-        'RES_OTHER': styles.other, 'LOC_SETTLE': styles.other, 'CHAR_NPC': styles.other,
-        'CHAR_TRADER': styles.other, 'CHAR_OTHER': styles.other, 'MISC_ENEMY': styles.other,
-        'LOC_ENEMY': styles.other, 'MISC_QUEST': styles.other, 'LOC_MEMO': styles.other
+        'LOC_SPARE_2': styles.scanner, 
+        'LOC_BASE': styles.start, 
+        'ITEM_WEAPON': styles.blueprint,
+        'ITEM_OTHER': styles.warbond, 
+        'ITEM_GEAR': styles.point, 
+        'LOC_SPARE_1': styles.lem,
+        
+        // ★修正：ここをすべて大文字に修正しました（プログラム側が大文字変換して比較するため）
+        'LOC_CAVEORMINE': styles.cave, 
+        
+        'LOC_POI': styles.monolith, 
+        'MISC_OTHER': styles.trash,
+        'LOC_TREASURE': styles.other, 
+        'RES_PLANT': styles.other, 
+        'RES_MINERAL': styles.other,
+        'RES_OTHER': styles.other, 
+        'LOC_SETTLE': styles.other, 
+        'CHAR_NPC': styles.other,
+        'CHAR_TRADER': styles.other, 
+        'CHAR_OTHER': styles.other, 
+        'MISC_ENEMY': styles.other,
+        'LOC_ENEMY': styles.other, 
+        'MISC_QUEST': styles.other, 
+        'LOC_MEMO': styles.other
     };
 
-    // ★修正点：ここを 'var map =' から 'window.map =' に変えました。
-    // これでコンソールから map.project(...) が使えるようになります！
     window.map = L.map('game-map', {
         crs: L.CRS.Simple, minZoom: 0, maxZoom: maxZoom, zoom: 2, maxBoundsViscosity: 0.8, preferCanvas: true
     });
@@ -69,7 +85,6 @@
         var rows = text.trim().split('\n');
         var layers = {};
 
-        // カンマ区切り修正（"a,b",c に対応）
         function parseCSVRow(row) {
             const result = [];
             let current = '';
@@ -95,6 +110,7 @@
             var y = parseFloat(cols[2]);
             if (isNaN(x) || isNaN(y)) continue;
 
+            // ★ここで大文字変換(.toUpperCase)されているので、マッピング側も大文字必須でした
             var category = cols[5] ? cols[5].trim().toUpperCase() : "";
             if (category === 'MISC_OTHER' && !isDebug) continue;
 
@@ -141,7 +157,8 @@
         var overlayMaps = {};
         Object.keys(styles).forEach(key => {
             if (key === 'trash' && !isDebug) return;
-            var lbl = styles[key].label;
+            var styleObj = styles[key];
+            var lbl = styleObj.label;
             
             if (layers[lbl]) {
                 overlayMaps[lbl] = layers[lbl];
