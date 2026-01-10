@@ -1,17 +1,11 @@
 (function() {
     console.log("Map Script Loaded via GitHub (Fixed Version)");
 
-    // ★重要：フォルダが0～5まであるなら、maxZoomは「5」にしてください
     var maxZoom = 5; 
-    
-    // ★重要：新しい地図画像の正確なピクセルサイズ
-    // もし 6253x7104 で合っているならこのままでOK。違うなら書き換えてください。
     var imgW = 6253;
     var imgH = 7104;
 
     var csvUrl = 'https://raw.githubusercontent.com/lime0404forest-commits/map/main/games/StarRupture/None/master_data.csv';
-    
-    // ★キャッシュ対策：末尾に ?v=日付 を追加して、強制的に新しい画像を読み込ませる
     var tileUrl = 'https://lost-in-games.com/starrupture-map/tiles/{z}/{x}/{y}.webp?v=20260111';
 
     var isJa = (document.documentElement.lang || navigator.language).toLowerCase().indexOf('ja') === 0;
@@ -32,7 +26,7 @@
 
     var catMapping = {
         'LOC_SPARE_2': styles.scanner, 'LOC_BASE': styles.start, 'ITEM_WEAPON': styles.blueprint,
-        'ITEM_OTHER': styles.warbond, 'ITEM_GEAR': styles.point, 'ITEM_SPARE_1': styles.lem,
+        'ITEM_OTHER': styles.warbond, 'ITEM_GEAR': styles.point, 'LOC_SPARE_1': styles.lem, // ←CSVに合わせてITEM_SPARE_1を修正
         'LOC_CAVEorMINE': styles.cave, 'LOC_POI': styles.monolith, 'MISC_OTHER': styles.trash,
         'LOC_TREASURE': styles.other, 'RES_PLANT': styles.other, 'RES_MINERAL': styles.other,
         'RES_OTHER': styles.other, 'LOC_SETTLE': styles.other, 'CHAR_NPC': styles.other,
@@ -41,15 +35,9 @@
     };
 
     var map = L.map('game-map', {
-        crs: L.CRS.Simple,
-        minZoom: 0, 
-        maxZoom: maxZoom, 
-        zoom: 2, 
-        maxBoundsViscosity: 0.8,
-        preferCanvas: true // 描画パフォーマンス向上
+        crs: L.CRS.Simple, minZoom: 0, maxZoom: maxZoom, zoom: 2, maxBoundsViscosity: 0.8, preferCanvas: true
     });
 
-    // 座標の境界設定
     var bounds = new L.LatLngBounds(
         map.unproject([0, imgH], maxZoom),
         map.unproject([imgW, 0], maxZoom)
@@ -57,18 +45,10 @@
     map.setMaxBounds(bounds);
     map.fitBounds(bounds);
 
-    // タイルレイヤー設定
     L.tileLayer(tileUrl, { 
-        minZoom: 0,
-        maxZoom: maxZoom,
-        tileSize: 256, 
-        noWrap: true, 
-        bounds: bounds, 
-        attribution: 'Map Data',
-        tms: false // 左上が原点ならfalse (Leafletデフォルト)
+        minZoom: 0, maxZoom: maxZoom, tileSize: 256, noWrap: true, bounds: bounds, attribution: 'Map Data', tms: false
     }).addTo(map);
 
-    // ズームレベルによるクラス付与（CSS制御用）
     function updateZoomClass() {
         var c = document.getElementById('game-map');
         if(c) {
@@ -79,7 +59,6 @@
     map.on('zoomend', updateZoomClass);
     updateZoomClass();
 
-    // CSV読み込み（ここもキャッシュ対策）
     var cacheBuster = 't=' + Date.now();
     fetch(csvUrl + '?' + cacheBuster)
     .then(r => { if(!r.ok) throw new Error(r.status); return r.text(); })
@@ -87,12 +66,28 @@
         var rows = text.trim().split('\n');
         var layers = {};
 
-        // ヘッダー除外してループ
+        // カンマ区切りだが引用符を考慮する正規表現パース
+        function parseCSVRow(row) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let char of row) {
+                if (char === '"') inQuotes = !inQuotes;
+                else if (char === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current);
+            return result;
+        }
+
         for (var i = 1; i < rows.length; i++) {
-            var cols = rows[i].split(',');
+            var cols = parseCSVRow(rows[i]);
             if (cols.length < 6) continue;
 
-            // 座標パース
             var x = parseFloat(cols[1]); 
             var y = parseFloat(cols[2]);
             if (isNaN(x) || isNaN(y)) continue;
@@ -104,7 +99,6 @@
             var name = isJa ? cols[3] : (cols[4] || cols[3]);
             var memo = isJa ? cols[7] : (cols[8] || "");
 
-            // ★重要：座標変換（imgW/imgHとmaxZoomが正しい前提）
             var latLng = map.unproject([x, y], maxZoom);
             var marker;
 
@@ -114,8 +108,7 @@
                     icon: L.divIcon({
                         html: '<div>' + style.emoji + '</div>',
                         className: 'emoji-icon' + extra,
-                        iconSize: [30, 30], 
-                        iconAnchor: [15, 15]
+                        iconSize: [30, 30], iconAnchor: [15, 15]
                     })
                 });
             } else {
@@ -124,7 +117,6 @@
                 });
             }
 
-            // ポップアップ作成
             var p = '<div style="font-family:sans-serif;min-width:180px;">' +
                     '<div style="font-size:10px;color:' + style.color + ';font-weight:bold;text-transform:uppercase;">' + style.label + '</div>' +
                     '<div style="font-size:14px;font-weight:bold;margin:4px 0;border-bottom:1px solid #ccc;padding-bottom:4px;">' + name + '</div>';
@@ -134,28 +126,30 @@
             p += '</div>';
             marker.bindPopup(p);
 
-            // ツールチップ設定
             var tooltipText = memo ? memo : name;
             marker.bindTooltip(tooltipText, {
-                direction: 'top',
-                sticky: true,
-                className: 'item-tooltip',
-                opacity: 0.9,
-                offset: [0, -10]
+                direction: 'top', sticky: true, className: 'item-tooltip', opacity: 0.9, offset: [0, -10]
             });
 
             if (!layers[style.label]) { layers[style.label] = L.layerGroup(); }
             marker.addTo(layers[style.label]);
         }
 
-        // レイヤーコントロール追加
         var overlayMaps = {};
         Object.keys(styles).forEach(key => {
             if (key === 'trash' && !isDebug) return;
-            var lbl = styles[key].label;
+            var styleObj = styles[key];
+            var lbl = styleObj.label;
+            
             if (layers[lbl]) {
                 overlayMaps[lbl] = layers[lbl];
-                layers[lbl].addTo(map);
+                
+                // ★ 1. 初期状態で表示しないカテゴリの判定
+                // モノリス(monolith), ジオスキャナー(scanner), 地下洞窟(cave) はAddToしない
+                const hiddenKeys = ['monolith', 'scanner', 'cave'];
+                if (!hiddenKeys.includes(key)) {
+                    layers[lbl].addTo(map);
+                }
             }
         });
         L.control.layers(null, overlayMaps, { collapsed: false, position: 'topright' }).addTo(map);
