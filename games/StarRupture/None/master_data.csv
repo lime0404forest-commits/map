@@ -1,11 +1,11 @@
 ﻿uid,x,y,name_jp,name_en,category,importance,memo_jp,memo_en
 p_1767799892,1870.787358,3345.492179,遺体,Dead Body,ITEM_OTHER,1,戦時債権12<br>ピストル弾薬23<br>ツノメドリ3,
-p_1767807182,2783.595264,4115.118974,ストレージボックス,Storage Box,ITEM_WEAPON,1,設計図：スタビライザ,BluePrint：Stabilizer
+p_1767807182,2775.6150798861117,4118.793634845414,ストレージボックス,Storage Box,ITEM_WEAPON,1,設計図：スタビライザ,BluePrint：Stabilizer
 p_1767807380,1902.420365,3496.290483,ドローンの残骸,Drone Wreck,ITEM_GEAR,1,損傷したマザーボード,
-p_1767807479,2374.281547,3333.703740,遺体,Dead Body,ITEM_OTHER,1,戦時債権10,War Bond 10
+p_1767807479,2374.281547,3333.70374,遺体,Dead Body,ITEM_OTHER,1,戦時債権10,War Bond 10
 p_1767875701,1433.919527,4391.034598,地下洞窟,Cave,LOC_CAVEorMINE,1,,
 p_1767875970,1445.922076,4415.327433,遺体,Dead Body,ITEM_OTHER,1,洞窟内<br>戦時債権 12,Inside Cave<br>War Bonds x12
-p_1767876094,1438.047568,4418.114090,遺体,Dead Body,LOC_SPARE_1,1,洞窟内<br>下級スワッパーLEM<br>同じ場所,Inside Cave<br>Lesser Swaper LEM<br>Same spot
+p_1767876094,1438.047568,4418.11409,遺体,Dead Body,LOC_SPARE_1,1,洞窟内<br>下級スワッパーLEM<br>同じ場所,Inside Cave<br>Lesser Swaper LEM<br>Same spot
 p_1767877067,1438.396669,4629.368272,遺体,Dead Body,MISC_OTHER,1,,
 p_1767878831,1910.767364,4580.656057,ジオスキャナー,Geo Scanner,LOC_SPARE_2,1,,
 p_1767879103,1926.208272,4366.583905,遺体,,MISC_OTHER,1,,
@@ -16,25 +16,25 @@ p_1767879633,821.545166,4044.022612,ジオスキャナー,Geo Scanner,LOC_SPARE_
 p_1767879668,1250.955822,3209.794713,ジオスキャナー,Geo Scanner,LOC_SPARE_2,1,,
 p_1767879698,2388.033847,3545.686994,ジオスキャナー,Geo Scanner,LOC_SPARE_2,1,,
 p_1767879723,2858.941775,3546.152044,地下洞窟,Cave,LOC_CAVEorMINE,1,,
-p_1767879744,2093.957372,3108.153767,地下洞窟,Cave,LOC_CAVEorMINE,1,,
-p_1767879753,1844.116456,3140.794548,地下洞窟,Cave,LOC_CAVEorMINE,1,,
+p_1767879744,2104.641374613133,3101.8683494225143,地下洞窟,Cave,LOC_CAVEorMINE,1,,
+p_1767879753,1857.7969197374773,3135.109248582827,地下洞窟,Cave,LOC_CAVEorMINE,1,,
 p_1767879769,1242.236277,3023.951155,地下洞窟,Cave,LOC_CAVEorMINE,1,,
-p_1767879878,2444.894686,3758.806370,地下洞窟,Cave,LOC_CAVEorMINE,1,,
-p_1767881800,1526.144820,3821.965549,遺体,Dead Body,ITEM_OTHER,1,戦時債権　x7,War Bonds x7
+p_1767879878,2438.281510629605,3756.221605115337,地下洞窟,Cave,LOC_CAVEorMINE,1,,
+p_1767881800,1526.14482,3821.965549,遺体,Dead Body,ITEM_OTHER,1,戦時債権　x7,War Bonds x7
 p_1767882178,1533.191909,3821.241578,がれきの山,Rubble Piles,ITEM_OTHER,1,不明なロジックボード(200pt),Unknown Logic Board(200pt)
 p_1767882610,1548.200504,3786.377473,遺体,Dead Body,ITEM_GEAR,1,破損したパーソナルインターフェース（500）,Dameged Personal Interface（500）
 p_1767882639,1547.053864,3780.465204,遺体,Dead Body,LOC_SPARE_1,1,下級ライフギバーLEM	,Lesser Lifegiver LEM
-p_1767883282,1556.389697,3796.738300,ストレージボックス,Storage Box,LOC_CAVEorMINE,1,設計図：ステーター,Stator Blue Print
+p_1767883282,1556.389697,3796.7383,ストレージボックス,Storage Box,LOC_CAVEorMINE,1,設計図：ステーター,Stator Blue Print
 p_1767883375,1563.076348,3790.781864,ストレージボックス,Storage Box,ITEM_GEAR,1,セキュリティログ（1500）,Security Logger（1500）
 p_1767883436,1563.717152,3797.901134,ストレージボックス,Storage Box,ITEM_OTHER,1,戦時債権（15）,War bonds（15）
 p_1767883595,1595.108153,3804.634993,ストレージボックス,Storage Box,ITEM_GEAR,1,損傷したパーソナルインターフェース（500）,Dameged Personal Interface（500）
 p_1767883812,1602.242947,3780.867419,ストレージボックス,Storage Box,ITEM_OTHER,1,戦時債権（7）	<br>階段の下に隠れてる,War Bonds（７）<br>Hidden under stairs
 p_1767884072,1548.976297,3705.903519,がれきの山,Rubble Pile,ITEM_GEAR,1,不明なロジックボード（200）,Unkown Logic Board（200）
-p_1767884128,1531.880580,3707.289999,ストレージボックス,Storage Box,ITEM_OTHER,1,戦時債権（７）,War Bonds（７）
+p_1767884128,1531.88058,3707.289999,ストレージボックス,Storage Box,ITEM_OTHER,1,戦時債権（７）,War Bonds（７）
 p_1767884320,1544.548348,3695.897754,遺体,Dead Body,LOC_SPARE_1,1,エアジャンパーLEM	,Airjumper LEM
 p_1767884560,1392.218086,3667.485576,ドローンの残骸,Drone Wreck,ITEM_GEAR,1,損傷したロジックボード（400）,Dameged Logid Board（400）
 p_1767967309,1680.912479,3460.074986,ドローンの残骸,Drone Wreck,ITEM_GEAR,1,損傷したロジックボード（400）,Dameged Logid Board（400）
-p_1767967361,1673.607390,3400.491736,モノリス,Monoliith,LOC_POI,1,,
-p_1767967775,791.068797,3330.127100,遺体,Dead Body,ITEM_OTHER,1,戦時債権（11）,War Bonds（11）
-p_1767967895,828.444630,3361.631718,がれきの山,Rubble Pile,ITEM_GEAR,1,不明なロジックボード（200）,Unkown Logic Board（200）
-p_1767968038,836.865760,3208.611479,ドローンの残骸,Drone Wreck,ITEM_GEAR,1,損傷したロジックボード（400）,Dameged Logid Board（400）
+p_1767967361,1673.60739,3400.491736,モノリス,Monoliith,LOC_POI,1,,
+p_1767967775,791.068797,3330.1271,遺体,Dead Body,ITEM_OTHER,1,戦時債権（11）,War Bonds（11）
+p_1767967895,828.44463,3361.631718,がれきの山,Rubble Pile,ITEM_GEAR,1,不明なロジックボード（200）,Unkown Logic Board（200）
+p_1767968038,836.86576,3208.611479,ドローンの残骸,Drone Wreck,ITEM_GEAR,1,損傷したロジックボード（400）,Dameged Logid Board（400）

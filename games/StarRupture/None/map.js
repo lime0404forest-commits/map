@@ -56,7 +56,7 @@
         crs: L.CRS.Simple, 
         minZoom: 0, 
         maxZoom: maxZoom, 
-        zoom: 2, 
+        zoom: 3, 
         maxBoundsViscosity: 0.8, 
         preferCanvas: true
     });
