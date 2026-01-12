@@ -73,7 +73,7 @@ p_1768108542,2758.9946303059555,2946.1285811343823,がれきの山,Rubble Pile,I
 p_1768108696,2817.1565462766443,2970.956038150602,ストレージボックス,Storage Box,ITEM_WEAPON,ITEM_OTHER,ITEM_GEAR,1,設計図：チューブ<br>戦時債権（15）<br>フレームメモリモジュール（7000）,Blueprint: Tube<br>War Bonds(15)<br>Frame Memory Module(7000)
 p_1768109223,3680.470070349628,2442.571721,地下洞窟,Underground Cave,LOC_CAVEorMINE,,,1,,
 p_1768109433,4197.600766023389,1700.904485045096,遺体,Dead Body,LOC_SPARE_1,ITEM_OTHER,,1,マイナーLEM<br>戦時債権（20）,Miner LEM<br>War bonds（20）
-p_1768109623,4197.600766023389,1683.220222913247,ストレージボックス,Storage Box,ITEM_WEAPON,ITEM_OTHER,ITEM_GEAR,1,設計図：スタビライザー<br>設計図：ケミカル<br>戦時債権（15）<br>フレームメモリモジュール（7000）,Stabilizer Blueprint<br>Chemicals Blueprint<br>War bonds（15）<br>Frame Memory Module（7000）
+p_1768109623,4197.600766023389,1683.220222913247,ストレージボックス,Storage Box,ITEM_WEAPON,ITEM_OTHER,ITEM_GEAR,1,設計図：スタビライザー<br>設計図：化学物質<br>戦時債権（15）<br>フレームメモリモジュール（7000）,Stabilizer Blueprint<br>Chemicals Blueprint<br>War bonds（15）<br>Frame Memory Module（7000）
 p_1768109916,4315.495847,1633.3827569053094,遺体,Dead Body,LOC_SPARE_1,ITEM_GEAR,,1,ランナーLEM<br>損傷したローカルスキャナー（3500）,Runner LEM<br>Dameged Local Scanner（3500）
 p_1768110194,4356.223238,1631.2392099802369,ドローンの残骸,Drone Wreck,ITEM_GEAR,,,1,損傷したエネルギーストレージ（2000）,Damaged Energy Storage（2000）
 p_1768111385,3940.3751350146786,1446.3582876927264,モノリス,Monolith,LOC_POI,,,1,,
