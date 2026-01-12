@@ -1,5 +1,5 @@
 (function() {
-    console.log("Map Script Loaded via GitHub (Multi-Category OR Logic)");
+    console.log("Map Script Loaded via GitHub (Multi-Category OR Logic + Perm Labels)");
 
     var maxZoom = 5; 
     var imgW = 6253;
@@ -9,6 +9,9 @@
     // HTML要素を取得
     var mapDiv = document.getElementById('game-map');
     
+    // ★追加機能：ラベル常時表示設定の読み込み
+    var showLabels = mapDiv ? mapDiv.getAttribute('data-show-labels') === 'true' : false;
+
     // 記事ごとのフィルタ設定（例: "blueprint"）
     var filterMode = mapDiv ? mapDiv.getAttribute('data-filter') : null;
     var customCsv = mapDiv ? mapDiv.getAttribute('data-csv') : null;
@@ -52,7 +55,7 @@
     };
 
     window.map = L.map('game-map', {
-        crs: L.CRS.Simple, minZoom: 0, maxZoom: maxZoom, zoom: 3, 
+        crs: L.CRS.Simple, minZoom: 0, maxZoom: maxZoom, zoom: 2, 
         maxBoundsViscosity: 0.8, preferCanvas: true
     });
 
@@ -207,9 +210,29 @@
             marker.bindPopup(p);
             
             var tooltipText = memo ? memo : name;
-            marker.bindTooltip(tooltipText, {
-                direction: 'top', sticky: true, className: 'item-tooltip', opacity: 0.9, offset: [0, -10]
-            });
+            
+            // ★追加：ツールチップの表示オプションを切り替え
+            var tooltipOptions = {};
+            if (showLabels) {
+                // 常時表示モード
+                tooltipOptions = {
+                    permanent: true,
+                    direction: 'top',
+                    className: 'item-tooltip-permanent',
+                    opacity: 0.9,
+                    offset: [0, -20]
+                };
+            } else {
+                // 通常モード（ホバー時のみ）
+                tooltipOptions = {
+                    direction: 'top',
+                    sticky: true,
+                    className: 'item-tooltip',
+                    opacity: 0.9,
+                    offset: [0, -10]
+                };
+            }
+            marker.bindTooltip(tooltipText, tooltipOptions);
 
             // ★マーカーとカテゴリ情報をリストに保存（まだマップには追加しない）
             allMarkers.push({
