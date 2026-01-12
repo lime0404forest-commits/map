@@ -137,9 +137,16 @@ class MapEditor(ctk.CTkToplevel):
         # カテゴリリストの再構築
         self.cat_mapping = self.config.get("cat_mapping", {})
         self.display_names = [v for v in self.cat_mapping.values() if v.strip()]
+        
         # プルダウンの選択肢更新
-        self.cmb_cat.configure(values=self.display_names)
-        # フィルタチェックボックスの更新（簡易的に全オンに戻す）
+        cat_values = self.display_names
+        sub_cat_values = ["(なし)"] + self.display_names
+        
+        self.cmb_cat_main.configure(values=cat_values)
+        self.cmb_cat_sub1.configure(values=sub_cat_values)
+        self.cmb_cat_sub2.configure(values=sub_cat_values)
+        
+        # フィルタチェックボックスの更新
         for widget in self.f_filter.winfo_children():
             if isinstance(widget, ctk.CTkCheckBox) and widget.cget("text") != "⚠️ 未完成項目のみ":
                 widget.destroy()
@@ -168,7 +175,7 @@ class MapEditor(ctk.CTkToplevel):
         self.scroll_body.pack(expand=True, fill="both", padx=10, pady=10)
         
         # フィルタ
-        ctk.CTkLabel(self.scroll_body, text="表示フィルタ", font=("Meiryo", 13, "bold")).pack(anchor="w", padx=15, pady=(10, 5))
+        ctk.CTkLabel(self.scroll_body, text="表示フィルタ (Main)", font=("Meiryo", 13, "bold")).pack(anchor="w", padx=15, pady=(10, 5))
         self.f_filter = ctk.CTkFrame(self.scroll_body, fg_color="#161616")
         self.f_filter.pack(fill="x", padx=10, pady=5)
         
@@ -184,26 +191,56 @@ class MapEditor(ctk.CTkToplevel):
         # 入力フォーム
         self.ent_name_jp = self.create_input("▼ 日本語名")
         self.ent_name_en = self.create_input("▼ 英語名")
-        ctk.CTkLabel(self.scroll_body, text="▼ カテゴリ").pack(anchor="w", padx=20, pady=(10,0))
-        self.cmb_cat = ctk.CTkComboBox(self.scroll_body, values=self.display_names)
-        self.cmb_cat.pack(fill="x", padx=20, pady=5)
+        
+        cat_values = self.display_names
+        sub_cat_values = ["(なし)"] + self.display_names
+
+        ctk.CTkLabel(self.scroll_body, text="▼ メインカテゴリ (必須)").pack(anchor="w", padx=20, pady=(10,0))
+        self.cmb_cat_main = ctk.CTkComboBox(self.scroll_body, values=cat_values)
+        self.cmb_cat_main.pack(fill="x", padx=20, pady=5)
+
         ctk.CTkLabel(self.scroll_body, text="▼ 重要度 (1-5)").pack(anchor="w", padx=20, pady=(5,0))
         self.cmb_imp = ctk.CTkComboBox(self.scroll_body, values=["1","2","3","4","5"])
         self.cmb_imp.set("1")
         self.cmb_imp.pack(fill="x", padx=20, pady=5)
+
         self.txt_memo_jp = self.create_textbox("▼ 詳細メモ (日本語)")
         self.txt_memo_en = self.create_textbox("▼ Memo (English)")
+
+        # アコーディオン式サブカテゴリ設定
+        self.var_show_sub = tk.BooleanVar(value=False)
+        self.chk_show_sub = ctk.CTkCheckBox(
+            self.scroll_body, 
+            text="▶ サブカテゴリを追加設定", 
+            variable=self.var_show_sub, 
+            command=self.toggle_sub_category,
+            font=("Meiryo", 12, "bold"),
+            fg_color="#e67e22", hover_color="#d35400"
+        )
+        self.chk_show_sub.pack(anchor="w", padx=20, pady=(20, 5))
+
+        self.frame_sub = ctk.CTkFrame(self.scroll_body, fg_color="transparent")
+        ctk.CTkLabel(self.frame_sub, text="▼ サブカテゴリ1").pack(anchor="w", padx=0, pady=(5,0))
+        self.cmb_cat_sub1 = ctk.CTkComboBox(self.frame_sub, values=sub_cat_values)
+        self.cmb_cat_sub1.pack(fill="x", padx=0, pady=5)
+        ctk.CTkLabel(self.frame_sub, text="▼ サブカテゴリ2").pack(anchor="w", padx=0, pady=(5,0))
+        self.cmb_cat_sub2 = ctk.CTkComboBox(self.frame_sub, values=sub_cat_values)
+        self.cmb_cat_sub2.pack(fill="x", padx=0, pady=5)
+
 
         # フッターボタン
         f_foot = ctk.CTkFrame(self.sidebar, fg_color="transparent")
         f_foot.pack(fill="x", side=tk.BOTTOM, padx=20, pady=20)
+        
+        # ★ 削除ボタン（最下部）
+        self.btn_delete = ctk.CTkButton(f_foot, text="🗑️ ピンを削除 (Delete)", command=self.delete_data, fg_color="#c0392b", hover_color="#e74c3c", height=35)
+        self.btn_delete.pack(fill="x", side=tk.BOTTOM, pady=(15, 0))
+
         ctk.CTkButton(f_foot, text="ピン保存 (Ctrl+Enter)", command=self.save_data, fg_color="#2980b9", height=50, font=("Meiryo", 14, "bold")).pack(fill="x", pady=5)
         
-        # ★位置修正ボタン
         self.btn_edit_pos = ctk.CTkButton(f_foot, text="📍 ピン位置修正モード", command=self.start_edit_pos_mode, fg_color="#d35400", height=35)
-        self.btn_edit_pos.pack(fill="x", pady=(5, 15))
+        self.btn_edit_pos.pack(fill="x", pady=(5, 10))
 
-        # 設定ボタン
         ctk.CTkButton(f_foot, text="⚙ 環境設定 (カテゴリ編集)", command=self.open_settings, fg_color="#7f8c8d", height=30).pack(fill="x", pady=(5, 10))
 
         # クロップツール
@@ -229,6 +266,7 @@ class MapEditor(ctk.CTkToplevel):
         self.canvas.bind("<ButtonRelease-1>", self.on_left_up)
         self.canvas.bind("<Button-2>", self.toggle_autoscroll)
         self.bind("<Control-Return>", lambda e: self.save_data())
+        self.bind("<Delete>", lambda e: self.delete_data()) # Deleteキーで削除
         self.canvas.bind("<Configure>", lambda e: self.refresh_map())
 
     def create_input(self, label):
@@ -242,6 +280,14 @@ class MapEditor(ctk.CTkToplevel):
         txt = ctk.CTkTextbox(self.scroll_body, height=100)
         txt.pack(fill="x", padx=20, pady=5)
         return txt
+    
+    def toggle_sub_category(self):
+        if self.var_show_sub.get():
+            self.frame_sub.pack(fill="x", padx=20, pady=5)
+            self.chk_show_sub.configure(text="▼ サブカテゴリを追加設定")
+        else:
+            self.frame_sub.pack_forget()
+            self.chk_show_sub.configure(text="▶ サブカテゴリを追加設定")
 
     def open_settings(self):
         SettingsWindow(self, self.config_path, self.config)
@@ -249,7 +295,6 @@ class MapEditor(ctk.CTkToplevel):
     def get_ratio(self):
         return ((2 ** self.zoom) * 256) / self.orig_max_dim
 
-    # ★位置修正モード開始
     def start_edit_pos_mode(self):
         if not self.current_uid:
             messagebox.showwarning("注意", "位置を修正したいピンを選択してください。")
@@ -282,12 +327,13 @@ class MapEditor(ctk.CTkToplevel):
 
         # 既存ピン描画
         for d in self.data_list:
-            cn = self.cat_mapping.get(d['category'], "")
+            cat_key = d.get('category_main') or d.get('category') or "MISC_OTHER"
+            cn = self.cat_mapping.get(cat_key, "")
+            
             if cn in self.filter_vars and not self.filter_vars[cn].get(): continue
             if self.show_incomplete_only.get() and all([d.get('name_jp'), d.get('memo_jp')]): continue
             px, py = d['x']*r, d['y']*r
             
-            # 位置修正モード中のターゲットの場合、黄色い「ゴースト」枠だけを表示
             if self.edit_pos_mode_uid == d['uid']:
                 self.canvas.create_oval(px-15, py-15, px+15, py+15, outline="yellow", width=2, dash=(4,2))
                 self.canvas.create_text(px, py-25, text="元の位置", fill="yellow", font=("Meiryo", 10, "bold"))
@@ -329,7 +375,6 @@ class MapEditor(ctk.CTkToplevel):
         mx, my = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         cx, cy = mx/r, my/r
         
-        # クロップ操作
         if self.is_crop_mode and not self.active_tool:
             b = self.crop_box
             bx, by, bw, bh = b["x"]*r, b["y"]*r, b["w"]*r, b["h"]*r
@@ -365,13 +410,11 @@ class MapEditor(ctk.CTkToplevel):
             r = self.get_ratio()
             cx, cy = self.canvas.canvasx(event.x)/r, self.canvas.canvasy(event.y)/r
             
-            # クロップツール系
             if self.is_crop_mode and self.active_tool:
                 if self.active_tool == "here": self.here_pos = {"x": cx, "y": cy}
                 elif self.active_tool == "arrow": self.arrow_pos = {"x": cx, "y": cy}
                 self.refresh_map(); return
 
-            # ★位置修正モード中のクリック処理
             if self.edit_pos_mode_uid:
                 for d in self.data_list:
                     if d['uid'] == self.edit_pos_mode_uid:
@@ -386,7 +429,6 @@ class MapEditor(ctk.CTkToplevel):
                 print("座標を更新しました")
                 return
 
-            # 通常のピン選択
             for d in self.data_list:
                 if abs(d['x']-cx)<(16/r) and abs(d['y']-cy)<(16/r):
                     self.current_uid = d['uid']; self.load_to_ui(d); self.refresh_map(); return
@@ -395,29 +437,20 @@ class MapEditor(ctk.CTkToplevel):
             self.lbl_coords.configure(text=f"座標: ({int(cx)}, {int(cy)})")
             self.refresh_map()
 
-    # ★【修正完了】カーソル位置基準のズーム処理
     def on_zoom(self, event):
-        # 1. ズーム前の状態を保存
-        # 現在のビュー左上のCanvas座標
         view_left = self.canvas.canvasx(0)
         view_top = self.canvas.canvasy(0)
-        
-        # カーソル位置のCanvas座標
         mouse_canvas_x = view_left + event.x
         mouse_canvas_y = view_top + event.y
-        
-        # ズーム前の全体サイズ
         r_old = self.get_ratio()
         total_w_old = self.orig_w * r_old
         total_h_old = self.orig_h * r_old
         
         if total_w_old == 0 or total_h_old == 0: return
 
-        # カーソル位置が「地図全体の左上から何％の位置にあるか」を計算 (0.0～1.0)
         ratio_x = mouse_canvas_x / total_w_old
         ratio_y = mouse_canvas_y / total_h_old
 
-        # 2. ズーム倍率の変更
         delta = 0.2 if event.delta > 0 else -0.2
         new_zoom = self.zoom + delta
         if new_zoom < 0: new_zoom = 0
@@ -426,29 +459,20 @@ class MapEditor(ctk.CTkToplevel):
         if new_zoom == self.zoom: return
         self.zoom = new_zoom
 
-        # 3. 画面更新（再描画とscrollregion更新）
         self.refresh_map()
         
-        # 4. 新しいスクロール位置の計算
         r_new = self.get_ratio()
         total_w_new = self.orig_w * r_new
         total_h_new = self.orig_h * r_new
-        
-        # カーソルが指していた「地図上の地点」の新しいCanvas座標
         new_mouse_canvas_x = total_w_new * ratio_x
         new_mouse_canvas_y = total_h_new * ratio_y
-        
-        # その地点が「画面上のカーソル位置(event.x, event.y)」に来るように、左上の位置を逆算
         new_view_left = new_mouse_canvas_x - event.x
         new_view_top = new_mouse_canvas_y - event.y
-        
-        # xview_moveto, yview_moveto に渡す「割合」に変換
         fraction_x = new_view_left / total_w_new
         fraction_y = new_view_top / total_h_new
         
         self.canvas.xview_moveto(fraction_x)
         self.canvas.yview_moveto(fraction_y)
-
 
     def toggle_crop_mode(self):
         self.is_crop_mode = not self.is_crop_mode
@@ -492,24 +516,32 @@ class MapEditor(ctk.CTkToplevel):
         n_jp = self.ent_name_jp.get()
         if not n_jp and not self.current_uid: return
         rev_map = {v: k for k, v in self.cat_mapping.items()}
+        rev_map["(なし)"] = "" 
 
         memo_jp_text = self.txt_memo_jp.get("1.0", "end-1c").replace("\n", "<br>")
         memo_en_text = self.txt_memo_en.get("1.0", "end-1c").replace("\n", "<br>")
         
+        cat_main = rev_map.get(self.cmb_cat_main.get(), "MISC_OTHER")
+        cat_sub1 = rev_map.get(self.cmb_cat_sub1.get(), "")
+        cat_sub2 = rev_map.get(self.cmb_cat_sub2.get(), "")
+
         dr = {
             'uid': self.current_uid or f"p_{int(datetime.now().timestamp())}",
             'x': self.temp_coords[0] if not self.current_uid else None,
             'y': self.temp_coords[1] if not self.current_uid else None,
             'name_jp': n_jp,
             'name_en': self.ent_name_en.get(),
-            'category': rev_map.get(self.cmb_cat.get(), "MISC_OTHER"),
+            'category_main': cat_main,
+            'category_sub1': cat_sub1,
+            'category_sub2': cat_sub2,
             'importance': self.cmb_imp.get(),
             'memo_jp': memo_jp_text, 
             'memo_en': memo_en_text
         }
         if self.current_uid:
             for d in self.data_list:
-                if d['uid'] == self.current_uid: d.update({k:v for k,v in dr.items() if v is not None})
+                if d['uid'] == self.current_uid: 
+                    d.update({k:v for k,v in dr.items() if v is not None})
         else:
             self.data_list.append(dr)
         self.write_files()
@@ -517,9 +549,32 @@ class MapEditor(ctk.CTkToplevel):
         self.refresh_map()
         self.clear_ui()
 
+    # ★ 削除機能の実装
+    def delete_data(self):
+        if not self.current_uid:
+            messagebox.showwarning("注意", "削除したいピンを選択してください。")
+            return
+        
+        # 確認ダイアログ
+        if not messagebox.askyesno("確認", "このピンを削除しますか？\nこの操作は取り消せません。"):
+            return
+
+        # リストから削除
+        self.data_list = [d for d in self.data_list if d['uid'] != self.current_uid]
+        
+        # CSV保存
+        self.write_files()
+        
+        # UIリセット
+        self.current_uid = None
+        self.temp_coords = None
+        self.clear_ui()
+        self.refresh_map()
+        messagebox.showinfo("完了", "削除しました。")
+
     def write_files(self):
         p = os.path.join(self.game_path, self.config["save_file"])
-        flds = ["uid", "x", "y", "name_jp", "name_en", "category", "importance", "memo_jp", "memo_en"]
+        flds = ["uid", "x", "y", "name_jp", "name_en", "category_main", "category_sub1", "category_sub2", "importance", "memo_jp", "memo_en"]
         with open(p, "w", newline="", encoding="utf-8-sig") as f:
             writer = csv.DictWriter(f, fieldnames=flds, extrasaction='ignore')
             writer.writeheader()
@@ -535,7 +590,19 @@ class MapEditor(ctk.CTkToplevel):
         self.clear_ui()
         self.ent_name_jp.insert(0, d.get('name_jp',''))
         self.ent_name_en.insert(0, d.get('name_en',''))
-        self.cmb_cat.set(self.cat_mapping.get(d.get('category',''), ""))
+        
+        cat_main_code = d.get('category_main') or d.get('category', 'MISC_OTHER')
+        self.cmb_cat_main.set(self.cat_mapping.get(cat_main_code, ""))
+        
+        val_sub1 = self.cat_mapping.get(d.get('category_sub1',''), "(なし)")
+        val_sub2 = self.cat_mapping.get(d.get('category_sub2',''), "(なし)")
+        self.cmb_cat_sub1.set(val_sub1)
+        self.cmb_cat_sub2.set(val_sub2)
+        
+        if val_sub1 != "(なし)" or val_sub2 != "(なし)":
+            self.var_show_sub.set(True)
+            self.toggle_sub_category()
+        
         self.cmb_imp.set(d.get('importance','1'))
         self.txt_memo_jp.insert("1.0", d.get('memo_jp','').replace("<br>", "\n"))
         self.txt_memo_en.insert("1.0", d.get('memo_en','').replace("<br>", "\n"))
@@ -545,6 +612,10 @@ class MapEditor(ctk.CTkToplevel):
         self.ent_name_en.delete(0, tk.END)
         self.txt_memo_jp.delete("1.0", tk.END)
         self.txt_memo_en.delete("1.0", tk.END)
+        self.cmb_cat_sub1.set("(なし)")
+        self.cmb_cat_sub2.set("(なし)")
+        self.var_show_sub.set(False)
+        self.toggle_sub_category()
 
     def toggle_autoscroll(self, event):
         self.is_autoscrolling = not self.is_autoscrolling
