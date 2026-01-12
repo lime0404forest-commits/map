@@ -1,13 +1,19 @@
 (function() {
-    console.log("Map Script Loaded via GitHub (Final Fixed Version 4)");
+    console.log("Map Script Loaded via GitHub (Sub-Category Support V1)");
 
     var maxZoom = 5; 
     var imgW = 6253;
     var imgH = 7104;
     var mapPadding = 1500; 
 
+    // ★追加機能：HTMLの data-filter 属性からフィルタ設定を読み込む
+    var mapDiv = document.getElementById('game-map');
+    var filterMode = mapDiv ? mapDiv.getAttribute('data-filter') : null; //例: 'blueprint'
+
     var csvUrl = 'https://raw.githubusercontent.com/lime0404forest-commits/map/main/games/StarRupture/None/master_data.csv';
-    var tileUrl = 'https://lost-in-games.com/starrupture-map/tiles/{z}/{x}/{y}.webp?v=20260111_FINAL3';
+    
+    // ★キャッシュ対策：バージョンを更新
+    var tileUrl = 'https://lost-in-games.com/starrupture-map/tiles/{z}/{x}/{y}.webp?v=20260112_SUB1';
 
     var isJa = (document.documentElement.lang || navigator.language).toLowerCase().indexOf('ja') === 0;
     var isDebug = new URLSearchParams(window.location.search).get('debug') === 'true';
@@ -17,10 +23,7 @@
         start:     { emoji: '🚀', color: '#ffffff', label: isJa ? '開始地点' : 'Start Point' },
         blueprint: { emoji: '📜', color: '#3498db', label: isJa ? '設計図' : 'Blueprints' },
         warbond:   { emoji: '💀', color: '#e74c3c', label: isJa ? '戦時債権' : 'War Bonds' },
-        
-        // ★修正1：名称を「換金アイテム」に変更
         point:     { emoji: '💎', color: '#f1c40f', label: isJa ? '換金アイテム' : 'Cash Items' },
-        
         lem:       { emoji: '⚡', color: '#9b59b6', label: isJa ? 'LEM' : 'LEM Gear' },
         cave:      { emoji: '⛏️', color: '#7f8c8d', label: isJa ? '地下洞窟' : 'Caves' },
         monolith:  { emoji: '🗿', color: '#1abc9c', label: isJa ? 'モノリス' : 'Monoliths' },
@@ -73,6 +76,7 @@
 
     map.setMaxBounds(paddedBounds);
     map.fitBounds(imageBounds);
+    map.setZoom(3); // 初期ズーム固定
 
     L.tileLayer(tileUrl, { 
         minZoom: 0, maxZoom: maxZoom, tileSize: 256, noWrap: true, bounds: imageBounds, attribution: 'Map Data', tms: false
@@ -112,26 +116,58 @@
             return result;
         }
 
+        // 判定用関数: カテゴリコードが、指定されたフィルタ(例:blueprint)に属するか？
+        var isMatch = function(code, filter) {
+            if (!code) return false;
+            var s = catMapping[code];
+            if (!s) return false;
+            // stylesオブジェクトのキーを探す
+            var styleKey = Object.keys(styles).find(key => styles[key] === s);
+            return styleKey === filter;
+        };
+
         for (var i = 1; i < rows.length; i++) {
             var cols = parseCSVRow(rows[i]);
-            if (cols.length < 6) continue;
+            // 列数チェック（新フォーマットは最低でも9列以上はあるはず）
+            if (cols.length < 8) continue;
 
             var x = parseFloat(cols[1]); 
             var y = parseFloat(cols[2]);
             if (isNaN(x) || isNaN(y)) continue;
 
-            var category = cols[5] ? cols[5].trim().toUpperCase() : "";
-            if (category === 'MISC_OTHER' && !isDebug) continue;
+            // ★修正：列番号の変更（サブカテゴリ対応）
+            // 5:Main, 6:Sub1, 7:Sub2
+            var catMain = cols[5] ? cols[5].trim().toUpperCase() : "";
+            var catSub1 = cols[6] ? cols[6].trim().toUpperCase() : "";
+            var catSub2 = cols[7] ? cols[7].trim().toUpperCase() : "";
 
-            var style = catMapping[category] || styles.other;
+            // デバッグモード以外で「ゴミ箱」ならスキップ
+            if (catMain === 'MISC_OTHER' && !isDebug) continue;
+
+            // ★フィルタリング処理
+            // data-filter="blueprint" 等がある場合、Main/Sub1/Sub2のいずれかが一致すれば表示
+            if (filterMode) {
+                if (!isMatch(catMain, filterMode) && 
+                    !isMatch(catSub1, filterMode) && 
+                    !isMatch(catSub2, filterMode)) {
+                    continue; // 一致しなければこのピンは生成しない
+                }
+            }
+
+            // ピンの見た目は「Mainカテゴリ」で決定
+            var style = catMapping[catMain] || styles.other;
+            
+            // ★修正：列番号の変更（Importance以降がズレる）
+            // 3:NameJP, 4:NameEN は変わらず
+            // 8:Importance, 9:MemoJP, 10:MemoEN に移動
             var name = isJa ? cols[3] : (cols[4] || cols[3]);
-            var memo = isJa ? cols[7] : (cols[8] || "");
+            var memo = isJa ? cols[9] : (cols[10] || "");
 
             var latLng = map.unproject([x, y], maxZoom);
             var marker;
 
             if (style.emoji) {
-                var extra = (category === 'MISC_OTHER') ? ' debug-marker' : '';
+                var extra = (catMain === 'MISC_OTHER') ? ' debug-marker' : '';
                 marker = L.marker(latLng, {
                     icon: L.divIcon({
                         html: '<div>' + style.emoji + '</div>',
@@ -172,11 +208,15 @@
             if (layers[lbl]) {
                 overlayMaps[lbl] = layers[lbl];
                 
-                // ★修正2：初期非表示リストに 'point' (換金アイテム) を追加
-                const hiddenKeys = ['monolith', 'scanner', 'cave', 'other', 'point'];
-                
-                if (!hiddenKeys.includes(key)) {
+                // ★修正：フィルタモード時は、生成されたレイヤーを強制的にONにする
+                if (filterMode) {
                     layers[lbl].addTo(map);
+                } else {
+                    // 通常時：初期非表示設定（pointも含める）
+                    const hiddenKeys = ['monolith', 'scanner', 'cave', 'other', 'point'];
+                    if (!hiddenKeys.includes(key)) {
+                        layers[lbl].addTo(map);
+                    }
                 }
             }
         });
