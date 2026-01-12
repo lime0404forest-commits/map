@@ -184,10 +184,10 @@ p_1768176158,3666.353140243881,4969.333712925031,ドローンの残骸,Drone Wre
 p_1768176990,3920.1381139418922,5638.784884,遺体,Dead Body,LOC_SPARE_1,ITEM_OTHER,,1,下級フォールガイLEM<br>戦時債権（15）,Lesser Fallguy LEM<br>War Bonds（15）
 p_1768177133,4011.108830616731,5726.489985557149,ストレージボックス,Storage Box,ITEM_GEAR,,,1,損傷したローカルスキャナー（3500）,Damaged Local Scanner（3500）
 p_1768177204,4039.566336858604,5644.849598797679,遺体,Dead Body,LOC_SPARE_1,,,1,ダイエティシャンLEM,Dietician LEM
-p_1768177312,4088.084052418518,5531.019573830189,ストレージボックス,Storage Box,ITEM_GEAR,,,1,損傷したローカルスキャナー（3500）,Damaged Local Scanner（3500）
-p_1768177455,4076.824146931042,5529.575028878805,遺体,Dead Body,LOC_SPARE_1,ITEM_GEAR,,1,下級スライダーLEM<br>不明なモジュール（2000）,Lesser Slider LEM<br>Unknown Module（2000）
-p_1768177508,4073.622041049697,5539.416871,アイテムプリンター,Item Printer,ITEM_OTHER,,,1,戦時債権（5）,War Bonds（5）
-p_1768177650,4065.224744125866,5529.153507847115,ストレージボックス,Storage Box,ITEM_WEAPON,ITEM_OTHER,ITEM_GEAR,1,設計図：電子部品<br>設計図：ステーター<br>戦時債権（30）<br>フレームメモリモジュール（7000）,Electronics Blueprint<br>Stator Blueprint<br>War Bonds（30）<br>Frame Memory Module（7000）
+p_1768177312,4113.25348498536,5550.306801462211,ストレージボックス,Storage Box,ITEM_GEAR,,,1,損傷したローカルスキャナー（3500）,Damaged Local Scanner（3500）
+p_1768177455,4099.710896438566,5558.001454045618,遺体,Dead Body,LOC_SPARE_1,ITEM_GEAR,,1,下級スライダーLEM<br>不明なモジュール（2000）,Lesser Slider LEM<br>Unknown Module（2000）
+p_1768177508,4087.707238408453,5551.23015977222,アイテムプリンター,Item Printer,ITEM_OTHER,,,1,戦時債権（5）,War Bonds（5）
+p_1768177650,4098.171965921884,5544.151079395487,ストレージボックス,Storage Box,ITEM_WEAPON,ITEM_OTHER,ITEM_GEAR,1,設計図：電子部品<br>設計図：ステーター<br>戦時債権（30）<br>フレームメモリモジュール（7000）,Electronics Blueprint<br>Stator Blueprint<br>War Bonds（30）<br>Frame Memory Module（7000）
 p_1768184180,3809.463739,5120.439106629703,ドローンの残骸,Drone Wreck,ITEM_GEAR,,,1,損傷したメモリモジュール（2000）,Dameged Memory Module（2000）
 p_1768184810,4261.076071284807,4707.408763082558,遺体,Dead Body,LOC_SPARE_1,ITEM_OTHER,,1,下級エイマーLEM<br>戦時債権（8）,Lesser Aimer LEM<br>War Bonds（8）
 p_1768184962,4307.780584075291,4683.447317390049,遺体,Dead Body,LOC_SPARE_1,ITEM_OTHER,ITEM_GEAR,1,エンデュランスギバーLEM<br>戦時債権（5）<br>損傷したメモリモジュール（350）,Endurancegiver LEM<br>War Bonds（5）<br>DamagedMemory Module（350）
