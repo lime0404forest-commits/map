@@ -1,5 +1,5 @@
 (function() {
-    console.log("Map Script Loaded via GitHub (Multi-Category OR Logic + Perm Labels)");
+    console.log("Map Script Loaded via GitHub (Smart Text Filter Version)");
 
     var maxZoom = 5; 
     var imgW = 6253;
@@ -9,12 +9,13 @@
     // HTML要素を取得
     var mapDiv = document.getElementById('game-map');
     
-    // ★追加機能：ラベル常時表示設定の読み込み
+    // ▼ HTML設定読み込み ▼
     var showLabels = mapDiv ? mapDiv.getAttribute('data-show-labels') === 'true' : false;
-
-    // 記事ごとのフィルタ設定（例: "blueprint"）
+    var htmlZoom = mapDiv ? parseInt(mapDiv.getAttribute('data-zoom')) : null;
+    var defaultZoom = (htmlZoom !== null && !isNaN(htmlZoom)) ? htmlZoom : 3;
     var filterMode = mapDiv ? mapDiv.getAttribute('data-filter') : null;
     var customCsv = mapDiv ? mapDiv.getAttribute('data-csv') : null;
+    // ▲ 設定読み込みここまで ▲
 
     var csvUrl = customCsv || 'https://raw.githubusercontent.com/lime0404forest-commits/map/main/games/StarRupture/None/master_data.csv';
     var tileUrl = 'https://lost-in-games.com/starrupture-map/tiles/{z}/{x}/{y}.webp?v=20260111_FINAL3';
@@ -36,7 +37,6 @@
         trash:     { emoji: '❌', color: '#555555', label: isJa ? '調査済み(空)' : 'Checked(Empty)' }
     };
 
-    // CSVコードとスタイルキーの対応表
     var catMapping = {
         'LOC_SPARE_2': 'scanner', 
         'LOC_BASE': 'start', 
@@ -55,7 +55,7 @@
     };
 
     window.map = L.map('game-map', {
-        crs: L.CRS.Simple, minZoom: 0, maxZoom: maxZoom, zoom: 2, 
+        crs: L.CRS.Simple, minZoom: 0, maxZoom: maxZoom, zoom: defaultZoom,
         maxBoundsViscosity: 0.8, preferCanvas: true
     });
 
@@ -69,7 +69,7 @@
 
     map.setMaxBounds(paddedBounds);
     map.fitBounds(imageBounds);
-    map.setZoom(2);
+    map.setZoom(defaultZoom);
 
     L.tileLayer(tileUrl, { 
         minZoom: 0, maxZoom: maxZoom, tileSize: 256, noWrap: true, 
@@ -86,32 +86,22 @@
     map.on('zoomend', updateZoomClass);
     updateZoomClass();
 
-    // ★全マーカーを保持するリスト
     var allMarkers = [];
-    
-    // ★現在ONになっているカテゴリ（スタイルキー）のセット
     var activeCategories = new Set();
 
-    // 初期状態でONにするカテゴリ
     Object.keys(styles).forEach(key => {
         if (key === 'trash' && !isDebug) return;
-        
-        // フィルタモードがある場合：そのカテゴリだけON
         if (filterMode) {
             if (key === filterMode) activeCategories.add(key);
         } else {
-            // 通常時：初期非表示以外のものをON
             const hiddenKeys = ['monolith', 'scanner', 'cave', 'other', 'point'];
             if (!hiddenKeys.includes(key)) activeCategories.add(key);
         }
     });
 
-    // 表示更新ロジック（OR条件）
     function updateVisibleMarkers() {
         allMarkers.forEach(item => {
-            // ピンが持っているカテゴリ（Main, Sub1, Sub2）のどれか1つでもactiveCategoriesに含まれていれば表示
             var isVisible = item.categories.some(cat => activeCategories.has(cat));
-            
             if (isVisible) {
                 if (!map.hasLayer(item.marker)) {
                     item.marker.addTo(map);
@@ -122,6 +112,36 @@
                 }
             }
         });
+    }
+
+    // ★追加：テキスト整形関数
+    // フィルタモードに合わせて、不要な行を削除する
+    function cleanTextForFilter(text, mode) {
+        if (!mode || !text) return text;
+
+        // モードごとのキーワード定義（ここをいじれば調整可能）
+        var keywords = {
+            'blueprint': ['設計図', 'Blueprint', 'Recipe'],
+            'lem': ['LEM', 'Module'],
+            'warbond': ['戦時', 'Warbond'],
+            'scanner': ['スキャナー', 'Scanner']
+        };
+
+        var targetKeys = keywords[mode];
+        if (!targetKeys) return text; // 定義がないモードならそのまま
+
+        // 改行で分割してチェック
+        var lines = text.split(/\r\n|\n|\r|<br>/);
+        var filteredLines = lines.filter(line => {
+            return targetKeys.some(key => line.includes(key));
+        });
+
+        // 該当行があればそれを返す。なければ（誤判定防止のため）元の全文を返す
+        if (filteredLines.length > 0) {
+            return filteredLines.join('\n');
+        } else {
+            return text;
+        }
     }
 
     var cacheBuster = 't=' + Date.now();
@@ -147,7 +167,6 @@
             return result;
         }
 
-        // CSVコードからスタイルキー（blueprint等）へ変換
         function getStyleKey(code) {
             if (!code) return null;
             return catMapping[code] || 'other';
@@ -167,16 +186,13 @@
 
             if (catMain === 'MISC_OTHER' && !isDebug) continue;
 
-            // ★このピンが持つカテゴリ（スタイルキー）のリストを作成
             var myCategories = [];
             var k1 = getStyleKey(catMain); if(k1) myCategories.push(k1);
             var k2 = getStyleKey(catSub1); if(k2) myCategories.push(k2);
             var k3 = getStyleKey(catSub2); if(k3) myCategories.push(k3);
             
-            // 重複除去（例: MainとSubが同じ場合）
             myCategories = [...new Set(myCategories)];
 
-            // アイコンの見た目はMainカテゴリで決定
             var visualStyle = styles[k1] || styles.other;
             
             var name = isJa ? cols[3] : (cols[4] || cols[3]);
@@ -209,21 +225,21 @@
             p += '</div>';
             marker.bindPopup(p);
             
-            var tooltipText = memo ? memo : name;
-            
-            // ★追加：ツールチップの表示オプションを切り替え
+            // ▼▼▼ テキスト整形ロジック適用 ▼▼▼
+            var rawText = memo ? memo : name;
+            // フィルタモードがあれば、テキストを綺麗にする
+            var tooltipText = filterMode ? cleanTextForFilter(rawText, filterMode) : rawText;
+
             var tooltipOptions = {};
             if (showLabels) {
-                // 常時表示モード
                 tooltipOptions = {
                     permanent: true,
                     direction: 'top',
-                    className: 'item-tooltip-permanent',
+                    className: 'item-tooltip-permanent', 
                     opacity: 0.9,
                     offset: [0, -20]
                 };
             } else {
-                // 通常モード（ホバー時のみ）
                 tooltipOptions = {
                     direction: 'top',
                     sticky: true,
@@ -233,38 +249,29 @@
                 };
             }
             marker.bindTooltip(tooltipText, tooltipOptions);
+            // ▲▲▲ 修正ここまで ▲▲▲
 
-            // ★マーカーとカテゴリ情報をリストに保存（まだマップには追加しない）
             allMarkers.push({
                 marker: marker,
                 categories: myCategories
             });
         }
 
-        // コントロール用のダミーレイヤー（中身は空っぽ）を作成
         var overlayMaps = {};
         Object.keys(styles).forEach(key => {
             if (key === 'trash' && !isDebug) return;
             var lbl = styles[key].label;
-            
-            // Leafletのコントロールには「空のレイヤーグループ」を渡す
-            // これでチェックボックスだけ表示させる
             var dummyGroup = L.layerGroup(); 
             overlayMaps[lbl] = dummyGroup;
 
-            // 初期状態でONなら、マップに追加しておく（チェックボックスをONにするため）
             if (activeCategories.has(key)) {
                 dummyGroup.addTo(map);
             }
         });
 
-        // コントロール追加
         L.control.layers(null, overlayMaps, { collapsed: false, position: 'topright' }).addTo(map);
 
-        // ★チェックボックスのイベントリスナー（ここが心臓部）
-        // チェックON
         map.on('overlayadd', function(e) {
-            // ラベル名からキーを探す
             var key = Object.keys(styles).find(k => styles[k].label === e.name);
             if (key) {
                 activeCategories.add(key);
@@ -272,7 +279,6 @@
             }
         });
 
-        // チェックOFF
         map.on('overlayremove', function(e) {
             var key = Object.keys(styles).find(k => styles[k].label === e.name);
             if (key) {
@@ -281,7 +287,6 @@
             }
         });
 
-        // 初回表示更新
         updateVisibleMarkers();
     })
     .catch(e => console.error(e));
