@@ -69,7 +69,7 @@
 
     map.setMaxBounds(paddedBounds);
     map.fitBounds(imageBounds);
-    map.setZoom(3);
+    map.setZoom(2);
 
     L.tileLayer(tileUrl, { 
         minZoom: 0, maxZoom: maxZoom, tileSize: 256, noWrap: true, 
