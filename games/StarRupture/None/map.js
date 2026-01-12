@@ -138,7 +138,7 @@
 
         // 該当行があればそれを返す。なければ（誤判定防止のため）元の全文を返す
         if (filteredLines.length > 0) {
-            return filteredLines.join('\n');
+            return filteredLines.join('<br>');
         } else {
             return text;
         }
