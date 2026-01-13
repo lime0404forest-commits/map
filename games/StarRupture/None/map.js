@@ -1,5 +1,5 @@
 (function() {
-    console.log("Map Script Loaded via GitHub (Smart Text Filter Version)");
+    console.log("Map Script Loaded via GitHub (Numbered Blueprints Version)");
 
     var maxZoom = 5; 
     var imgW = 6253;
@@ -13,7 +13,7 @@
     var showLabels = mapDiv ? mapDiv.getAttribute('data-show-labels') === 'true' : false;
     var htmlZoom = mapDiv ? parseInt(mapDiv.getAttribute('data-zoom')) : null;
     
-    // ★ここを修正しました（デフォルトを3から1へ）
+    // デフォルトズームは1
     var defaultZoom = (htmlZoom !== null && !isNaN(htmlZoom)) ? htmlZoom : 1;
     
     var filterMode = mapDiv ? mapDiv.getAttribute('data-filter') : null;
@@ -91,6 +91,9 @@
 
     var allMarkers = [];
     var activeCategories = new Set();
+    
+    // ★追加：設計図用のカウンター
+    var blueprintCount = 0;
 
     Object.keys(styles).forEach(key => {
         if (key === 'trash' && !isDebug) return;
@@ -117,29 +120,20 @@
         });
     }
 
-    // ★追加：テキスト整形関数
-    // フィルタモードに合わせて、不要な行を削除する
     function cleanTextForFilter(text, mode) {
         if (!mode || !text) return text;
-
-        // モードごとのキーワード定義（ここをいじれば調整可能）
         var keywords = {
             'blueprint': ['設計図', 'Blueprint', 'Recipe'],
             'lem': ['LEM', 'Module'],
             'warbond': ['戦時', 'Warbond'],
             'scanner': ['スキャナー', 'Scanner']
         };
-
         var targetKeys = keywords[mode];
-        if (!targetKeys) return text; // 定義がないモードならそのまま
-
-        // 改行で分割してチェック
+        if (!targetKeys) return text; 
         var lines = text.split(/\r\n|\n|\r|<br>/);
         var filteredLines = lines.filter(line => {
             return targetKeys.some(key => line.includes(key));
         });
-
-        // 該当行があればそれを返す。なければ（誤判定防止のため）元の全文を返す
         if (filteredLines.length > 0) {
             return filteredLines.join('<br>');
         } else {
@@ -156,7 +150,6 @@
         function parseCSVRow(row) {
             const result = [];
             let current = '';
-            let inQuotes = false;
             let inQuotes = false;
             for (let char of row) {
                 if (char === '"') inQuotes = !inQuotes;
@@ -199,7 +192,18 @@
 
             var visualStyle = styles[k1] || styles.other;
             
+            // ★変更：設計図なら番号を振る
+            var isBlueprint = (k1 === 'blueprint');
+            var bpNum = isBlueprint ? ++blueprintCount : null;
+
             var name = isJa ? cols[3] : (cols[4] || cols[3]);
+            
+            // ポップアップ用タイトルにも番号をつける
+            var displayName = name;
+            if (bpNum) {
+                displayName = name + ' <span style="font-size:0.9em;color:#888;">(No.' + bpNum + ')</span>';
+            }
+
             var memo = isJa ? cols[9] : (cols[10] || "");
 
             var latLng = map.unproject([x, y], maxZoom);
@@ -207,9 +211,17 @@
 
             if (visualStyle.emoji) {
                 var extra = (catMain === 'MISC_OTHER') ? ' debug-marker' : '';
+                
+                // ★変更：アイコンHTMLに番号バッジを重ねる
+                var iconHtml = '<div style="position:relative;">' + visualStyle.emoji;
+                if (bpNum) {
+                    iconHtml += '<span style="position:absolute; bottom:-5px; right:-8px; background:#e74c3c; color:white; border-radius:50%; font-size:10px; min-width:16px; height:16px; text-align:center; line-height:16px; font-weight:bold; border:1px solid white; box-shadow: 1px 1px 2px rgba(0,0,0,0.3);">' + bpNum + '</span>';
+                }
+                iconHtml += '</div>';
+
                 marker = L.marker(latLng, {
                     icon: L.divIcon({
-                        html: '<div>' + visualStyle.emoji + '</div>',
+                        html: iconHtml,
                         className: 'emoji-icon' + extra,
                         iconSize: [30, 30], iconAnchor: [15, 15]
                     })
@@ -222,17 +234,18 @@
 
             var p = '<div style="font-family:sans-serif;min-width:180px;">' +
                     '<div style="font-size:10px;color:' + visualStyle.color + ';font-weight:bold;text-transform:uppercase;">' + visualStyle.label + '</div>' +
-                    '<div style="font-size:14px;font-weight:bold;margin:4px 0;border-bottom:1px solid #ccc;padding-bottom:4px;">' + name + '</div>';
+                    '<div style="font-size:14px;font-weight:bold;margin:4px 0;border-bottom:1px solid #ccc;padding-bottom:4px;">' + displayName + '</div>';
             if (memo) {
                 p += '<div style="font-size:12px;color:#444;background:#f4f4f4;padding:5px;border-radius:3px;line-height:1.4;">' + memo + '</div>';
             }
             p += '</div>';
             marker.bindPopup(p);
             
-            // ▼▼▼ テキスト整形ロジック適用 ▼▼▼
             var rawText = memo ? memo : name;
-            // フィルタモードがあれば、テキストを綺麗にする
             var tooltipText = filterMode ? cleanTextForFilter(rawText, filterMode) : rawText;
+
+            // ツールチップにも番号があったほうが便利なら以下のように変更できます
+            // if (bpNum) tooltipText = "(#" + bpNum + ") " + tooltipText;
 
             var tooltipOptions = {};
             if (showLabels) {
@@ -253,7 +266,6 @@
                 };
             }
             marker.bindTooltip(tooltipText, tooltipOptions);
-            // ▲▲▲ 修正ここまで ▲▲▲
 
             allMarkers.push({
                 marker: marker,
