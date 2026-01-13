@@ -1,5 +1,5 @@
 (function() {
-    console.log("Map Script Loaded via GitHub (Numbered Blueprints Fixed)");
+    console.log("Map Script Loaded via GitHub (Blueprint Special Mode)");
 
     var maxZoom = 5; 
     var imgW = 6253;
@@ -13,7 +13,7 @@
     var showLabels = mapDiv ? mapDiv.getAttribute('data-show-labels') === 'true' : false;
     var htmlZoom = mapDiv ? parseInt(mapDiv.getAttribute('data-zoom')) : null;
     
-    // デフォルトズーム設定（1を指定されましたが、画像がない場合は真っ黒になります。その場合は3に戻してください）
+    // デフォルトズーム設定
     var defaultZoom = (htmlZoom !== null && !isNaN(htmlZoom)) ? htmlZoom : 1;
     
     var filterMode = mapDiv ? mapDiv.getAttribute('data-filter') : null;
@@ -97,9 +97,18 @@
 
     Object.keys(styles).forEach(key => {
         if (key === 'trash' && !isDebug) return;
+        
         if (filterMode) {
+            // ★変更：フィルタモード時のカテゴリ表示ルール
+            // 1. 指定されたカテゴリを表示
             if (key === filterMode) activeCategories.add(key);
+            
+            // 2. 設計図モード('blueprint')なら、開始地点('start')も強制表示
+            if (filterMode === 'blueprint' && key === 'start') {
+                activeCategories.add(key);
+            }
         } else {
+            // フィルタ無し（全体マップ）の時は従来通り
             const hiddenKeys = ['monolith', 'scanner', 'cave', 'other', 'point'];
             if (!hiddenKeys.includes(key)) activeCategories.add(key);
         }
@@ -151,7 +160,6 @@
             const result = [];
             let current = '';
             let inQuotes = false; 
-            // ★修正箇所：ここに重複していた let inQuotes = false; を削除しました
             for (let char of row) {
                 if (char === '"') inQuotes = !inQuotes;
                 else if (char === ',' && !inQuotes) {
@@ -193,13 +201,13 @@
 
             var visualStyle = styles[k1] || styles.other;
             
-            // 設計図なら番号を振る
+            // ★変更：設計図モードの時だけ番号を有効化
             var isBlueprint = (k1 === 'blueprint');
-            var bpNum = isBlueprint ? ++blueprintCount : null;
+            var enableNumbering = (filterMode === 'blueprint'); // フィルタがblueprintの時のみ
+            var bpNum = (isBlueprint && enableNumbering) ? ++blueprintCount : null;
 
             var name = isJa ? cols[3] : (cols[4] || cols[3]);
             
-            // ポップアップ用タイトルにも番号をつける
             var displayName = name;
             if (bpNum) {
                 displayName = name + ' <span style="font-size:0.9em;color:#888;">(No.' + bpNum + ')</span>';
@@ -213,7 +221,6 @@
             if (visualStyle.emoji) {
                 var extra = (catMain === 'MISC_OTHER') ? ' debug-marker' : '';
                 
-                // アイコンHTMLに番号バッジを重ねる
                 var iconHtml = '<div style="position:relative;">' + visualStyle.emoji;
                 if (bpNum) {
                     iconHtml += '<span style="position:absolute; bottom:-5px; right:-8px; background:#e74c3c; color:white; border-radius:50%; font-size:10px; min-width:16px; height:16px; text-align:center; line-height:16px; font-weight:bold; border:1px solid white; box-shadow: 1px 1px 2px rgba(0,0,0,0.3);">' + bpNum + '</span>';
@@ -283,7 +290,10 @@
             }
         });
 
-        L.control.layers(null, overlayMaps, { collapsed: false, position: 'topright' }).addTo(map);
+        // ★変更：フィルタモードが指定されていない（全体マップ）時だけ、UIコントロールを表示
+        if (!filterMode) {
+            L.control.layers(null, overlayMaps, { collapsed: false, position: 'topright' }).addTo(map);
+        }
 
         map.on('overlayadd', function(e) {
             var key = Object.keys(styles).find(k => styles[k].label === e.name);
