@@ -12,7 +12,10 @@
     // ▼ HTML設定読み込み ▼
     var showLabels = mapDiv ? mapDiv.getAttribute('data-show-labels') === 'true' : false;
     var htmlZoom = mapDiv ? parseInt(mapDiv.getAttribute('data-zoom')) : null;
-    var defaultZoom = (htmlZoom !== null && !isNaN(htmlZoom)) ? htmlZoom : 3;
+    
+    // ★ここを修正しました（デフォルトを3から1へ）
+    var defaultZoom = (htmlZoom !== null && !isNaN(htmlZoom)) ? htmlZoom : 1;
+    
     var filterMode = mapDiv ? mapDiv.getAttribute('data-filter') : null;
     var customCsv = mapDiv ? mapDiv.getAttribute('data-csv') : null;
     // ▲ 設定読み込みここまで ▲
@@ -153,6 +156,7 @@
         function parseCSVRow(row) {
             const result = [];
             let current = '';
+            let inQuotes = false;
             let inQuotes = false;
             for (let char of row) {
                 if (char === '"') inQuotes = !inQuotes;
