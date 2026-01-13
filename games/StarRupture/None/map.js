@@ -1,5 +1,5 @@
 (function() {
-    console.log("Map Script Loaded via GitHub (Numbered Blueprints Version)");
+    console.log("Map Script Loaded via GitHub (Numbered Blueprints Fixed)");
 
     var maxZoom = 5; 
     var imgW = 6253;
@@ -13,7 +13,7 @@
     var showLabels = mapDiv ? mapDiv.getAttribute('data-show-labels') === 'true' : false;
     var htmlZoom = mapDiv ? parseInt(mapDiv.getAttribute('data-zoom')) : null;
     
-    // デフォルトズームは1
+    // デフォルトズーム設定（1を指定されましたが、画像がない場合は真っ黒になります。その場合は3に戻してください）
     var defaultZoom = (htmlZoom !== null && !isNaN(htmlZoom)) ? htmlZoom : 1;
     
     var filterMode = mapDiv ? mapDiv.getAttribute('data-filter') : null;
@@ -92,7 +92,7 @@
     var allMarkers = [];
     var activeCategories = new Set();
     
-    // ★追加：設計図用のカウンター
+    // 設計図用のカウンター
     var blueprintCount = 0;
 
     Object.keys(styles).forEach(key => {
@@ -150,7 +150,8 @@
         function parseCSVRow(row) {
             const result = [];
             let current = '';
-            let inQuotes = false;
+            let inQuotes = false; 
+            // ★修正箇所：ここに重複していた let inQuotes = false; を削除しました
             for (let char of row) {
                 if (char === '"') inQuotes = !inQuotes;
                 else if (char === ',' && !inQuotes) {
@@ -192,7 +193,7 @@
 
             var visualStyle = styles[k1] || styles.other;
             
-            // ★変更：設計図なら番号を振る
+            // 設計図なら番号を振る
             var isBlueprint = (k1 === 'blueprint');
             var bpNum = isBlueprint ? ++blueprintCount : null;
 
@@ -212,7 +213,7 @@
             if (visualStyle.emoji) {
                 var extra = (catMain === 'MISC_OTHER') ? ' debug-marker' : '';
                 
-                // ★変更：アイコンHTMLに番号バッジを重ねる
+                // アイコンHTMLに番号バッジを重ねる
                 var iconHtml = '<div style="position:relative;">' + visualStyle.emoji;
                 if (bpNum) {
                     iconHtml += '<span style="position:absolute; bottom:-5px; right:-8px; background:#e74c3c; color:white; border-radius:50%; font-size:10px; min-width:16px; height:16px; text-align:center; line-height:16px; font-weight:bold; border:1px solid white; box-shadow: 1px 1px 2px rgba(0,0,0,0.3);">' + bpNum + '</span>';
@@ -243,9 +244,6 @@
             
             var rawText = memo ? memo : name;
             var tooltipText = filterMode ? cleanTextForFilter(rawText, filterMode) : rawText;
-
-            // ツールチップにも番号があったほうが便利なら以下のように変更できます
-            // if (bpNum) tooltipText = "(#" + bpNum + ") " + tooltipText;
 
             var tooltipOptions = {};
             if (showLabels) {
