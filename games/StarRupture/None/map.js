@@ -1,5 +1,5 @@
 (function() {
-    console.log("Map Script Loaded via GitHub (Blueprint Special Mode)");
+    console.log("Map Script Loaded via GitHub (Universal Version: BP & LEM)");
 
     var maxZoom = 5; 
     var imgW = 6253;
@@ -12,10 +12,7 @@
     // ▼ HTML設定読み込み ▼
     var showLabels = mapDiv ? mapDiv.getAttribute('data-show-labels') === 'true' : false;
     var htmlZoom = mapDiv ? parseInt(mapDiv.getAttribute('data-zoom')) : null;
-    
-    // デフォルトズーム設定
     var defaultZoom = (htmlZoom !== null && !isNaN(htmlZoom)) ? htmlZoom : 1;
-    
     var filterMode = mapDiv ? mapDiv.getAttribute('data-filter') : null;
     var customCsv = mapDiv ? mapDiv.getAttribute('data-csv') : null;
     // ▲ 設定読み込みここまで ▲
@@ -99,12 +96,13 @@
         if (key === 'trash' && !isDebug) return;
         
         if (filterMode) {
-            // ★変更：フィルタモード時のカテゴリ表示ルール
-            // 1. 指定されたカテゴリを表示
+            // フィルタモードがある場合の表示ルール
+            
+            // 1. 指定されたカテゴリを表示 (例: 'blueprint' や 'lem')
             if (key === filterMode) activeCategories.add(key);
             
-            // 2. 設計図モード('blueprint')なら、開始地点('start')も強制表示
-            if (filterMode === 'blueprint' && key === 'start') {
+            // 2. ★ここが重要：設計図(blueprint) または LEM(lem) モードなら、開始地点(start)も強制表示
+            if ((filterMode === 'blueprint' || filterMode === 'lem') && key === 'start') {
                 activeCategories.add(key);
             }
         } else {
@@ -201,9 +199,9 @@
 
             var visualStyle = styles[k1] || styles.other;
             
-            // ★変更：設計図モードの時だけ番号を有効化
+            // 設計図モードの時だけ番号を有効化
             var isBlueprint = (k1 === 'blueprint');
-            var enableNumbering = (filterMode === 'blueprint'); // フィルタがblueprintの時のみ
+            var enableNumbering = (filterMode === 'blueprint'); 
             var bpNum = (isBlueprint && enableNumbering) ? ++blueprintCount : null;
 
             var name = isJa ? cols[3] : (cols[4] || cols[3]);
@@ -290,7 +288,7 @@
             }
         });
 
-        // ★変更：フィルタモードが指定されていない（全体マップ）時だけ、UIコントロールを表示
+        // ★フィルタモードが指定されていない（全体マップ）時だけ、UIコントロールを表示
         if (!filterMode) {
             L.control.layers(null, overlayMaps, { collapsed: false, position: 'topright' }).addTo(map);
         }
