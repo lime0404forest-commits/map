@@ -1,5 +1,5 @@
 (function() {
-    console.log("Map Script Loaded via GitHub (Final Complete Version)");
+    console.log("Map Script Loaded via GitHub (UI Fixed & Rank Logic Boosted)");
 
     var maxZoom = 5; 
     var imgW = 6253;
@@ -94,7 +94,6 @@
         
         if (filterMode) {
             if (key === filterMode) activeCategories.add(key);
-            // 設計図(blueprint) または LEM(lem) モードなら、開始地点(start)も強制表示
             if ((filterMode === 'blueprint' || filterMode === 'lem') && key === 'start') {
                 activeCategories.add(key);
             }
@@ -104,12 +103,15 @@
         }
     });
 
-    // ランク判定関数
-    function getRank(name) {
-        if (!name) return 'standard';
-        var n = name.toLowerCase();
-        if (n.includes('greater') || n.includes('上級')) return 'greater';
-        if (n.includes('lesser') || n.includes('下級')) return 'lesser';
+    // ★修正：ランク判定関数（行全体を受け取って判定）
+    // 日本語名になくても、英語名やIDに含まれていれば検知できるように変更
+    function getRank(rawRowString) {
+        if (!rawRowString) return 'standard';
+        var s = rawRowString.toLowerCase();
+        
+        if (s.includes('greater') || s.includes('上級')) return 'greater';
+        if (s.includes('lesser') || s.includes('下級')) return 'lesser';
+        
         return 'standard';
     }
 
@@ -119,7 +121,6 @@
             
             var isRankMatch = true;
             if (currentRankFilter !== 'all') {
-                // スタート地点はランクに関係なく表示
                 if (item.rank !== currentRankFilter && !item.categories.includes('start')) {
                     isRankMatch = false;
                 }
@@ -158,9 +159,9 @@
         }
     }
 
-    // ★重要変更：フィルタがない時(全体)、またはLEMモードの時にランクボタンを表示
+    // ★修正：ボタン位置を右下(bottomright)に変更
     if (!filterMode || filterMode === 'lem') {
-        var rankControl = L.control({ position: 'bottomleft' });
+        var rankControl = L.control({ position: 'bottomright' });
         rankControl.onAdd = function(map) {
             var div = L.DomUtil.create('div', 'rank-filter-control');
             div.style.background = 'rgba(255, 255, 255, 0.9)';
@@ -169,6 +170,8 @@
             div.style.boxShadow = '0 1px 5px rgba(0,0,0,0.4)';
             div.style.display = 'flex';
             div.style.gap = '5px';
+            div.style.marginRight = '10px'; // 端すぎないように余白
+            div.style.marginBottom = '10px';
             div.innerHTML = `
                 <style>
                     .rank-btn { border: 1px solid #ccc; background: #fff; padding: 2px 8px; cursor: pointer; border-radius: 3px; font-size: 12px; font-weight: bold; color: #333; }
@@ -225,6 +228,9 @@
         }
 
         for (var i = 1; i < rows.length; i++) {
+            // ★修正：行全体の文字列をランク判定用に保持
+            var rawRowString = rows[i];
+            
             var cols = parseCSVRow(rows[i]);
             if (cols.length < 8) continue;
 
@@ -252,7 +258,9 @@
             var bpNum = (isBlueprint && enableNumbering) ? ++blueprintCount : null;
 
             var name = isJa ? cols[3] : (cols[4] || cols[3]);
-            var itemRank = getRank(name);
+            
+            // ★修正：行全体を見てランクを判定
+            var itemRank = getRank(rawRowString);
 
             var displayName = name;
             if (bpNum) {
@@ -337,7 +345,6 @@
             }
         });
 
-        // フィルタがない時だけカテゴリフィルタ(レイヤーコントロール)を表示
         if (!filterMode) {
             L.control.layers(null, overlayMaps, { collapsed: false, position: 'topright' }).addTo(map);
         }
