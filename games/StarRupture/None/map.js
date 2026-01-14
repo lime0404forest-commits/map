@@ -1,21 +1,19 @@
 (function() {
-    console.log("Map Script Loaded via GitHub (Rank Filter Enabled)");
+    console.log("Map Script Loaded via GitHub (Final Complete Version)");
 
     var maxZoom = 5; 
     var imgW = 6253;
     var imgH = 7104;
     var mapPadding = 1500; 
 
-    // HTML要素を取得
     var mapDiv = document.getElementById('game-map');
     
-    // ▼ HTML設定読み込み ▼
+    // ▼ 設定読み込み ▼
     var showLabels = mapDiv ? mapDiv.getAttribute('data-show-labels') === 'true' : false;
     var htmlZoom = mapDiv ? parseInt(mapDiv.getAttribute('data-zoom')) : null;
     var defaultZoom = (htmlZoom !== null && !isNaN(htmlZoom)) ? htmlZoom : 1;
     var filterMode = mapDiv ? mapDiv.getAttribute('data-filter') : null;
     var customCsv = mapDiv ? mapDiv.getAttribute('data-csv') : null;
-    // ▲ 設定読み込みここまで ▲
 
     var csvUrl = customCsv || 'https://raw.githubusercontent.com/lime0404forest-commits/map/main/games/StarRupture/None/master_data.csv';
     var tileUrl = 'https://lost-in-games.com/starrupture-map/tiles/{z}/{x}/{y}.webp?v=20260111_FINAL3';
@@ -89,8 +87,6 @@
     var allMarkers = [];
     var activeCategories = new Set();
     var blueprintCount = 0;
-    
-    // ★追加：ランクフィルタ用の状態変数（'all', 'greater', 'lesser', 'standard'）
     var currentRankFilter = 'all';
 
     Object.keys(styles).forEach(key => {
@@ -98,6 +94,7 @@
         
         if (filterMode) {
             if (key === filterMode) activeCategories.add(key);
+            // 設計図(blueprint) または LEM(lem) モードなら、開始地点(start)も強制表示
             if ((filterMode === 'blueprint' || filterMode === 'lem') && key === 'start') {
                 activeCategories.add(key);
             }
@@ -107,7 +104,7 @@
         }
     });
 
-    // ★追加：ランク判定関数
+    // ランク判定関数
     function getRank(name) {
         if (!name) return 'standard';
         var n = name.toLowerCase();
@@ -118,16 +115,16 @@
 
     function updateVisibleMarkers() {
         allMarkers.forEach(item => {
-            // 1. カテゴリチェック
             var isCatMatch = item.categories.some(cat => activeCategories.has(cat));
             
-            // 2. ランクチェック
             var isRankMatch = true;
             if (currentRankFilter !== 'all') {
-                if (item.rank !== currentRankFilter) isRankMatch = false;
+                // スタート地点はランクに関係なく表示
+                if (item.rank !== currentRankFilter && !item.categories.includes('start')) {
+                    isRankMatch = false;
+                }
             }
 
-            // 両方OKなら表示
             if (isCatMatch && isRankMatch) {
                 if (!map.hasLayer(item.marker)) {
                     item.marker.addTo(map);
@@ -161,9 +158,8 @@
         }
     }
 
-    // ★追加：ランクフィルタUIの作成（地図左下に配置）
-    // フィルタモード(設計図など)の時は邪魔になるので表示しない
-    if (!filterMode) {
+    // ★重要変更：フィルタがない時(全体)、またはLEMモードの時にランクボタンを表示
+    if (!filterMode || filterMode === 'lem') {
         var rankControl = L.control({ position: 'bottomleft' });
         rankControl.onAdd = function(map) {
             var div = L.DomUtil.create('div', 'rank-filter-control');
@@ -184,24 +180,16 @@
                 <button class="rank-btn" data-rank="lesser" style="color:#7f8c8d;">Lesser</button>
             `;
             
-            // クリックイベント設定
             var btns = div.querySelectorAll('.rank-btn');
             btns.forEach(btn => {
                 btn.addEventListener('click', function(e) {
-                    // 全ボタンのactive解除
                     btns.forEach(b => b.classList.remove('active'));
-                    // 押されたボタンをactive化
                     e.target.classList.add('active');
-                    
-                    // フィルタ適用
                     currentRankFilter = e.target.getAttribute('data-rank');
                     updateVisibleMarkers();
-                    
-                    // 伝播を止める（地図クリック暴発防止）
                     L.DomEvent.stopPropagation(e);
                 });
             });
-            // ダブルクリックなども止める
             L.DomEvent.disableClickPropagation(div);
             return div;
         };
@@ -264,8 +252,6 @@
             var bpNum = (isBlueprint && enableNumbering) ? ++blueprintCount : null;
 
             var name = isJa ? cols[3] : (cols[4] || cols[3]);
-            
-            // ★追加：名前からランクを判定して保持
             var itemRank = getRank(name);
 
             var displayName = name;
@@ -335,7 +321,7 @@
             allMarkers.push({
                 marker: marker,
                 categories: myCategories,
-                rank: itemRank // ★ランク情報を保持
+                rank: itemRank
             });
         }
 
@@ -351,7 +337,7 @@
             }
         });
 
-        // フィルタモードが指定されていない時だけUIコントロールを表示
+        // フィルタがない時だけカテゴリフィルタ(レイヤーコントロール)を表示
         if (!filterMode) {
             L.control.layers(null, overlayMaps, { collapsed: false, position: 'topright' }).addTo(map);
         }
