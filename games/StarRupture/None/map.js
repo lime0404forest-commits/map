@@ -1,5 +1,5 @@
 (function() {
-    console.log("Map Script Loaded via GitHub (Universal Version: BP & LEM)");
+    console.log("Map Script Loaded via GitHub (Rank Filter Enabled)");
 
     var maxZoom = 5; 
     var imgW = 6253;
@@ -88,34 +88,47 @@
 
     var allMarkers = [];
     var activeCategories = new Set();
-    
-    // 設計図用のカウンター
     var blueprintCount = 0;
+    
+    // ★追加：ランクフィルタ用の状態変数（'all', 'greater', 'lesser', 'standard'）
+    var currentRankFilter = 'all';
 
     Object.keys(styles).forEach(key => {
         if (key === 'trash' && !isDebug) return;
         
         if (filterMode) {
-            // フィルタモードがある場合の表示ルール
-            
-            // 1. 指定されたカテゴリを表示 (例: 'blueprint' や 'lem')
             if (key === filterMode) activeCategories.add(key);
-            
-            // 2. ★ここが重要：設計図(blueprint) または LEM(lem) モードなら、開始地点(start)も強制表示
             if ((filterMode === 'blueprint' || filterMode === 'lem') && key === 'start') {
                 activeCategories.add(key);
             }
         } else {
-            // フィルタ無し（全体マップ）の時は従来通り
             const hiddenKeys = ['monolith', 'scanner', 'cave', 'other', 'point'];
             if (!hiddenKeys.includes(key)) activeCategories.add(key);
         }
     });
 
+    // ★追加：ランク判定関数
+    function getRank(name) {
+        if (!name) return 'standard';
+        var n = name.toLowerCase();
+        if (n.includes('greater') || n.includes('上級')) return 'greater';
+        if (n.includes('lesser') || n.includes('下級')) return 'lesser';
+        return 'standard';
+    }
+
     function updateVisibleMarkers() {
         allMarkers.forEach(item => {
-            var isVisible = item.categories.some(cat => activeCategories.has(cat));
-            if (isVisible) {
+            // 1. カテゴリチェック
+            var isCatMatch = item.categories.some(cat => activeCategories.has(cat));
+            
+            // 2. ランクチェック
+            var isRankMatch = true;
+            if (currentRankFilter !== 'all') {
+                if (item.rank !== currentRankFilter) isRankMatch = false;
+            }
+
+            // 両方OKなら表示
+            if (isCatMatch && isRankMatch) {
                 if (!map.hasLayer(item.marker)) {
                     item.marker.addTo(map);
                 }
@@ -146,6 +159,53 @@
         } else {
             return text;
         }
+    }
+
+    // ★追加：ランクフィルタUIの作成（地図左下に配置）
+    // フィルタモード(設計図など)の時は邪魔になるので表示しない
+    if (!filterMode) {
+        var rankControl = L.control({ position: 'bottomleft' });
+        rankControl.onAdd = function(map) {
+            var div = L.DomUtil.create('div', 'rank-filter-control');
+            div.style.background = 'rgba(255, 255, 255, 0.9)';
+            div.style.padding = '5px';
+            div.style.borderRadius = '4px';
+            div.style.boxShadow = '0 1px 5px rgba(0,0,0,0.4)';
+            div.style.display = 'flex';
+            div.style.gap = '5px';
+            div.innerHTML = `
+                <style>
+                    .rank-btn { border: 1px solid #ccc; background: #fff; padding: 2px 8px; cursor: pointer; border-radius: 3px; font-size: 12px; font-weight: bold; color: #333; }
+                    .rank-btn.active { background: #333; color: #fff; border-color: #000; }
+                </style>
+                <button class="rank-btn active" data-rank="all">ALL</button>
+                <button class="rank-btn" data-rank="greater" style="color:#e67e22;">Greater</button>
+                <button class="rank-btn" data-rank="standard">Standard</button>
+                <button class="rank-btn" data-rank="lesser" style="color:#7f8c8d;">Lesser</button>
+            `;
+            
+            // クリックイベント設定
+            var btns = div.querySelectorAll('.rank-btn');
+            btns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    // 全ボタンのactive解除
+                    btns.forEach(b => b.classList.remove('active'));
+                    // 押されたボタンをactive化
+                    e.target.classList.add('active');
+                    
+                    // フィルタ適用
+                    currentRankFilter = e.target.getAttribute('data-rank');
+                    updateVisibleMarkers();
+                    
+                    // 伝播を止める（地図クリック暴発防止）
+                    L.DomEvent.stopPropagation(e);
+                });
+            });
+            // ダブルクリックなども止める
+            L.DomEvent.disableClickPropagation(div);
+            return div;
+        };
+        rankControl.addTo(map);
     }
 
     var cacheBuster = 't=' + Date.now();
@@ -199,13 +259,15 @@
 
             var visualStyle = styles[k1] || styles.other;
             
-            // 設計図モードの時だけ番号を有効化
             var isBlueprint = (k1 === 'blueprint');
             var enableNumbering = (filterMode === 'blueprint'); 
             var bpNum = (isBlueprint && enableNumbering) ? ++blueprintCount : null;
 
             var name = isJa ? cols[3] : (cols[4] || cols[3]);
             
+            // ★追加：名前からランクを判定して保持
+            var itemRank = getRank(name);
+
             var displayName = name;
             if (bpNum) {
                 displayName = name + ' <span style="font-size:0.9em;color:#888;">(No.' + bpNum + ')</span>';
@@ -272,7 +334,8 @@
 
             allMarkers.push({
                 marker: marker,
-                categories: myCategories
+                categories: myCategories,
+                rank: itemRank // ★ランク情報を保持
             });
         }
 
@@ -288,7 +351,7 @@
             }
         });
 
-        // ★フィルタモードが指定されていない（全体マップ）時だけ、UIコントロールを表示
+        // フィルタモードが指定されていない時だけUIコントロールを表示
         if (!filterMode) {
             L.control.layers(null, overlayMaps, { collapsed: false, position: 'topright' }).addTo(map);
         }
