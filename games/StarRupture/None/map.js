@@ -1,5 +1,5 @@
 (function() {
-    console.log("Map Script Loaded via GitHub (UI Fixed & Rank Logic Boosted)");
+    console.log("Map Script Loaded via GitHub (Root Cause Fix: Removed 'Module' keyword)");
 
     var maxZoom = 5; 
     var imgW = 6253;
@@ -36,17 +36,10 @@
     };
 
     var catMapping = {
-        'LOC_SPARE_2': 'scanner', 
-        'LOC_BASE': 'start', 
-        'ITEM_WEAPON': 'blueprint',
-        'ITEM_OTHER': 'warbond', 
-        'ITEM_GEAR': 'point', 
-        'LOC_SPARE_1': 'lem',
-        'LOC_CAVEORMINE': 'cave', 
-        'LOC_POI': 'monolith', 
-        'MISC_OTHER': 'trash',
-        'LOC_TREASURE': 'other', 
-        'RES_PLANT': 'other', 'RES_MINERAL': 'other', 'RES_OTHER': 'other', 
+        'LOC_SPARE_2': 'scanner', 'LOC_BASE': 'start', 'ITEM_WEAPON': 'blueprint',
+        'ITEM_OTHER': 'warbond', 'ITEM_GEAR': 'point', 'LOC_SPARE_1': 'lem',
+        'LOC_CAVEORMINE': 'cave', 'LOC_POI': 'monolith', 'MISC_OTHER': 'trash',
+        'LOC_TREASURE': 'other', 'RES_PLANT': 'other', 'RES_MINERAL': 'other', 'RES_OTHER': 'other', 
         'LOC_SETTLE': 'other', 'CHAR_NPC': 'other', 'CHAR_TRADER': 'other', 
         'CHAR_OTHER': 'other', 'MISC_ENEMY': 'other', 'LOC_ENEMY': 'other', 
         'MISC_QUEST': 'other', 'LOC_MEMO': 'other'
@@ -70,8 +63,7 @@
     map.setZoom(defaultZoom);
 
     L.tileLayer(tileUrl, { 
-        minZoom: 0, maxZoom: maxZoom, tileSize: 256, noWrap: true, 
-        bounds: imageBounds, attribution: 'Map Data', tms: false
+        minZoom: 0, maxZoom: maxZoom, tileSize: 256, noWrap: true, bounds: imageBounds, tms: false
     }).addTo(map);
 
     function updateZoomClass() {
@@ -94,6 +86,7 @@
         
         if (filterMode) {
             if (key === filterMode) activeCategories.add(key);
+            // 設計図またはLEMモードなら開始地点も表示
             if ((filterMode === 'blueprint' || filterMode === 'lem') && key === 'start') {
                 activeCategories.add(key);
             }
@@ -103,15 +96,12 @@
         }
     });
 
-    // ★修正：ランク判定関数（行全体を受け取って判定）
-    // 日本語名になくても、英語名やIDに含まれていれば検知できるように変更
+    // ランク判定（行全体から判定）
     function getRank(rawRowString) {
         if (!rawRowString) return 'standard';
         var s = rawRowString.toLowerCase();
-        
         if (s.includes('greater') || s.includes('上級')) return 'greater';
         if (s.includes('lesser') || s.includes('下級')) return 'lesser';
-        
         return 'standard';
     }
 
@@ -121,6 +111,7 @@
             
             var isRankMatch = true;
             if (currentRankFilter !== 'all') {
+                // 開始地点はランクに関係なく表示
                 if (item.rank !== currentRankFilter && !item.categories.includes('start')) {
                     isRankMatch = false;
                 }
@@ -138,28 +129,42 @@
         });
     }
 
+    // ★修正箇所：テキストフィルタのキーワード定義を修正
     function cleanTextForFilter(text, mode) {
         if (!mode || !text) return text;
+
         var keywords = {
             'blueprint': ['設計図', 'Blueprint', 'Recipe'],
-            'lem': ['LEM', 'Module'],
+            
+            // ★ここが間違っていました。 'Module' を削除しました。
+            // これで 'LEM' を含む行だけが表示され、'Unknown Module' は自然に消えます。
+            'lem': ['LEM'], 
+
             'warbond': ['戦時', 'Warbond'],
             'scanner': ['スキャナー', 'Scanner']
         };
+
         var targetKeys = keywords[mode];
         if (!targetKeys) return text; 
+        
+        // 行ごとに分割してチェック
         var lines = text.split(/\r\n|\n|\r|<br>/);
+        
         var filteredLines = lines.filter(line => {
+            // ターゲットキーワード(LEM)が含まれているかチェック
             return targetKeys.some(key => line.includes(key));
         });
+
+        // フィルタの結果、行が残ればそれを結合して返す
         if (filteredLines.length > 0) {
             return filteredLines.join('<br>');
         } else {
-            return text;
+            // LEMという文字がなければ空文字にする（これでゴミテキストは消えます）
+            return ""; 
         }
     }
 
-    // ★修正：ボタン位置を右下(bottomright)に変更
+    // ランクフィルターボタン（右下配置）
     if (!filterMode || filterMode === 'lem') {
         var rankControl = L.control({ position: 'bottomright' });
         rankControl.onAdd = function(map) {
@@ -170,7 +175,7 @@
             div.style.boxShadow = '0 1px 5px rgba(0,0,0,0.4)';
             div.style.display = 'flex';
             div.style.gap = '5px';
-            div.style.marginRight = '10px'; // 端すぎないように余白
+            div.style.marginRight = '10px';
             div.style.marginBottom = '10px';
             div.innerHTML = `
                 <style>
@@ -228,9 +233,7 @@
         }
 
         for (var i = 1; i < rows.length; i++) {
-            // ★修正：行全体の文字列をランク判定用に保持
             var rawRowString = rows[i];
-            
             var cols = parseCSVRow(rows[i]);
             if (cols.length < 8) continue;
 
@@ -252,14 +255,11 @@
             myCategories = [...new Set(myCategories)];
 
             var visualStyle = styles[k1] || styles.other;
-            
             var isBlueprint = (k1 === 'blueprint');
             var enableNumbering = (filterMode === 'blueprint'); 
             var bpNum = (isBlueprint && enableNumbering) ? ++blueprintCount : null;
 
             var name = isJa ? cols[3] : (cols[4] || cols[3]);
-            
-            // ★修正：行全体を見てランクを判定
             var itemRank = getRank(rawRowString);
 
             var displayName = name;
