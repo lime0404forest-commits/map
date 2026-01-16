@@ -18,7 +18,7 @@
         "CHAR_TRADER": "",
         "CHAR_OTHER": "",
         "MISC_ENEMY": "",
-        "MISC_QUEST": "",
+        "MISC_QUEST": "重要アイテム",
         "MISC_OTHER": "探索済み-はずれ",
         "LOC_MEMO": "",
         "LOC_SPARE_1": "LEM",
