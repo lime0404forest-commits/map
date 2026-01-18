@@ -48,7 +48,7 @@ p_1767967361,1673.60739,3400.491736,モノリス,Monolith,LOC_POI,,,1,,
 p_1767967775,791.068797,3330.1271,遺体,Dead Body,ITEM_OTHER,,,1,戦時債権（11）,War Bonds（11）
 p_1767967895,828.44463,3361.631718,がれきの山,Rubble Pile,ITEM_GEAR,,,1,不明なロジックボード（200）,Unknown Logic Board（200）
 p_1767968038,836.86576,3208.611479,ドローンの残骸,Drone Wreck,ITEM_GEAR,,,1,損傷したロジックボード（400）,Damaged Logic Board（400）
-p_1768096007,5153.570514,6594.009478,遺体（洞窟内）,Dead Body（Cave）,ITEM_GEAR,ITEM_OTHER,,1,損傷したシャーレ（5000）<br>戦時債権（12）,Damaged Lab Dish（5000）<br>War bonds（12）
+p_1768096007,5153.570514,6594.009478,遺体（洞窟内）,Dead Body（Cave）,ITEM_OTHER,ITEM_GEAR,,1,損傷したシャーレ（5000）<br>戦時債権（12）,Damaged Lab Dish（5000）<br>War bonds（12）
 p_1768096343,4967.467647,6443.059323,地下洞窟,Underground Cave,LOC_CAVEorMINE,,,1,,
 p_1768096413,4949.200542,6443.809859,遺体（洞窟内）,Dead Body（Cave）,ITEM_OTHER,,,1,戦時債権（12）,War Bonds（12）
 p_1768096531,5128.947626,6668.493715,地下洞窟,Underground Cave,LOC_CAVEorMINE,,,1,,
@@ -146,7 +146,7 @@ p_1768138287,1139.424155,5317.620507,ドローンの残骸,Drone Wreck,ITEM_GEAR
 p_1768139118,1677.434263,5253.600998,ドローンの残骸,Drone Wreck,ITEM_GEAR,,,1,不明なロジックボード（400）,Unknown Logic Board（400）
 p_1768139298,2200.978425,5157.571734,遺体,Dead Body,LOC_SPARE_1,ITEM_GEAR,,1,下級イミュナーLEM<br>損傷したパーソナルインターフェース（500）,Lesser Immuner LEM<br>Damaged Personal Interface（500）
 p_1768139405,2360.10384,5071.699411,ジオスキャナー,Geo Scanner,LOC_SPARE_2,,,1,,
-p_1768139446,2442.898302,5316.389363,地下洞窟,Underground Cave,LOC_CAVEorMINE,,,1,,
+p_1768139446,2441.9749438696394,5309.92585475662,地下洞窟,Underground Cave,LOC_CAVEorMINE,,,1,,
 p_1768139463,2361.642771,5531.224063,モノリス,Monolith,LOC_POI,,,1,,
 p_1768139554,2559.549235,5524.452769,ドローンの残骸,Drone Wreck,ITEM_GEAR,,,1,損傷したロジックボード（400）,Damaged Logic Board（400）
 p_1768139631,2573.707396,5423.498927,遺体,Dead Body,LOC_SPARE_1,,,1,下級ドッジャーLEM,Lesser Dodger LEM
@@ -172,9 +172,9 @@ p_1768141977,3156.412812,5570.426934,遺体,Dead Body,ITEM_GEAR,,,1,損傷した
 p_1768142041,3245.760576,5651.652174,ドローンの残骸,Drone Wreck,ITEM_GEAR,,,1,損傷したロジックボード（400）,Damaged Logic Board（400）
 p_1768142095,3106.45929,5613.476311,遺体,Dead Body,ITEM_OTHER,,,1,戦時債権（8）,War Bonds（8）
 p_1768142190,2880.653124,5747.904083,ドローンの残骸,Drone Wreck,ITEM_GEAR,,,1,損傷したエネルギーストレージ（2000）,Damaged Energy Storage（2000）
-p_1768142217,2921.67187,5668.303348,地下洞窟,Underground Cave,LOC_CAVEorMINE,,,1,,
-p_1768142260,2853.848795,5519.661159,地下洞窟,Underground Cave,LOC_CAVEorMINE,,,1,,
-p_1768142285,2778.715448,5671.552358,地下洞窟,Underground Cave,LOC_CAVEorMINE,,,1,,
+p_1768142217,2918.4278318341217,5658.955295939903,地下洞窟,Underground Cave,LOC_CAVEorMINE,,,1,,
+p_1768142260,2851.330461306824,5511.8335385451865,地下洞窟,Underground Cave,LOC_CAVEorMINE,,,1,,
+p_1768142285,2774.9995076794394,5665.111018006628,地下洞窟,Underground Cave,LOC_CAVEorMINE,,,1,,
 p_1768142412,3130.014609,5901.825912,地下洞窟,Underground Cave,LOC_CAVEorMINE,,,1,,
 p_1768142510,3223.017509,5836.84572,ドローンの残骸,Drone Wreck,ITEM_GEAR,,,1,損傷したロジックボード（400）,Damaged Logic Board（400）
 p_1768142694,3386.686367,6234.443268,遺体,Dead Body,LOC_SPARE_1,ITEM_OTHER,ITEM_GEAR,1,下級エンデュランスギバーLEM<br>戦時債権（５）<br>不明なモジュール（2000）,Lesser Endurancegiver LEM<br>War Bonds（5）<br>Unknown Module（2000）
@@ -321,3 +321,9 @@ p_1768562956,3736.797131,2574.238024,遺体,Dead Body,ITEM_GEAR,,,1,不明なモ
 p_1768562988,3671.018305,2731.920599,ジオスキャナー,Geo Scanner,LOC_SPARE_2,,,1,,
 p_1768563039,3771.785868,2732.387116,遺体,Dead Body,ITEM_OTHER,,,1,戦時債権（10）,War Bonds（10）
 p_1768563172,3486.744289,3002.966683,遺体,Dead Body,LOC_SPARE_1,,,1,下級デトキシファイアーLEM,Lesser Detoxifier LEM
+p_1768663274,2434.58807738957,5295.152121796481,遺体（洞窟内）,Dead Body（In cave）,ITEM_OTHER,,,1,戦時債権（8）	,War Bonds（8）
+p_1768663427,2858.101755580221,5499.522094411737,遺体（洞窟内）,Dead Body（In cave）,LOC_SPARE_1,,,1,シールドフィクサーLEM,Shieldfixer LEM
+p_1768663505,2894.420515773896,5658.955295939903,遺体（洞窟内）,Dead Body（In cave）,LOC_SPARE_1,,,1,戦時債権（8）,War Bonds（8）
+p_1768663657,2646.3449164848957,5098.169015661295,ドローンの残骸,Drone Wreck,ITEM_GEAR,,,1,損傷したロジックボード（400）,Damaged Logic Board（400）
+p_1768723744,4180.663084045542,3169.408850582029,ストレージボックス,Storage Box,ITEM_WEAPON,ITEM_OTHER,,1,設計図：加圧タンク<br>設計図：蓄電器<br>戦時債権（20）,Blueprint: Pressure Tank<br>Blueprint: Condenser<br>War Bonds（20）
+p_1768723835,4194.471374783598,3159.6618218257545,遺体,Dead Body,LOC_SPARE_1,ITEM_GEAR,,1,上級エンデュランスギバーLEM<br>損傷した標本サンプル（4000）,Greater Endurancegiver LEM<br>Damaged Specimen Sample（4000）
