@@ -327,3 +327,5 @@ p_1768663505,2894.420515773896,5658.955295939903,遺体（洞窟内）,Dead Body
 p_1768663657,2646.3449164848957,5098.169015661295,ドローンの残骸,Drone Wreck,ITEM_GEAR,,,1,損傷したロジックボード（400）,Damaged Logic Board（400）
 p_1768723744,4180.663084045542,3169.408850582029,ストレージボックス,Storage Box,ITEM_WEAPON,ITEM_OTHER,,1,設計図：加圧タンク<br>設計図：蓄電器<br>戦時債権（20）,Blueprint: Pressure Tank<br>Blueprint: Condenser<br>War Bonds（20）
 p_1768723835,4194.471374783598,3159.6618218257545,遺体,Dead Body,LOC_SPARE_1,ITEM_GEAR,,1,上級エンデュランスギバーLEM<br>損傷した標本サンプル（4000）,Greater Endurancegiver LEM<br>Damaged Specimen Sample（4000）
+p_1768724437,4185.119483538346,3180.2429516532047,ストレージボックス,Storage Box,ITEM_WEAPON,ITEM_OTHER,,1,設計図：レーザーエミッター<br>設計図：スキャナー<br>戦時債権（２５）,Blueprint： Laser Emitter<br>Blueprint： Scanner<br>War Bonds（25）
+p_1768725394,4182.786901059503,3151.785445411332,コンソール,Console,ITEM_GEAR,ITEM_OTHER,LOC_SPARE_1,1,損傷したメモリーコア（70000）<br>戦時債権（50）<br>上級マイナーLEM,Damaged Memory Core（70000）<br>War Bonds（50）<br>Greater MinerLEM
