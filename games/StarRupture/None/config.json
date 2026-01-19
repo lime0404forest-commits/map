@@ -4,7 +4,7 @@
     "map_file": "map.png",
     "save_file": "master_data.csv",
     "cat_mapping": {
-        "RES_PLANT": "",
+        "RES_PLANT": "植物",
         "RES_MINERAL": "鉱物",
         "RES_OTHER": "",
         "ITEM_WEAPON": "設計図",
