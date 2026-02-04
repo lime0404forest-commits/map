@@ -1,5 +1,6 @@
 (function() {
     'use strict';
+    // map.js v20260208 - (No.) removed from labels, multi-blueprint fix, CSV escape fix
 
     var maxZoom = 5;
     var imgW = 6253;
@@ -298,7 +299,6 @@
             var nameForLabel = blueprintNamesFromContents.length > 0 ? blueprintNamesFromContents.join(', ') : name;
 
             var displayName = name;
-            if (bpNum) displayName = name + ' <span style="font-size:0.9em;color:#888;">(No.' + bpNum + ')</span>';
             var memo = isJa ? (pin.memo_jp || '') : (pin.memo_en || pin.memo_jp || '');
             var rawText = memo || name;
             var tooltipLabelText = filterMode ? (visualStyle.label + '：' + nameForLabel) : '';
@@ -460,7 +460,6 @@
             var nameForLabel = blueprintNames.length > 0 ? blueprintNames.join(', ') : name;
 
             var displayName = name;
-            if (bpNum) displayName = name + ' <span style="font-size:0.9em;color:#888;">(No.' + bpNum + ')</span>';
             var memo = isJa ? (cols[12] || '') : (cols[13] || cols[12] || '');
             var rawText = memo || name;
             var tooltipLabelText = filterMode ? (visualStyle.label + '：' + nameForLabel) : '';
