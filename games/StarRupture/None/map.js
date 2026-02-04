@@ -157,7 +157,10 @@
                 (item.rank === currentRankFilter);
 
             if (isCatMatch && isRankMatch) {
-                if (!map.hasLayer(item.marker)) item.marker.addTo(map);
+                if (!map.hasLayer(item.marker)) {
+                    item.marker.addTo(map);
+                    if (showLabels && item.marker.openTooltip) item.marker.openTooltip();
+                }
             } else {
                 if (map.hasLayer(item.marker)) map.removeLayer(item.marker);
             }
