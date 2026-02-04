@@ -1,57 +1,94 @@
 (function() {
-    console.log("Map Script Loaded via GitHub (Root Cause Fix: Removed 'Module' keyword)");
+    'use strict';
 
-    var maxZoom = 5; 
+    var maxZoom = 5;
     var imgW = 6253;
     var imgH = 7104;
-    var mapPadding = 1500; 
+    var mapPadding = 1500;
 
     var mapDiv = document.getElementById('game-map');
-    
-    // ▼ 設定読み込み ▼
-    var showLabels = mapDiv ? mapDiv.getAttribute('data-show-labels') === 'true' : false;
-    var htmlZoom = mapDiv ? parseInt(mapDiv.getAttribute('data-zoom')) : null;
-    var defaultZoom = (htmlZoom !== null && !isNaN(htmlZoom)) ? htmlZoom : 1;
-    var filterMode = mapDiv ? mapDiv.getAttribute('data-filter') : null;
-    var customCsv = mapDiv ? mapDiv.getAttribute('data-csv') : null;
+    if (!mapDiv) {
+        console.error('map.js: #game-map element not found');
+        return;
+    }
 
-    var csvUrl = customCsv || 'https://raw.githubusercontent.com/lime0404forest-commits/map/main/games/StarRupture/None/master_data.csv';
+    // 設定読み込み
+    var showLabels = mapDiv.getAttribute('data-show-labels') === 'true';
+    var htmlZoom = parseInt(mapDiv.getAttribute('data-zoom'), 10);
+    var defaultZoom = (!isNaN(htmlZoom)) ? htmlZoom : 2;
+    var filterMode = mapDiv.getAttribute('data-filter');
+    var customCsv = mapDiv.getAttribute('data-csv');
+    var customPins = mapDiv.getAttribute('data-pins');  // pins_export.json 用
+
+    // データソース: data-csv / data-pins がなければ同階層のファイルを相対パスで参照
+    var baseUrl = '';
+    var scriptSrc = document.currentScript && document.currentScript.src;
+    if (scriptSrc) {
+        var idx = scriptSrc.lastIndexOf('/');
+        if (idx >= 0) baseUrl = scriptSrc.substring(0, idx + 1);
+    }
+
+    var csvUrl = customCsv || (baseUrl + 'master_data.csv');
+    var pinsJsonUrl = customPins || (baseUrl + 'pins_export.json');
     var tileUrl = 'https://lost-in-games.com/starrupture-map/tiles/{z}/{x}/{y}.webp?v=20260111_FINAL3';
 
-    var isJa = (document.documentElement.lang || navigator.language).toLowerCase().indexOf('ja') === 0;
+    var isJa = (document.documentElement.lang || navigator.language || '').toLowerCase().indexOf('ja') === 0;
     var isDebug = new URLSearchParams(window.location.search).get('debug') === 'true';
 
-    // カテゴリ定義
+    // スタイル定義（cat_id / オブジェクト種別 → 表示）
     var styles = {
         scanner:   { emoji: '📡', color: '#2ecc71', label: isJa ? 'ジオスキャナー' : 'Geo Scanner' },
         start:     { emoji: '🚀', color: '#ffffff', label: isJa ? '開始地点' : 'Start Point' },
         blueprint: { emoji: '📜', color: '#3498db', label: isJa ? '設計図' : 'Blueprints' },
         warbond:   { emoji: '💀', color: '#e74c3c', label: isJa ? '戦時債権' : 'War Bonds' },
+        war_bonds: { emoji: '💀', color: '#e74c3c', label: isJa ? '戦時債権' : 'War Bonds' },
         point:     { emoji: '💎', color: '#f1c40f', label: isJa ? '換金アイテム' : 'Cash Items' },
+        trade_item:{ emoji: '💎', color: '#f1c40f', label: isJa ? '換金アイテム' : 'Cash Items' },
         lem:       { emoji: '⚡', color: '#9b59b6', label: isJa ? 'LEM' : 'LEM Gear' },
         cave:      { emoji: '⛏️', color: '#7f8c8d', label: isJa ? '地下洞窟' : 'Caves' },
         monolith:  { emoji: '🗿', color: '#1abc9c', label: isJa ? 'モノリス' : 'Monoliths' },
-        other:     { emoji: null, color: '#95a5a6', label: isJa ? 'その他' : 'Others' },
+        other:     { emoji: '📦', color: '#95a5a6', label: isJa ? 'その他' : 'Others' },
         trash:     { emoji: '❌', color: '#555555', label: isJa ? '調査済み(空)' : 'Checked(Empty)' }
     };
 
-    var catMapping = {
-        'LOC_SPARE_2': 'scanner', 'LOC_BASE': 'start', 'ITEM_WEAPON': 'blueprint',
-        'ITEM_OTHER': 'warbond', 'ITEM_GEAR': 'point', 'LOC_SPARE_1': 'lem',
-        'LOC_CAVEORMINE': 'cave', 'LOC_POI': 'monolith', 'MISC_OTHER': 'trash',
-        'LOC_TREASURE': 'other', 'RES_PLANT': 'other', 'RES_MINERAL': 'other', 'RES_OTHER': 'other', 
-        'LOC_SETTLE': 'other', 'CHAR_NPC': 'other', 'CHAR_TRADER': 'other', 
-        'CHAR_OTHER': 'other', 'MISC_ENEMY': 'other', 'LOC_ENEMY': 'other', 
-        'MISC_QUEST': 'other', 'LOC_MEMO': 'other'
+    // オブジェクトID（attribute）→ スタイルキー（ランドマークなど外形で決まるもの）
+    var attrToStyle = {
+        'GEO_SCANNER': 'scanner',
+        'SPACESHIP': 'start',
+        'UNDERGROUND_CAVE': 'cave',
+        'MONOLITH': 'monolith',
+        'COLONY': 'other',
+        'DRONE_WRECK': 'other',
+        'RUBBLE_PILE': 'other',
+        'PERSONAL_STORAGE': 'other',
+        'CONSOLE': 'other',
+        'ITEM_PRINTER': 'other',
+        'SEARCH': 'other',
+        'KEYCARD': 'other'
+    };
+
+    // cat_id → スタイルキー
+    var catIdToStyle = {
+        'blueprint': 'blueprint',
+        'lem': 'lem',
+        'war_bonds': 'warbond',
+        'trade_item': 'point',
+        'keycard': 'other',
+        'plant': 'other'
     };
 
     window.map = L.map('game-map', {
-        crs: L.CRS.Simple, minZoom: 0, maxZoom: maxZoom, zoom: defaultZoom,
-        maxBoundsViscosity: 0.8, preferCanvas: true
+        crs: L.CRS.Simple,
+        minZoom: 0,
+        maxZoom: maxZoom,
+        zoom: defaultZoom,
+        maxBoundsViscosity: 0.8,
+        preferCanvas: true
     });
 
     var imageBounds = new L.LatLngBounds(
-        map.unproject([0, imgH], maxZoom), map.unproject([imgW, 0], maxZoom)
+        map.unproject([0, imgH], maxZoom),
+        map.unproject([imgW, 0], maxZoom)
     );
     var paddedBounds = new L.LatLngBounds(
         map.unproject([-mapPadding, imgH + mapPadding], maxZoom),
@@ -62,13 +99,18 @@
     map.fitBounds(imageBounds);
     map.setZoom(defaultZoom);
 
-    L.tileLayer(tileUrl, { 
-        minZoom: 0, maxZoom: maxZoom, tileSize: 256, noWrap: true, bounds: imageBounds, tms: false
+    L.tileLayer(tileUrl, {
+        minZoom: 0,
+        maxZoom: maxZoom,
+        tileSize: 256,
+        noWrap: true,
+        bounds: imageBounds,
+        tms: false
     }).addTo(map);
 
     function updateZoomClass() {
         var c = document.getElementById('game-map');
-        if(c) {
+        if (c) {
             c.className = c.className.replace(/zoom-level-\d+/g, '').trim();
             c.classList.add('zoom-level-' + map.getZoom());
         }
@@ -81,268 +123,182 @@
     var blueprintCount = 0;
     var currentRankFilter = 'all';
 
-    Object.keys(styles).forEach(key => {
+    Object.keys(styles).forEach(function(key) {
         if (key === 'trash' && !isDebug) return;
-        
+        if (key === 'war_bonds') return;  // warbond と重複
+        if (key === 'trade_item') return; // point と重複
+
         if (filterMode) {
-            if (key === filterMode) activeCategories.add(key);
-            // 設計図またはLEMモードなら開始地点も表示
+            if (key === filterMode || key === 'war_bonds' && filterMode === 'warbond' || key === 'trade_item' && filterMode === 'point') {
+                activeCategories.add(key);
+            }
             if ((filterMode === 'blueprint' || filterMode === 'lem') && key === 'start') {
                 activeCategories.add(key);
             }
         } else {
-            const hiddenKeys = ['monolith', 'scanner', 'cave', 'other', 'point'];
+            var hiddenKeys = ['monolith', 'scanner', 'cave', 'other', 'point', 'trade_item', 'war_bonds'];
             if (!hiddenKeys.includes(key)) activeCategories.add(key);
         }
     });
 
-    // ランク判定（行全体から判定）
-    function getRank(rawRowString) {
-        if (!rawRowString) return 'standard';
-        var s = rawRowString.toLowerCase();
-        if (s.includes('greater') || s.includes('上級')) return 'greater';
-        if (s.includes('lesser') || s.includes('下級')) return 'lesser';
+    function getRank(text) {
+        if (!text) return 'standard';
+        var s = String(text).toLowerCase();
+        if (s.indexOf('greater') >= 0 || s.indexOf('上級') >= 0) return 'greater';
+        if (s.indexOf('lesser') >= 0 || s.indexOf('下級') >= 0) return 'lesser';
         return 'standard';
     }
 
     function updateVisibleMarkers() {
-        allMarkers.forEach(item => {
-            var isCatMatch = item.categories.some(cat => activeCategories.has(cat));
-            
-            var isRankMatch = true;
-            if (currentRankFilter !== 'all') {
-                // 開始地点はランクに関係なく表示
-                if (item.rank !== currentRankFilter && !item.categories.includes('start')) {
-                    isRankMatch = false;
-                }
-            }
+        allMarkers.forEach(function(item) {
+            var isCatMatch = item.categories.some(function(cat) { return activeCategories.has(cat); });
+            var isRankMatch = (currentRankFilter === 'all') ||
+                (item.categories.indexOf('start') >= 0) ||
+                (item.rank === currentRankFilter);
 
             if (isCatMatch && isRankMatch) {
-                if (!map.hasLayer(item.marker)) {
-                    item.marker.addTo(map);
-                }
+                if (!map.hasLayer(item.marker)) item.marker.addTo(map);
             } else {
-                if (map.hasLayer(item.marker)) {
-                    map.removeLayer(item.marker);
-                }
+                if (map.hasLayer(item.marker)) map.removeLayer(item.marker);
             }
         });
     }
 
-    // ★修正箇所：テキストフィルタのキーワード定義を修正
     function cleanTextForFilter(text, mode) {
         if (!mode || !text) return text;
-
         var keywords = {
             'blueprint': ['設計図', 'Blueprint', 'Recipe'],
-            
-            // ★ここが間違っていました。 'Module' を削除しました。
-            // これで 'LEM' を含む行だけが表示され、'Unknown Module' は自然に消えます。
-            'lem': ['LEM'], 
-
+            'lem': ['LEM'],
             'warbond': ['戦時', 'Warbond'],
             'scanner': ['スキャナー', 'Scanner']
         };
-
         var targetKeys = keywords[mode];
-        if (!targetKeys) return text; 
-        
-        // 行ごとに分割してチェック
-        var lines = text.split(/\r\n|\n|\r|<br>/);
-        
-        var filteredLines = lines.filter(line => {
-            // ターゲットキーワード(LEM)が含まれているかチェック
-            return targetKeys.some(key => line.includes(key));
+        if (!targetKeys) return text;
+        var lines = String(text).split(/\r\n|\n|\r|<br>/);
+        var filtered = lines.filter(function(line) {
+            return targetKeys.some(function(k) { return line.indexOf(k) >= 0; });
+        });
+        return filtered.length > 0 ? filtered.join('<br>') : '';
+    }
+
+    function createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText) {
+        var coords = pin.coords || [pin.x, pin.y];
+        var x = coords[0], y = coords[1];
+        if (typeof x !== 'number' || typeof y !== 'number') return null;
+
+        var latLng = map.unproject([x, y], maxZoom);
+        var iconHtml = '<div style="position:relative;">' + (visualStyle.emoji || '📌');
+        if (bpNum) {
+            iconHtml += '<span style="position:absolute;bottom:-5px;right:-8px;background:#e74c3c;color:white;border-radius:50%;font-size:10px;min-width:16px;height:16px;text-align:center;line-height:16px;font-weight:bold;border:1px solid white;box-shadow:1px 1px 2px rgba(0,0,0,0.3);">' + bpNum + '</span>';
+        }
+        iconHtml += '</div>';
+
+        var marker = L.marker(latLng, {
+            icon: L.divIcon({
+                html: iconHtml,
+                className: 'emoji-icon',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            })
         });
 
-        // フィルタの結果、行が残ればそれを結合して返す
-        if (filteredLines.length > 0) {
-            return filteredLines.join('<br>');
-        } else {
-            // LEMという文字がなければ空文字にする（これでゴミテキストは消えます）
-            return ""; 
+        var popupHtml = '<div style="font-family:sans-serif;min-width:180px;">' +
+            '<div style="font-size:10px;color:' + visualStyle.color + ';font-weight:bold;text-transform:uppercase;">' + visualStyle.label + '</div>' +
+            '<div style="font-size:14px;font-weight:bold;margin:4px 0;border-bottom:1px solid #ccc;padding-bottom:4px;">' + displayName + '</div>';
+        if (memo) {
+            popupHtml += '<div style="font-size:12px;color:#444;background:#f4f4f4;padding:5px;border-radius:3px;line-height:1.4;">' + memo + '</div>';
         }
-    }
+        popupHtml += '</div>';
+        marker.bindPopup(popupHtml);
 
-    // ランクフィルターボタン（右下配置）
-    if (!filterMode || filterMode === 'lem') {
-        var rankControl = L.control({ position: 'bottomright' });
-        rankControl.onAdd = function(map) {
-            var div = L.DomUtil.create('div', 'rank-filter-control');
-            div.style.background = 'rgba(255, 255, 255, 0.9)';
-            div.style.padding = '5px';
-            div.style.borderRadius = '4px';
-            div.style.boxShadow = '0 1px 5px rgba(0,0,0,0.4)';
-            div.style.display = 'flex';
-            div.style.gap = '5px';
-            div.style.marginRight = '10px';
-            div.style.marginBottom = '10px';
-            div.innerHTML = `
-                <style>
-                    .rank-btn { border: 1px solid #ccc; background: #fff; padding: 2px 8px; cursor: pointer; border-radius: 3px; font-size: 12px; font-weight: bold; color: #333; }
-                    .rank-btn.active { background: #333; color: #fff; border-color: #000; }
-                </style>
-                <button class="rank-btn active" data-rank="all">ALL</button>
-                <button class="rank-btn" data-rank="greater" style="color:#e67e22;">Greater</button>
-                <button class="rank-btn" data-rank="standard">Standard</button>
-                <button class="rank-btn" data-rank="lesser" style="color:#7f8c8d;">Lesser</button>
-            `;
-            
-            var btns = div.querySelectorAll('.rank-btn');
-            btns.forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    btns.forEach(b => b.classList.remove('active'));
-                    e.target.classList.add('active');
-                    currentRankFilter = e.target.getAttribute('data-rank');
-                    updateVisibleMarkers();
-                    L.DomEvent.stopPropagation(e);
-                });
-            });
-            L.DomEvent.disableClickPropagation(div);
-            return div;
+        var tooltipText = filterMode ? cleanTextForFilter(rawText, filterMode) : rawText;
+        var tooltipOpts = showLabels ? {
+            permanent: true, direction: 'top', className: 'item-tooltip-permanent',
+            opacity: 0.9, offset: [0, -20]
+        } : {
+            direction: 'top', sticky: true, className: 'item-tooltip',
+            opacity: 0.9, offset: [0, -10]
         };
-        rankControl.addTo(map);
+        marker.bindTooltip(tooltipText, tooltipOpts);
+
+        return marker;
     }
 
-    var cacheBuster = 't=' + Date.now();
-    fetch(csvUrl + '?' + cacheBuster)
-    .then(r => { if(!r.ok) throw new Error(r.status); return r.text(); })
-    .then(text => {
-        var rows = text.trim().split('\n');
+    function addMarkersFromPins(pins) {
+        if (!Array.isArray(pins)) return;
 
-        function parseCSVRow(row) {
-            const result = [];
-            let current = '';
-            let inQuotes = false; 
-            for (let char of row) {
-                if (char === '"') inQuotes = !inQuotes;
-                else if (char === ',' && !inQuotes) {
-                    result.push(current);
-                    current = '';
-                } else {
-                    current += char;
-                }
-            }
-            result.push(current);
-            return result;
-        }
+        pins.forEach(function(pin) {
+            var coords = pin.coords || [pin.x, pin.y];
+            var x = parseFloat(coords[0]), y = parseFloat(coords[1]);
+            if (isNaN(x) || isNaN(y)) return;
 
-        function getStyleKey(code) {
-            if (!code) return null;
-            return catMapping[code] || 'other';
-        }
-
-        for (var i = 1; i < rows.length; i++) {
-            var rawRowString = rows[i];
-            var cols = parseCSVRow(rows[i]);
-            if (cols.length < 8) continue;
-
-            var x = parseFloat(cols[1]); 
-            var y = parseFloat(cols[2]);
-            if (isNaN(x) || isNaN(y)) continue;
-
-            var catMain = cols[5] ? cols[5].trim().toUpperCase() : "";
-            var catSub1 = cols[6] ? cols[6].trim().toUpperCase() : "";
-            var catSub2 = cols[7] ? cols[7].trim().toUpperCase() : "";
-
-            if (catMain === 'MISC_OTHER' && !isDebug) continue;
-
-            var myCategories = [];
-            var k1 = getStyleKey(catMain); if(k1) myCategories.push(k1);
-            var k2 = getStyleKey(catSub1); if(k2) myCategories.push(k2);
-            var k3 = getStyleKey(catSub2); if(k3) myCategories.push(k3);
-            
-            myCategories = [...new Set(myCategories)];
-
-            var visualStyle = styles[k1] || styles.other;
-            var isBlueprint = (k1 === 'blueprint');
-            var enableNumbering = (filterMode === 'blueprint'); 
-            var bpNum = (isBlueprint && enableNumbering) ? ++blueprintCount : null;
-
-            var name = isJa ? cols[3] : (cols[4] || cols[3]);
-            var itemRank = getRank(rawRowString);
-
-            var displayName = name;
-            if (bpNum) {
-                displayName = name + ' <span style="font-size:0.9em;color:#888;">(No.' + bpNum + ')</span>';
+            var objId = (pin.obj_id || pin.attribute || '').toUpperCase();
+            var contents = pin.contents || [];
+            var catIds = contents.map(function(c) { return c.cat_id; }).filter(Boolean);
+            if (catIds.length === 0 && pin.category) {
+                var catMap = { '設計図': 'blueprint', 'LEM': 'lem', '戦時債権': 'war_bonds', '交換アイテム': 'trade_item', 'キーカード': 'keycard', '植物': 'plant' };
+                var cid = catMap[pin.category] || pin.category;
+                if (cid) catIds.push(cid);
             }
 
-            var memo = isJa ? cols[9] : (cols[10] || "");
-
-            var latLng = map.unproject([x, y], maxZoom);
-            var marker;
-
-            if (visualStyle.emoji) {
-                var extra = (catMain === 'MISC_OTHER') ? ' debug-marker' : '';
-                
-                var iconHtml = '<div style="position:relative;">' + visualStyle.emoji;
-                if (bpNum) {
-                    iconHtml += '<span style="position:absolute; bottom:-5px; right:-8px; background:#e74c3c; color:white; border-radius:50%; font-size:10px; min-width:16px; height:16px; text-align:center; line-height:16px; font-weight:bold; border:1px solid white; box-shadow: 1px 1px 2px rgba(0,0,0,0.3);">' + bpNum + '</span>';
-                }
-                iconHtml += '</div>';
-
-                marker = L.marker(latLng, {
-                    icon: L.divIcon({
-                        html: iconHtml,
-                        className: 'emoji-icon' + extra,
-                        iconSize: [30, 30], iconAnchor: [15, 15]
-                    })
-                });
-            } else {
-                marker = L.circleMarker(latLng, {
-                    radius: 5, fillColor: visualStyle.color, color: "#000", weight: 1, opacity: 1, fillOpacity: 0.8
-                });
+            var styleKey = attrToStyle[objId] || null;
+            if (!styleKey && catIds.length > 0) {
+                styleKey = catIdToStyle[catIds[0]] || 'other';
             }
+            if (!styleKey) styleKey = 'other';
 
-            var p = '<div style="font-family:sans-serif;min-width:180px;">' +
-                    '<div style="font-size:10px;color:' + visualStyle.color + ';font-weight:bold;text-transform:uppercase;">' + visualStyle.label + '</div>' +
-                    '<div style="font-size:14px;font-weight:bold;margin:4px 0;border-bottom:1px solid #ccc;padding-bottom:4px;">' + displayName + '</div>';
-            if (memo) {
-                p += '<div style="font-size:12px;color:#444;background:#f4f4f4;padding:5px;border-radius:3px;line-height:1.4;">' + memo + '</div>';
-            }
-            p += '</div>';
-            marker.bindPopup(p);
-            
-            var rawText = memo ? memo : name;
-            var tooltipText = filterMode ? cleanTextForFilter(rawText, filterMode) : rawText;
-
-            var tooltipOptions = {};
-            if (showLabels) {
-                tooltipOptions = {
-                    permanent: true,
-                    direction: 'top',
-                    className: 'item-tooltip-permanent', 
-                    opacity: 0.9,
-                    offset: [0, -20]
-                };
-            } else {
-                tooltipOptions = {
-                    direction: 'top',
-                    sticky: true,
-                    className: 'item-tooltip',
-                    opacity: 0.9,
-                    offset: [0, -10]
-                };
-            }
-            marker.bindTooltip(tooltipText, tooltipOptions);
-
-            allMarkers.push({
-                marker: marker,
-                categories: myCategories,
-                rank: itemRank
+            var visualStyle = styles[styleKey] || styles.other;
+            var myCategories = [styleKey];
+            catIds.forEach(function(cid) {
+                var sk = catIdToStyle[cid] || cid;
+                if (myCategories.indexOf(sk) < 0) myCategories.push(sk);
             });
-        }
 
-        var overlayMaps = {};
-        Object.keys(styles).forEach(key => {
-            if (key === 'trash' && !isDebug) return;
-            var lbl = styles[key].label;
-            var dummyGroup = L.layerGroup(); 
-            overlayMaps[lbl] = dummyGroup;
+            var isBlueprint = (styleKey === 'blueprint');
+            var bpNum = (isBlueprint && filterMode === 'blueprint') ? ++blueprintCount : null;
+            var name = isJa ? (pin.obj_jp || pin.name_jp || pin.name) : (pin.obj_en || pin.name_en || pin.name_jp || pin.name || '');
+            var displayName = name;
+            if (bpNum) displayName = name + ' <span style="font-size:0.9em;color:#888;">(No.' + bpNum + ')</span>';
+            var memo = isJa ? (pin.memo_jp || '') : (pin.memo_en || pin.memo_jp || '');
+            var rawText = memo || name;
 
-            if (activeCategories.has(key)) {
-                dummyGroup.addTo(map);
+            var marker = createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText);
+            if (!marker) return;
+
+            var itemRank = getRank(JSON.stringify(pin));
+            allMarkers.push({ marker: marker, categories: myCategories, rank: itemRank });
+        });
+
+        addOverlayControls();
+        updateVisibleMarkers();
+    }
+
+    function parseCSVRow(row) {
+        var result = [];
+        var current = '';
+        var inQuotes = false;
+        for (var i = 0; i < row.length; i++) {
+            var char = row[i];
+            if (char === '"') inQuotes = !inQuotes;
+            else if (char === ',' && !inQuotes) {
+                result.push(current);
+                current = '';
+            } else {
+                current += char;
             }
+        }
+        result.push(current);
+        return result;
+    }
+
+    function addOverlayControls() {
+        var overlayMaps = {};
+        Object.keys(styles).forEach(function(key) {
+            if (key === 'trash' && !isDebug) return;
+            if (key === 'war_bonds' || key === 'trade_item') return;
+            var lbl = styles[key].label;
+            overlayMaps[lbl] = L.layerGroup();
+            if (activeCategories.has(key)) overlayMaps[lbl].addTo(map);
         });
 
         if (!filterMode) {
@@ -350,22 +306,134 @@
         }
 
         map.on('overlayadd', function(e) {
-            var key = Object.keys(styles).find(k => styles[k].label === e.name);
-            if (key) {
-                activeCategories.add(key);
-                updateVisibleMarkers();
-            }
+            var key = Object.keys(styles).find(function(k) { return styles[k].label === e.name; });
+            if (key) { activeCategories.add(key); updateVisibleMarkers(); }
         });
-
         map.on('overlayremove', function(e) {
-            var key = Object.keys(styles).find(k => styles[k].label === e.name);
-            if (key) {
-                activeCategories.delete(key);
-                updateVisibleMarkers();
-            }
+            var key = Object.keys(styles).find(function(k) { return styles[k].label === e.name; });
+            if (key) { activeCategories.delete(key); updateVisibleMarkers(); }
         });
+    }
 
+    // ランクフィルター（LEM等）
+    if (!filterMode || filterMode === 'lem') {
+        var rankControl = L.control({ position: 'bottomright' });
+        rankControl.onAdd = function() {
+            var div = L.DomUtil.create('div', 'rank-filter-control');
+            div.style.cssText = 'background:rgba(255,255,255,0.9);padding:5px;border-radius:4px;box-shadow:0 1px 5px rgba(0,0,0,0.4);display:flex;gap:5px;margin-right:10px;margin-bottom:10px;';
+            div.innerHTML = '<style>.rank-btn{border:1px solid #ccc;background:#fff;padding:2px 8px;cursor:pointer;border-radius:3px;font-size:12px;font-weight:bold;color:#333}.rank-btn.active{background:#333;color:#fff;border-color:#000}</style>' +
+                '<button class="rank-btn active" data-rank="all">ALL</button>' +
+                '<button class="rank-btn" data-rank="greater" style="color:#e67e22">Greater</button>' +
+                '<button class="rank-btn" data-rank="standard">Standard</button>' +
+                '<button class="rank-btn" data-rank="lesser" style="color:#7f8c8d">Lesser</button>';
+            var btns = div.querySelectorAll('.rank-btn');
+            for (var i = 0; i < btns.length; i++) {
+                (function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        btns.forEach(function(b) { b.classList.remove('active'); });
+                        e.target.classList.add('active');
+                        currentRankFilter = e.target.getAttribute('data-rank');
+                        updateVisibleMarkers();
+                        L.DomEvent.stopPropagation(e);
+                    });
+                })(btns[i]);
+            }
+            L.DomEvent.disableClickPropagation(div);
+            return div;
+        };
+        rankControl.addTo(map);
+    }
+
+    function loadFromCSV(text) {
+        var rows = text.trim().split('\n');
+        if (rows.length < 2) return;
+
+        for (var i = 1; i < rows.length; i++) {
+            var rawRow = rows[i];
+            var cols = parseCSVRow(rows[i]);
+            if (cols.length < 6) continue;
+
+            var x = parseFloat(cols[1]);
+            var y = parseFloat(cols[2]);
+            if (isNaN(x) || isNaN(y)) continue;
+
+            var attribute = (cols[5] || '').trim();
+            var category = (cols[7] || '').trim();
+            var categoriesJson = cols[8] || '[]';
+
+            var catIds = [];
+            try {
+                var arr = JSON.parse(categoriesJson);
+                if (Array.isArray(arr)) {
+                    arr.forEach(function(c) {
+                        if (c && c.cat_id) catIds.push(c.cat_id);
+                    });
+                }
+            } catch (e) { /* ignore */ }
+
+            if (catIds.length === 0 && category) {
+                var catMap = { '設計図': 'blueprint', 'LEM': 'lem', '戦時債権': 'war_bonds', '交換アイテム': 'trade_item', 'キーカード': 'keycard', '植物': 'plant' };
+                var cid = catMap[category] || category;
+                if (cid) catIds.push(cid);
+            }
+
+            var styleKey = attrToStyle[attribute] || null;
+            if (!styleKey && catIds.length > 0) {
+                styleKey = catIdToStyle[catIds[0]] || 'other';
+            }
+            if (!styleKey) styleKey = 'other';
+
+            var visualStyle = styles[styleKey] || styles.other;
+            var myCategories = [styleKey];
+            catIds.forEach(function(cid) {
+                var sk = catIdToStyle[cid] || cid;
+                if (myCategories.indexOf(sk) < 0) myCategories.push(sk);
+            });
+
+            var isBlueprint = (styleKey === 'blueprint');
+            var bpNum = (isBlueprint && filterMode === 'blueprint') ? ++blueprintCount : null;
+            var name = isJa ? (cols[3] || '') : (cols[4] || cols[3] || '');
+            var displayName = name;
+            if (bpNum) displayName = name + ' <span style="font-size:0.9em;color:#888;">(No.' + bpNum + ')</span>';
+            var memo = isJa ? (cols[12] || '') : (cols[13] || cols[12] || '');
+            var rawText = memo || name;
+
+            var pin = { coords: [x, y], x: x, y: y };
+            var marker = createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText);
+            if (!marker) continue;
+
+            var itemRank = getRank(rawRow);
+            allMarkers.push({ marker: marker, categories: myCategories, rank: itemRank });
+        }
+
+        addOverlayControls();
         updateVisibleMarkers();
-    })
-    .catch(e => console.error(e));
+    }
+
+    var cacheBuster = 't=' + Date.now();
+
+    // data-pins 指定時は pins_export.json を優先
+    if (customPins !== null && customPins !== '') {
+        fetch(pinsJsonUrl + (pinsJsonUrl.indexOf('?') >= 0 ? '&' : '?') + cacheBuster)
+            .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+            .then(function(data) {
+                var pins = data && data.pins ? data.pins : (Array.isArray(data) ? data : []);
+                addMarkersFromPins(pins);
+            })
+            .catch(function(e) {
+                console.warn('map.js: pins_export.json load failed, falling back to CSV', e);
+                return fetch(csvUrl + '?' + cacheBuster).then(function(r) { if (!r.ok) throw new Error(r.status); return r.text(); });
+            })
+            .then(function(text) {
+                if (typeof text === 'string') loadFromCSV(text);
+            })
+            .catch(function(e) { console.error('map.js:', e); });
+    } else {
+        fetch(csvUrl + '?' + cacheBuster)
+            .then(function(r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+            .then(loadFromCSV)
+            .catch(function(e) {
+                console.error('map.js: Failed to load pins. Check CSV URL and CORS.', e);
+            });
+    }
 })();
