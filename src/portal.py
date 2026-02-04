@@ -92,15 +92,17 @@ class Portal(ctk.CTk):
             orig_w, orig_h = create_tiles_from_image(src_img, target_dir)
             
             # Config生成
-            default_mapping = {
+            default_attr_mapping = {
                 "LOC_BASE": "拠点", "LOC_ENEMY": "敵・ボス", 
                 "LOC_RESOURCE": "資源・素材", "LOC_TREASURE": "宝箱", "LOC_MEMO": "メモ"
             }
+            default_category_list = ["設計図", "LEM", "その他"]
             config = {
                 "orig_w": orig_w, "orig_h": orig_h,
                 "map_file": "map.png",
                 "save_file": "master_data.csv",
-                "cat_mapping": default_mapping
+                "cat_mapping": default_attr_mapping,
+                "category_list": default_category_list
             }
             with open(os.path.join(target_dir, "config.json"), "w", encoding="utf-8") as f:
                 json.dump(config, f, indent=4, ensure_ascii=False)
