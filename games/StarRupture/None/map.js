@@ -181,7 +181,7 @@
         return filtered.length > 0 ? filtered.join('<br>') : '';
     }
 
-    function createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText) {
+    function createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText, tooltipLabelText) {
         var coords = pin.coords || [pin.x, pin.y];
         var x = coords[0], y = coords[1];
         if (typeof x !== 'number' || typeof y !== 'number') return null;
@@ -211,8 +211,8 @@
         popupHtml += '</div>';
         marker.bindPopup(popupHtml);
 
-        // フィルタモード時はピン名（設計図名など）を表示。cleanTextForFilterは長文メモ用のフォールバック
-        var tooltipText = filterMode ? (displayName || cleanTextForFilter(rawText, filterMode)) : rawText;
+        // フィルタモード時: 「設計図：チューブ」形式の tooltipLabelText を優先、なければ displayName、さらに cleanTextForFilter
+        var tooltipText = filterMode ? (tooltipLabelText || displayName || cleanTextForFilter(rawText, filterMode)) : rawText;
         var tooltipOpts = showLabels ? {
             permanent: true, direction: 'top', className: 'item-tooltip-permanent',
             opacity: 0.9, offset: [0, -20]
@@ -262,8 +262,9 @@
             if (bpNum) displayName = name + ' <span style="font-size:0.9em;color:#888;">(No.' + bpNum + ')</span>';
             var memo = isJa ? (pin.memo_jp || '') : (pin.memo_en || pin.memo_jp || '');
             var rawText = memo || name;
+            var tooltipLabelText = filterMode ? (visualStyle.label + '：' + (bpNum ? name + ' (No.' + bpNum + ')' : name)) : '';
 
-            var marker = createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText);
+            var marker = createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText, tooltipLabelText);
             if (!marker) return;
 
             var itemRank = getRank(JSON.stringify(pin));
@@ -398,9 +399,10 @@
             if (bpNum) displayName = name + ' <span style="font-size:0.9em;color:#888;">(No.' + bpNum + ')</span>';
             var memo = isJa ? (cols[12] || '') : (cols[13] || cols[12] || '');
             var rawText = memo || name;
+            var tooltipLabelText = filterMode ? (visualStyle.label + '：' + (bpNum ? name + ' (No.' + bpNum + ')' : name)) : '';
 
             var pin = { coords: [x, y], x: x, y: y };
-            var marker = createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText);
+            var marker = createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText, tooltipLabelText);
             if (!marker) continue;
 
             var itemRank = getRank(rawRow);
