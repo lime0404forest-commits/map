@@ -211,7 +211,8 @@
         popupHtml += '</div>';
         marker.bindPopup(popupHtml);
 
-        var tooltipText = filterMode ? cleanTextForFilter(rawText, filterMode) : rawText;
+        // フィルタモード時はピン名（設計図名など）を表示。cleanTextForFilterは長文メモ用のフォールバック
+        var tooltipText = filterMode ? (displayName || cleanTextForFilter(rawText, filterMode)) : rawText;
         var tooltipOpts = showLabels ? {
             permanent: true, direction: 'top', className: 'item-tooltip-permanent',
             opacity: 0.9, offset: [0, -20]
