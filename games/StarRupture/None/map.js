@@ -264,11 +264,22 @@
             var isBlueprint = (styleKey === 'blueprint');
             var bpNum = (isBlueprint && filterMode === 'blueprint') ? ++blueprintCount : null;
             var name = isJa ? (pin.obj_jp || pin.name_jp || pin.name) : (pin.obj_en || pin.name_en || pin.name_jp || pin.name || '');
+
+            var blueprintNamesFromContents = [];
+            if (filterMode === 'blueprint' && contents && contents.length > 0) {
+                contents.forEach(function(c) {
+                    if (c.cat_id === 'blueprint' && (c.item_jp || c.item_en)) {
+                        blueprintNamesFromContents.push(isJa ? (c.item_jp || c.item_en) : (c.item_en || c.item_jp));
+                    }
+                });
+            }
+            var nameForLabel = blueprintNamesFromContents.length > 0 ? blueprintNamesFromContents.join(', ') : name;
+
             var displayName = name;
             if (bpNum) displayName = name + ' <span style="font-size:0.9em;color:#888;">(No.' + bpNum + ')</span>';
             var memo = isJa ? (pin.memo_jp || '') : (pin.memo_en || pin.memo_jp || '');
             var rawText = memo || name;
-            var tooltipLabelText = filterMode ? (visualStyle.label + '：' + (bpNum ? name + ' (No.' + bpNum + ')' : name)) : '';
+            var tooltipLabelText = filterMode ? (visualStyle.label + '：' + (bpNum ? nameForLabel + ' (No.' + bpNum + ')' : nameForLabel)) : '';
 
             var marker = createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText, tooltipLabelText);
             if (!marker) return;
@@ -370,11 +381,15 @@
             var categoriesJson = cols[8] || '[]';
 
             var catIds = [];
+            var categoriesArr = [];
             try {
                 var arr = JSON.parse(categoriesJson);
                 if (Array.isArray(arr)) {
                     arr.forEach(function(c) {
-                        if (c && c.cat_id) catIds.push(c.cat_id);
+                        if (c && c.cat_id) {
+                            catIds.push(c.cat_id);
+                            categoriesArr.push(c);
+                        }
                     });
                 }
             } catch (e) { /* ignore */ }
@@ -401,11 +416,22 @@
             var isBlueprint = (styleKey === 'blueprint');
             var bpNum = (isBlueprint && filterMode === 'blueprint') ? ++blueprintCount : null;
             var name = isJa ? (cols[3] || '') : (cols[4] || cols[3] || '');
+
+            var blueprintNames = [];
+            if (filterMode === 'blueprint' && categoriesArr.length > 0) {
+                categoriesArr.forEach(function(c) {
+                    if (c.cat_id === 'blueprint' && (c.item_name_jp || c.item_name_en)) {
+                        blueprintNames.push(isJa ? (c.item_name_jp || c.item_name_en) : (c.item_name_en || c.item_name_jp));
+                    }
+                });
+            }
+            var nameForLabel = blueprintNames.length > 0 ? blueprintNames.join(', ') : name;
+
             var displayName = name;
             if (bpNum) displayName = name + ' <span style="font-size:0.9em;color:#888;">(No.' + bpNum + ')</span>';
             var memo = isJa ? (cols[12] || '') : (cols[13] || cols[12] || '');
             var rawText = memo || name;
-            var tooltipLabelText = filterMode ? (visualStyle.label + '：' + (bpNum ? name + ' (No.' + bpNum + ')' : name)) : '';
+            var tooltipLabelText = filterMode ? (visualStyle.label + '：' + (bpNum ? nameForLabel + ' (No.' + bpNum + ')' : nameForLabel)) : '';
 
             var pin = { coords: [x, y], x: x, y: y };
             var marker = createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText, tooltipLabelText);
