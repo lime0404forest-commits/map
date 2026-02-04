@@ -301,7 +301,7 @@
             if (bpNum) displayName = name + ' <span style="font-size:0.9em;color:#888;">(No.' + bpNum + ')</span>';
             var memo = isJa ? (pin.memo_jp || '') : (pin.memo_en || pin.memo_jp || '');
             var rawText = memo || name;
-            var tooltipLabelText = filterMode ? (visualStyle.label + '：' + (bpNum ? nameForLabel + ' (No.' + bpNum + ')' : nameForLabel)) : '';
+            var tooltipLabelText = filterMode ? (visualStyle.label + '：' + nameForLabel) : '';
 
             var objNameMap = attrToDisplayName[objId];
             var objectName = (pin.obj_jp || pin.obj_en) ? (isJa ? (pin.obj_jp || pin.obj_en) : (pin.obj_en || pin.obj_jp)) : (objNameMap ? (isJa ? objNameMap.jp : objNameMap.en) : name);
@@ -324,8 +324,14 @@
         var inQuotes = false;
         for (var i = 0; i < row.length; i++) {
             var char = row[i];
-            if (char === '"') inQuotes = !inQuotes;
-            else if (char === ',' && !inQuotes) {
+            if (char === '"') {
+                if (inQuotes && row[i + 1] === '"') {
+                    current += '"';
+                    i++;
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if (char === ',' && !inQuotes) {
                 result.push(current);
                 current = '';
             } else {
@@ -457,7 +463,7 @@
             if (bpNum) displayName = name + ' <span style="font-size:0.9em;color:#888;">(No.' + bpNum + ')</span>';
             var memo = isJa ? (cols[12] || '') : (cols[13] || cols[12] || '');
             var rawText = memo || name;
-            var tooltipLabelText = filterMode ? (visualStyle.label + '：' + (bpNum ? nameForLabel + ' (No.' + bpNum + ')' : nameForLabel)) : '';
+            var tooltipLabelText = filterMode ? (visualStyle.label + '：' + nameForLabel) : '';
 
             var objNameMap = attrToDisplayName[attribute];
             var objectName = objNameMap ? (isJa ? objNameMap.jp : objNameMap.en) : name;
