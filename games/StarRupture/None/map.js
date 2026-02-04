@@ -213,6 +213,9 @@
 
         // フィルタモード時: 「設計図：チューブ」形式の tooltipLabelText を優先、なければ displayName、さらに cleanTextForFilter
         var tooltipText = filterMode ? (tooltipLabelText || displayName || cleanTextForFilter(rawText, filterMode)) : rawText;
+        if (!tooltipText || String(tooltipText).trim() === '') {
+            tooltipText = rawText || visualStyle.label || '—';
+        }
         var tooltipOpts = showLabels ? {
             permanent: true, direction: 'top', className: 'item-tooltip-permanent',
             opacity: 0.9, offset: [0, -20]
