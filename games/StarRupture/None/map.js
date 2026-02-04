@@ -77,6 +77,24 @@
         'plant': 'other'
     };
 
+    // オブジェクトID（attribute）→ ポップアップ用表示名
+    var attrToDisplayName = {
+        'DEAD_BODY': { jp: '遺体', en: 'Dead Body' },
+        'STORAGE_BOX': { jp: 'ストレージボックス', en: 'Storage Box' },
+        'DRONE_WRECK': { jp: 'ドローンの残骸', en: 'Drone Wreck' },
+        'RUBBLE_PILE': { jp: 'がれきの山', en: 'Rubble Pile' },
+        'PERSONAL_STORAGE': { jp: 'パーソナルストレージ', en: 'Personal Storage' },
+        'CONSOLE': { jp: 'コンソール', en: 'Console' },
+        'UNDERGROUND_CAVE': { jp: '地下洞窟', en: 'Underground Cave' },
+        'MONOLITH': { jp: 'モノリス', en: 'Monolith' },
+        'GEO_SCANNER': { jp: 'ジオスキャナー', en: 'Geo Scanner' },
+        'SPACESHIP': { jp: '宇宙船', en: 'Spaceship' },
+        'COLONY': { jp: '群生地', en: 'Colony' },
+        'ITEM_PRINTER': { jp: 'アイテムプリンター', en: 'Item Printer' },
+        'SEARCH': { jp: 'サーチ', en: 'Search' },
+        'KEYCARD': { jp: 'キーカード', en: 'Keycard' }
+    };
+
     window.map = L.map('game-map', {
         crs: L.CRS.Simple,
         minZoom: 0,
@@ -184,7 +202,7 @@
         return filtered.length > 0 ? filtered.join('<br>') : '';
     }
 
-    function createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText, tooltipLabelText) {
+    function createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText, tooltipLabelText, objectName, contentsSummary) {
         var coords = pin.coords || [pin.x, pin.y];
         var x = coords[0], y = coords[1];
         if (typeof x !== 'number' || typeof y !== 'number') return null;
@@ -205,9 +223,13 @@
             })
         });
 
+        var popupTitle = (objectName && String(objectName).trim()) ? objectName : displayName;
+        var popupSub = (contentsSummary && String(contentsSummary).trim()) ? contentsSummary : '';
         var popupHtml = '<div style="font-family:sans-serif;min-width:180px;">' +
-            '<div style="font-size:10px;color:' + visualStyle.color + ';font-weight:bold;text-transform:uppercase;">' + visualStyle.label + '</div>' +
-            '<div style="font-size:14px;font-weight:bold;margin:4px 0;border-bottom:1px solid #ccc;padding-bottom:4px;">' + displayName + '</div>';
+            '<div style="font-size:14px;font-weight:bold;margin-bottom:4px;border-bottom:1px solid #ccc;padding-bottom:4px;">' + popupTitle + '</div>';
+        if (popupSub) {
+            popupHtml += '<div style="font-size:12px;color:#333;margin-bottom:4px;">' + popupSub + '</div>';
+        }
         if (memo) {
             popupHtml += '<div style="font-size:12px;color:#444;background:#f4f4f4;padding:5px;border-radius:3px;line-height:1.4;">' + memo + '</div>';
         }
@@ -281,7 +303,11 @@
             var rawText = memo || name;
             var tooltipLabelText = filterMode ? (visualStyle.label + '：' + (bpNum ? nameForLabel + ' (No.' + bpNum + ')' : nameForLabel)) : '';
 
-            var marker = createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText, tooltipLabelText);
+            var objNameMap = attrToDisplayName[objId];
+            var objectName = (pin.obj_jp || pin.obj_en) ? (isJa ? (pin.obj_jp || pin.obj_en) : (pin.obj_en || pin.obj_jp)) : (objNameMap ? (isJa ? objNameMap.jp : objNameMap.en) : name);
+            var contentsSummary = filterMode ? (visualStyle.label + '：' + nameForLabel) : name;
+
+            var marker = createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText, tooltipLabelText, objectName, contentsSummary);
             if (!marker) return;
 
             var itemRank = getRank(JSON.stringify(pin));
@@ -433,8 +459,12 @@
             var rawText = memo || name;
             var tooltipLabelText = filterMode ? (visualStyle.label + '：' + (bpNum ? nameForLabel + ' (No.' + bpNum + ')' : nameForLabel)) : '';
 
+            var objNameMap = attrToDisplayName[attribute];
+            var objectName = objNameMap ? (isJa ? objNameMap.jp : objNameMap.en) : name;
+            var contentsSummary = filterMode ? (visualStyle.label + '：' + nameForLabel) : name;
+
             var pin = { coords: [x, y], x: x, y: y };
-            var marker = createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText, tooltipLabelText);
+            var marker = createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText, tooltipLabelText, objectName, contentsSummary);
             if (!marker) continue;
 
             var itemRank = getRank(rawRow);
