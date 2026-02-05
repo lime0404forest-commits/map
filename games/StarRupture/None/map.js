@@ -333,11 +333,11 @@
             var displayName = name;
             var memo = isJa ? (pin.memo_jp || '') : (pin.memo_en || pin.memo_jp || '');
             var rawText = memo || name;
-            var tooltipLabelText = filterMode ? (visualStyle.label + '：' + nameForLabel) : '';
+            var tooltipLabelText = filterMode ? (filterMode === 'lem' ? nameForLabel : (visualStyle.label + '：' + nameForLabel)) : '';
 
             var objNameMap = attrToDisplayName[objId];
             var objectName = (pin.obj_jp || pin.obj_en) ? (isJa ? (pin.obj_jp || pin.obj_en) : (pin.obj_en || pin.obj_jp)) : (objNameMap ? (isJa ? objNameMap.jp : objNameMap.en) : name);
-            var contentsSummary = filterMode ? (visualStyle.label + '：' + nameForLabel) : name;
+            var contentsSummary = filterMode ? (filterMode === 'lem' ? nameForLabel : (visualStyle.label + '：' + nameForLabel)) : name;
 
             var marker = createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText, tooltipLabelText, objectName, contentsSummary);
             if (!marker) return;
@@ -503,11 +503,11 @@
             var displayName = name;
             var memo = isJa ? (cols[12] || '') : (cols[13] || cols[12] || '');
             var rawText = memo || name;
-            var tooltipLabelText = filterMode ? (visualStyle.label + '：' + nameForLabel) : '';
+            var tooltipLabelText = filterMode ? (filterMode === 'lem' ? nameForLabel : (visualStyle.label + '：' + nameForLabel)) : '';
 
             var objNameMap = attrToDisplayName[attribute];
             var objectName = objNameMap ? (isJa ? objNameMap.jp : objNameMap.en) : name;
-            var contentsSummary = filterMode ? (visualStyle.label + '：' + nameForLabel) : name;
+            var contentsSummary = filterMode ? (filterMode === 'lem' ? nameForLabel : (visualStyle.label + '：' + nameForLabel)) : name;
 
             var pin = { coords: [x, y], x: x, y: y };
             var marker = createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText, tooltipLabelText, objectName, contentsSummary);
