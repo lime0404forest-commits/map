@@ -1,6 +1,6 @@
 (function() {
     'use strict';
-    // map.js v20260208 - (No.) removed from labels, multi-blueprint fix, CSV escape fix
+    // map.js v20260208 - (No.) removed, multi-blueprint fix, CSV escape fix, LEM rank in popup
 
     var maxZoom = 5;
     var imgW = 6253;
@@ -168,6 +168,26 @@
         return 'standard';
     }
 
+    // LEM表示名をランク付きで整形: 上級→接頭辞付き, 下級→接頭辞付き, 中級/接頭語なし→接頭辞なし
+    function formatLemDisplayName(itemNameJp, itemNameEn, rank, isJa) {
+        var baseJp = (itemNameJp || '').replace(/LEM\s*$/, '');
+        var baseEn = (itemNameEn || '').replace(/\s*LEM\s*$/i, '').trim();
+        var suffixJp = 'LEM', suffixEn = ' LEM';
+        var rankVal = (rank && typeof rank === 'object' ? rank['ランク'] : rank) || '';
+        var displayJp, displayEn;
+        if (rankVal === '上級') {
+            displayJp = '上級' + baseJp + suffixJp;
+            displayEn = 'Greater ' + baseEn + suffixEn;
+        } else if (rankVal === '下級') {
+            displayJp = '下級' + baseJp + suffixJp;
+            displayEn = 'Lesser ' + baseEn + suffixEn;
+        } else {
+            displayJp = baseJp + suffixJp;
+            displayEn = baseEn + suffixEn;
+        }
+        return isJa ? displayJp : displayEn;
+    }
+
     function updateVisibleMarkers() {
         allMarkers.forEach(function(item) {
             var isCatMatch = item.categories.some(function(cat) { return activeCategories.has(cat); });
@@ -289,14 +309,26 @@
             var name = isJa ? (pin.obj_jp || pin.name_jp || pin.name) : (pin.obj_en || pin.name_en || pin.name_jp || pin.name || '');
 
             var blueprintNamesFromContents = [];
+            var lemNamesFromContents = [];
             if (filterMode === 'blueprint' && contents && contents.length > 0) {
                 contents.forEach(function(c) {
-                    if (c.cat_id === 'blueprint' && (c.item_jp || c.item_en)) {
-                        blueprintNamesFromContents.push(isJa ? (c.item_jp || c.item_en) : (c.item_en || c.item_jp));
+                    if (c.cat_id === 'blueprint' && (c.item_jp || c.item_en || c.item_name_jp || c.item_name_en)) {
+                        var bpName = isJa ? (c.item_jp || c.item_name_jp || c.item_en || c.item_name_en) : (c.item_en || c.item_name_en || c.item_jp || c.item_name_jp);
+                        blueprintNamesFromContents.push(bpName);
                     }
                 });
             }
-            var nameForLabel = blueprintNamesFromContents.length > 0 ? blueprintNamesFromContents.join(', ') : name;
+            if (filterMode === 'lem' && contents && contents.length > 0) {
+                contents.forEach(function(c) {
+                    if (c.cat_id === 'lem' && (c.item_jp || c.item_en || c.item_name_jp || c.item_name_en)) {
+                        var jp = c.item_name_jp || c.item_jp;
+                        var en = c.item_name_en || c.item_en;
+                        var rank = (c.attributes && c.attributes['ランク']) || '';
+                        lemNamesFromContents.push(formatLemDisplayName(jp, en, rank, isJa));
+                    }
+                });
+            }
+            var nameForLabel = lemNamesFromContents.length > 0 ? lemNamesFromContents.join(', ') : (blueprintNamesFromContents.length > 0 ? blueprintNamesFromContents.join(', ') : name);
 
             var displayName = name;
             var memo = isJa ? (pin.memo_jp || '') : (pin.memo_en || pin.memo_jp || '');
@@ -450,6 +482,7 @@
             var name = isJa ? (cols[3] || '') : (cols[4] || cols[3] || '');
 
             var blueprintNames = [];
+            var lemNames = [];
             if (filterMode === 'blueprint' && categoriesArr.length > 0) {
                 categoriesArr.forEach(function(c) {
                     if (c.cat_id === 'blueprint' && (c.item_name_jp || c.item_name_en)) {
@@ -457,7 +490,15 @@
                     }
                 });
             }
-            var nameForLabel = blueprintNames.length > 0 ? blueprintNames.join(', ') : name;
+            if (filterMode === 'lem' && categoriesArr.length > 0) {
+                categoriesArr.forEach(function(c) {
+                    if (c.cat_id === 'lem' && (c.item_name_jp || c.item_name_en)) {
+                        var rank = (c.attributes && c.attributes['ランク']) || '';
+                        lemNames.push(formatLemDisplayName(c.item_name_jp, c.item_name_en, rank, isJa));
+                    }
+                });
+            }
+            var nameForLabel = lemNames.length > 0 ? lemNames.join(', ') : (blueprintNames.length > 0 ? blueprintNames.join(', ') : name);
 
             var displayName = name;
             var memo = isJa ? (cols[12] || '') : (cols[13] || cols[12] || '');
