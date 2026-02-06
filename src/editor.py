@@ -1058,6 +1058,7 @@ class MapEditor(ctk.CTkToplevel):
             "frame": slot_frame,
             "row_frame": f_row1,
             "row_frame2": f_row2,
+            "row_frame_item_en": f_row_item_en,
             "lbl_cat": lbl_cat,
             "category": cmb_cat,
             "lbl_cat_en": lbl_cat_en,
@@ -1106,6 +1107,8 @@ class MapEditor(ctk.CTkToplevel):
             slot["row_frame2"].pack(fill="x", padx=BOX_PADX, pady=(2,BOX_PADY))
             slot["lbl_item"].pack(side="left", padx=5)
             slot["item"].pack(side="left", padx=5)
+            if slot.get("row_frame_item_en"):
+                slot["row_frame_item_en"].pack(fill="x", padx=BOX_PADX, pady=(2,BOX_PADY))
             return
         
         # カテゴリの設定を取得
@@ -1123,9 +1126,13 @@ class MapEditor(ctk.CTkToplevel):
             slot["item"].pack_forget()
             slot["item"].set("(なし)")
             slot["item"].configure(values=["(なし)"])
+            if slot.get("row_frame_item_en"):
+                slot["row_frame_item_en"].pack_forget()
         else:
             slot["lbl_item"].pack(side="left", padx=5)
             slot["item"].pack(side="left", padx=5)
+            if slot.get("row_frame_item_en"):
+                slot["row_frame_item_en"].pack(fill="x", padx=BOX_PADX, pady=(2,BOX_PADY))
             if category in self.item_master:
                 items = self.item_master[category]
                 item_names = ["(なし)"] + [info["name_jp"] for info in items.values()]
@@ -1615,16 +1622,21 @@ class MapEditor(ctk.CTkToplevel):
                 if isinstance(cat_info, dict):
                     input_type = cat_info.get("input_type", "item_select")
             slot_cat_en = (slot.get("ent_slot_cat_en") and slot["ent_slot_cat_en"].get() or "").strip()
+            if not slot_cat_en and category in self.category_master and isinstance(self.category_master[category], dict):
+                slot_cat_en = self.category_master[category].get("name_en", "") or self.category_master[category].get("name_jp", "")
             slot_item_en = (slot.get("ent_slot_item_en") and slot["ent_slot_item_en"].get() or "").strip()
             
             if input_type == "qty_only":
+                qty_item_en = slot_item_en or ""
+                if not qty_item_en and category in self.category_master and isinstance(self.category_master[category], dict):
+                    qty_item_en = self.category_master[category].get("name_en", "") or self.category_master[category].get("name_jp", "")
                 categories_data.append({
                     "cat_id": self._get_cat_id(category),
                     "category": category,
                     "cat_name_en": slot_cat_en or "",
                     "item_id": "",
                     "item_name_jp": "",
-                    "item_name_en": slot_item_en or "",
+                    "item_name_en": qty_item_en or "",
                     "qty": qty,
                     "attributes": {}
                 })
@@ -1872,10 +1884,14 @@ class MapEditor(ctk.CTkToplevel):
                         # 数量を設定
                         slot["qty"].delete(0, "end")
                         slot["qty"].insert(0, qty)
-                        # 分類(EN)・アイテム(EN)を設定
+                        # 分類(EN)・アイテム(EN)を設定（保存値がなければマスタから）
                         if slot.get("ent_slot_cat_en"):
                             slot["ent_slot_cat_en"].delete(0, "end")
-                            slot["ent_slot_cat_en"].insert(0, cat_data.get("cat_name_en", "") or "")
+                            saved_cat_en = (cat_data.get("cat_name_en") or "").strip()
+                            master_cat_en = ""
+                            if category and isinstance(self.category_master.get(category), dict):
+                                master_cat_en = self.category_master[category].get("name_en", "") or self.category_master[category].get("name_jp", "")
+                            slot["ent_slot_cat_en"].insert(0, saved_cat_en or master_cat_en)
                         if slot.get("ent_slot_item_en"):
                             slot["ent_slot_item_en"].delete(0, "end")
                             slot["ent_slot_item_en"].insert(0, cat_data.get("item_name_en", "") or "")
@@ -2033,15 +2049,20 @@ class MapEditor(ctk.CTkToplevel):
                 if isinstance(ci, dict):
                     input_type = ci.get("input_type", "item_select")
             slot_cat_en_tpl = (slot.get("ent_slot_cat_en") and slot["ent_slot_cat_en"].get() or "").strip()
+            if not slot_cat_en_tpl and category in self.category_master and isinstance(self.category_master[category], dict):
+                slot_cat_en_tpl = self.category_master[category].get("name_en", "") or self.category_master[category].get("name_jp", "")
             slot_item_en_tpl = (slot.get("ent_slot_item_en") and slot["ent_slot_item_en"].get() or "").strip()
             if input_type == "qty_only":
+                qty_item_en_tpl = slot_item_en_tpl or ""
+                if not qty_item_en_tpl and category in self.category_master and isinstance(self.category_master[category], dict):
+                    qty_item_en_tpl = self.category_master[category].get("name_en", "") or self.category_master[category].get("name_jp", "")
                 categories_data.append({
                     "cat_id": self._get_cat_id(category),
                     "category": category,
                     "cat_name_en": slot_cat_en_tpl or "",
                     "item_id": "",
                     "item_name_jp": "",
-                    "item_name_en": slot_item_en_tpl or "",
+                    "item_name_en": qty_item_en_tpl or "",
                     "qty": qty,
                     "attributes": {}
                 })
