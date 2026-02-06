@@ -1160,10 +1160,44 @@ class MapEditor(ctk.CTkToplevel):
                     cat_en = cat_info.get("name_en", "") or cat_info.get("name_jp", "")
                     if cat_en:
                         slot["ent_slot_cat_en"].insert(0, cat_en)
-    
+        
+        # カテゴリレベルで属性がある場合（例: LEMのランク）はここでウィジェット生成
+        if input_type == "item_select" and category and category != "(なし)":
+            cat_info = self.category_master.get(category)
+            if isinstance(cat_info, dict) and cat_info.get("attributes"):
+                attrs = cat_info["attributes"]
+                if attrs:
+                    slot["attr_frame"].pack(fill="x", padx=BOX_PADX, pady=(0,BOX_PADY))
+                    attr_row = tk.Frame(slot["attr_frame"], bg=BOX_FG)
+                    attr_row.pack(fill="x", padx=BOX_PADX, pady=5)
+                    for attr_key, attr_data in attrs.items():
+                        attr_item_frame = ctk.CTkFrame(attr_row, fg_color="transparent")
+                        attr_item_frame.pack(side="left", padx=10)
+                        ctk.CTkLabel(attr_item_frame, text=f"{attr_key}:", font=("Meiryo", 10)).pack(side="left", padx=2)
+                        if isinstance(attr_data, list):
+                            attr_data = {"type": "select", "options": attr_data}
+                        attr_type = attr_data.get("type", "select") if isinstance(attr_data, dict) else "select"
+                        if attr_type == "fixed":
+                            fixed_val = attr_data.get("value", "")
+                            lbl = ctk.CTkLabel(attr_item_frame, text=str(fixed_val), font=("Meiryo", 9, "bold"), text_color="#3498db")
+                            lbl.pack(side="left", padx=2)
+                            slot["attr_widgets"][attr_key] = {"type": "fixed", "value": fixed_val}
+                        elif attr_type == "number":
+                            ent = ctk.CTkEntry(attr_item_frame, width=100, height=28)
+                            ent.pack(side="left", padx=2)
+                            init_val = attr_data.get("value", "")
+                            if init_val is not None:
+                                ent.insert(0, str(init_val))
+                            slot["attr_widgets"][attr_key] = {"type": "number", "widget": ent}
+                        else:
+                            options = attr_data.get("options", []) if isinstance(attr_data, dict) else attr_data
+                            cmb = ctk.CTkComboBox(attr_item_frame, values=["(なし)"] + options, width=120)
+                            cmb.set("(なし)")
+                            cmb.pack(side="left", padx=2)
+                            slot["attr_widgets"][attr_key] = {"type": "select", "widget": cmb}
 
     def on_slot_item_changed(self, slot_frame):
-        """スロットのアイテム変更時: そのスロットの属性エリアをクリア後、item_master の attributes（fixed/select/number）に応じてウィジェットを生成。"""
+        """スロットのアイテム変更時: カテゴリに属性がなければ、item_master の attributes に応じてウィジェットを生成。"""
         slot = None
         for s in self.category_slots:
             if s["frame"] == slot_frame:
@@ -1173,7 +1207,27 @@ class MapEditor(ctk.CTkToplevel):
             return
         category = slot["category"].get()
         item_name = slot["item"].get()
-        # 属性フレームを非表示にしてクリア
+        # カテゴリが属性を持っている場合（例: LEMのランク）は触らない
+        cat_has_attrs = False
+        if category and category in self.category_master:
+            cat_info = self.category_master[category]
+            if isinstance(cat_info, dict) and cat_info.get("attributes"):
+                cat_has_attrs = True
+        if cat_has_attrs:
+            # カテゴリ属性は on_slot_category_changed で設定済み。item_en の更新のみ
+            if slot.get("ent_slot_item_en"):
+                slot["ent_slot_item_en"].delete(0, "end")
+                if category and item_name and item_name != "(なし)" and category in self.item_master:
+                    for iid, info in self.item_master[category].items():
+                        if isinstance(info, dict) and info.get("name_jp") == item_name:
+                            item_en = info.get("name_en", "") or info.get("name_jp", "")
+                            if item_en:
+                                slot["ent_slot_item_en"].insert(0, item_en)
+                            break
+            self._update_display_name_from_master()
+            return
+        
+        # 属性フレームをクリア（カテゴリ属性はないのでアイテム属性用）
         slot["attr_frame"].pack_forget()
         for w in slot["attr_frame"].winfo_children(): w.destroy()
         slot["attr_widgets"] = {}
@@ -1689,26 +1743,38 @@ class MapEditor(ctk.CTkToplevel):
                 "attributes": item_attrs
             })
 
-        # 選択属性の新規値をマスタの options に追加
+        # 選択属性の新規値をマスタの options に追加（アイテム or カテゴリ）
         for cat_data in categories_data:
             cat, iid, attrs = cat_data.get("category"), cat_data.get("item_id"), cat_data.get("attributes", {})
-            if not iid or cat not in self.config.get("item_master", {}):
-                continue
-            item_entry = self.config["item_master"][cat].get(iid, {})
-            if not isinstance(item_entry, dict):
-                continue
-            if "attributes" not in item_entry:
-                item_entry["attributes"] = {}
             for attr_key, attr_val in attrs.items():
                 if not attr_val:
                     continue
-                ac = item_entry["attributes"].get(attr_key)
+                ac = None
+                # カテゴリに属性があればそこから取得
+                if cat and cat in self.config.get("category_master", {}):
+                    cat_entry = self.config["category_master"][cat]
+                    if isinstance(cat_entry, dict) and cat_entry.get("attributes", {}).get(attr_key):
+                        ac = cat_entry["attributes"][attr_key]
+                # なければアイテムから
+                if ac is None and iid and cat in self.config.get("item_master", {}):
+                    item_entry = self.config["item_master"][cat].get(iid, {})
+                    if isinstance(item_entry, dict):
+                        ac = item_entry.get("attributes", {}).get(attr_key)
                 if isinstance(ac, dict) and ac.get("type") == "select":
                     opts = list(ac.get("options", []))
                     if attr_val not in opts:
                         opts.append(attr_val)
-                        item_entry["attributes"][attr_key] = {"type": "select", "options": opts}
                         try:
+                            if cat and cat in self.config.get("category_master", {}):
+                                ce = self.config["category_master"][cat]
+                                if isinstance(ce, dict) and ce.get("attributes", {}).get(attr_key):
+                                    ce["attributes"][attr_key] = {"type": "select", "options": opts}
+                            elif iid and cat in self.config.get("item_master", {}):
+                                ie = self.config["item_master"][cat].get(iid, {})
+                                if isinstance(ie, dict):
+                                    if "attributes" not in ie:
+                                        ie["attributes"] = {}
+                                    ie["attributes"][attr_key] = {"type": "select", "options": opts}
                             with open(self.config_path, "w", encoding="utf-8") as f:
                                 json.dump(self.config, f, indent=4, ensure_ascii=False)
                             self.load_config()
