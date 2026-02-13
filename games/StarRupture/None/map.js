@@ -441,8 +441,8 @@
             if (isNaN(x) || isNaN(y)) continue;
 
             var attribute = (cols[5] || '').trim();
-            var category = (cols[7] || '').trim();
-            var categoriesJson = cols[8] || '[]';
+            var category = (cols[8] || '').trim();
+            var categoriesJson = cols[9] || '[]';
 
             var catIds = [];
             var categoriesArr = [];
@@ -501,7 +501,7 @@
             var nameForLabel = lemNames.length > 0 ? lemNames.join(', ') : (blueprintNames.length > 0 ? blueprintNames.join(', ') : name);
 
             var displayName = name;
-            var memo = isJa ? (cols[12] || '') : (cols[13] || cols[12] || '');
+            var memo = isJa ? (cols[13] || '') : (cols[14] || cols[13] || '');
             var rawText = memo || name;
             var tooltipLabelText = filterMode ? (filterMode === 'lem' ? nameForLabel : (visualStyle.label + '：' + nameForLabel)) : '';
 
