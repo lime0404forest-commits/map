@@ -343,7 +343,7 @@
             } else if (filterMode === 'blueprint') {
                 contentsSummary = blueprintNamesFromContents.length > 1 ? (visualStyle.label + '：<br>・' + blueprintNamesFromContents.join('<br>・')) : (blueprintNamesFromContents.length === 1 ? (visualStyle.label + '：' + blueprintNamesFromContents[0]) : (nameForLabel ? visualStyle.label + '：' + nameForLabel : name));
             } else {
-                contentsSummary = name;
+                contentsSummary = (contents && contents.length > 0) ? formatAllContentsForPopup(contents, isJa) : name;
             }
             if (!contentsSummary) contentsSummary = name;
 
@@ -441,6 +441,29 @@
         return label + '：<br>・' + names.join('<br>・');
     }
 
+    // 全部用: 全スロットを表示（複数アイテム・戦時債権は数量・換金はポイント表示）
+    function formatAllContentsForPopup(contentsArr, isJa) {
+        if (!contentsArr || contentsArr.length === 0) return '';
+        var lines = [];
+        contentsArr.forEach(function(c) {
+            var styleKey = catIdToStyle[c.cat_id] || c.cat_id || 'other';
+            var label = (styles[styleKey] || styles.other).label;
+            var itemName = isJa ? (c.item_name_jp || c.item_name_en) : (c.item_name_en || c.item_name_jp);
+            var attrs = c.attributes || c.props || {};
+            if (c.cat_id === 'war_bonds') {
+                lines.push((itemName || label) + ' x' + (c.qty || '1'));
+            } else if (c.cat_id === 'trade_item') {
+                var pt = attrs['ポイント'];
+                lines.push(itemName + (pt ? ' ' + pt + 'pt' : ''));
+            } else if (c.cat_id === 'lem') {
+                lines.push(formatLemDisplayName(c.item_name_jp, c.item_name_en, attrs['ランク'], isJa));
+            } else {
+                lines.push(label + '：' + (itemName || '—'));
+            }
+        });
+        return lines.join('<br>・');
+    }
+
     function loadFromCSV(text) {
         var rows = text.trim().split('\n');
         if (rows.length < 2) return;
@@ -521,10 +544,13 @@
 
             var objNameMap = attrToDisplayName[attribute];
             var objectName = objNameMap ? (isJa ? objNameMap.jp : objNameMap.en) : name;
-            var contentsSummary = filterMode
-                ? (filterMode === 'lem' ? formatContentsSummaryForPopup(visualStyle.label, lemNames) : formatContentsSummaryForPopup(visualStyle.label, blueprintNames))
-                : name;
-            if (contentsSummary === '' && nameForLabel) contentsSummary = visualStyle.label + '：' + nameForLabel;
+            var contentsSummary;
+            if (filterMode) {
+                contentsSummary = filterMode === 'lem' ? formatContentsSummaryForPopup(visualStyle.label, lemNames) : formatContentsSummaryForPopup(visualStyle.label, blueprintNames);
+                if (contentsSummary === '' && nameForLabel) contentsSummary = visualStyle.label + '：' + nameForLabel;
+            } else {
+                contentsSummary = categoriesArr.length > 0 ? formatAllContentsForPopup(categoriesArr, isJa) : name;
+            }
 
             var pin = { coords: [x, y], x: x, y: y };
             var marker = createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText, tooltipLabelText, objectName, contentsSummary);

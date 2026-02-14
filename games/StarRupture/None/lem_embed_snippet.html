@@ -1,9 +1,9 @@
-<!-- 【設計図用】設計図ピンのみ表示 + 常時ラベル。data-filter="blueprint" data-show-labels="true" -->
+<!-- 【LEM用】LEMピンのみ表示 + 常時ラベル。data-filter="lem" data-show-labels="true" -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <div id="map-container" style="position: relative; width: 100%; height: 85vh; border: 1px solid #333;">
-    <div id="game-map" data-zoom="2" data-filter="blueprint" data-show-labels="true" style="width: 100%; height: 100%; background: #0d0d0d;"></div>
+    <div id="game-map" data-zoom="2" data-filter="lem" data-show-labels="true" style="width: 100%; height: 100%; background: #0d0d0d;"></div>
     <button id="fullscreen-btn" style="
         position: absolute; bottom: 20px; left: 20px; z-index: 1000;
         background: #fff; border: 2px solid rgba(0,0,0,0.2); border-radius: 4px;
@@ -19,9 +19,9 @@
 .zoom-level-4 .emoji-icon div, .zoom-level-5 .emoji-icon div { font-size: 18px !important; opacity: 0.8; }
 .zoom-level-4 .emoji-icon div:hover, .zoom-level-5 .emoji-icon div:hover { transform: scale(1.0); z-index: 10000 !important; opacity: 1; filter: drop-shadow(0 0 8px #fff); }
 .item-tooltip { background: rgba(0, 0, 0, 0.85) !important; border: 1px solid #777 !important; color: #fff !important; font-weight: bold !important; padding: 4px 8px !important; border-radius: 4px !important; font-size: 12px !important; white-space: nowrap; box-shadow: 2px 2px 6px rgba(0,0,0,0.5); }
-.item-tooltip-permanent { background: rgba(0, 0, 0, 0.7) !important; border: 1px solid #3498db !important; color: #fff !important; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.5); white-space: nowrap; }
+.item-tooltip-permanent { background: rgba(0, 0, 0, 0.7) !important; border: 1px solid #9b59b6 !important; color: #fff !important; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.5); white-space: nowrap; }
 .leaflet-tooltip-right:before { border-right-color: rgba(0, 0, 0, 0.85); }
-.leaflet-tooltip-top.item-tooltip-permanent:before { border-top-color: #3498db; }
+.leaflet-tooltip-top.item-tooltip-permanent:before { border-top-color: #9b59b6; }
 .debug-marker div { opacity: 0.5; font-size: 12px !important; }
 :fullscreen #game-map { height: 100vh !important; width: 100vw !important; }
 :-webkit-full-screen #game-map { height: 100vh !important; width: 100vw !important; }
