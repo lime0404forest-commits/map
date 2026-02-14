@@ -257,8 +257,14 @@
         popupHtml += '</div>';
         marker.bindPopup(popupHtml);
 
-        // フィルタモード時: 「設計図：チューブ」形式の tooltipLabelText を優先、なければ displayName、さらに cleanTextForFilter
-        var tooltipText = filterMode ? (tooltipLabelText || displayName || cleanTextForFilter(rawText, filterMode)) : rawText;
+        // フィルタモード時: tooltipLabelText を優先。全部用時: contentsSummary があればそのプレーンテキスト版をツールチップに（複数アイテムを一覧表示）
+        var tooltipText;
+        if (filterMode) {
+            tooltipText = tooltipLabelText || displayName || cleanTextForFilter(rawText, filterMode);
+        } else {
+            var summaryPlain = (contentsSummary && String(contentsSummary).trim()) ? contentsSummary.replace(/<br\s*\/?>\s*・?/g, ', ') : '';
+            tooltipText = summaryPlain || rawText;
+        }
         if (!tooltipText || String(tooltipText).trim() === '') {
             tooltipText = rawText || visualStyle.label || '—';
         }
