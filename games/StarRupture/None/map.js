@@ -1,6 +1,6 @@
 (function() {
     'use strict';
-    // map.js v20260208 - (No.) removed, multi-blueprint fix, CSV escape fix, LEM rank in popup
+    // map.js v20260216 - 全部用: 複数アイテム・戦時債権数量・換金ポイント表示
 
     var maxZoom = 5;
     var imgW = 6253;
@@ -446,15 +446,17 @@
         if (!contentsArr || contentsArr.length === 0) return '';
         var lines = [];
         contentsArr.forEach(function(c) {
+            if (!c || !c.cat_id) return;
             var styleKey = catIdToStyle[c.cat_id] || c.cat_id || 'other';
             var label = (styles[styleKey] || styles.other).label;
-            var itemName = isJa ? (c.item_name_jp || c.item_name_en) : (c.item_name_en || c.item_name_jp);
+            var itemName = isJa ? (c.item_name_jp || c.item_name_en || '') : (c.item_name_en || c.item_name_jp || '');
             var attrs = c.attributes || c.props || {};
+            var qtyStr = c.qty != null && c.qty !== '' ? String(c.qty) : '1';
             if (c.cat_id === 'war_bonds') {
-                lines.push((itemName || label) + ' x' + (c.qty || '1'));
+                lines.push((itemName || label) + ' x' + qtyStr);
             } else if (c.cat_id === 'trade_item') {
                 var pt = attrs['ポイント'];
-                lines.push(itemName + (pt ? ' ' + pt + 'pt' : ''));
+                lines.push(itemName + (pt != null && pt !== '' ? ' ' + pt + 'pt' : ''));
             } else if (c.cat_id === 'lem') {
                 lines.push(formatLemDisplayName(c.item_name_jp, c.item_name_en, attrs['ランク'], isJa));
             } else {
@@ -465,7 +467,9 @@
     }
 
     function loadFromCSV(text) {
-        var rows = text.trim().split('\n');
+        var rawText = text.trim();
+        if (rawText.charCodeAt(0) === 0xFEFF) rawText = rawText.slice(1);
+        var rows = rawText.split('\n');
         if (rows.length < 2) return;
 
         for (var i = 1; i < rows.length; i++) {
@@ -479,7 +483,7 @@
 
             var attribute = (cols[5] || '').trim();
             var category = (cols[8] || '').trim();
-            var categoriesJson = cols[9] || '[]';
+            var categoriesJson = (cols.length > 9 ? cols[9] : null) || '[]';
 
             var catIds = [];
             var categoriesArr = [];
