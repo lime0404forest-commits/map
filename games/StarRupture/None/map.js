@@ -337,7 +337,15 @@
 
             var objNameMap = attrToDisplayName[objId];
             var objectName = (pin.obj_jp || pin.obj_en) ? (isJa ? (pin.obj_jp || pin.obj_en) : (pin.obj_en || pin.obj_jp)) : (objNameMap ? (isJa ? objNameMap.jp : objNameMap.en) : name);
-            var contentsSummary = filterMode ? (filterMode === 'lem' ? nameForLabel : (visualStyle.label + '：' + nameForLabel)) : name;
+            var contentsSummary;
+            if (filterMode === 'lem') {
+                contentsSummary = lemNamesFromContents.length > 1 ? (visualStyle.label + '：<br>・' + lemNamesFromContents.join('<br>・')) : (lemNamesFromContents.length === 1 ? (visualStyle.label + '：' + lemNamesFromContents[0]) : nameForLabel);
+            } else if (filterMode === 'blueprint') {
+                contentsSummary = blueprintNamesFromContents.length > 1 ? (visualStyle.label + '：<br>・' + blueprintNamesFromContents.join('<br>・')) : (blueprintNamesFromContents.length === 1 ? (visualStyle.label + '：' + blueprintNamesFromContents[0]) : (nameForLabel ? visualStyle.label + '：' + nameForLabel : name));
+            } else {
+                contentsSummary = name;
+            }
+            if (!contentsSummary) contentsSummary = name;
 
             var marker = createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText, tooltipLabelText, objectName, contentsSummary);
             if (!marker) return;
@@ -427,6 +435,12 @@
         rankControl.addTo(map);
     }
 
+    function formatContentsSummaryForPopup(label, names) {
+        if (!names || names.length === 0) return '';
+        if (names.length === 1) return label + '：' + names[0];
+        return label + '：<br>・' + names.join('<br>・');
+    }
+
     function loadFromCSV(text) {
         var rows = text.trim().split('\n');
         if (rows.length < 2) return;
@@ -507,7 +521,10 @@
 
             var objNameMap = attrToDisplayName[attribute];
             var objectName = objNameMap ? (isJa ? objNameMap.jp : objNameMap.en) : name;
-            var contentsSummary = filterMode ? (filterMode === 'lem' ? nameForLabel : (visualStyle.label + '：' + nameForLabel)) : name;
+            var contentsSummary = filterMode
+                ? (filterMode === 'lem' ? formatContentsSummaryForPopup(visualStyle.label, lemNames) : formatContentsSummaryForPopup(visualStyle.label, blueprintNames))
+                : name;
+            if (contentsSummary === '' && nameForLabel) contentsSummary = visualStyle.label + '：' + nameForLabel;
 
             var pin = { coords: [x, y], x: x, y: y };
             var marker = createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText, tooltipLabelText, objectName, contentsSummary);
