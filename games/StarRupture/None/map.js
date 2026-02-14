@@ -346,7 +346,7 @@
             var objectName = (pin.obj_jp || pin.obj_en) ? (isJa ? (pin.obj_jp || pin.obj_en) : (pin.obj_en || pin.obj_jp)) : (objNameMap ? (isJa ? objNameMap.jp : objNameMap.en) : name);
             var contentsSummary;
             if (filterMode === 'lem') {
-                contentsSummary = lemNamesFromContents.length > 1 ? (visualStyle.label + '：<br>・' + lemNamesFromContents.join('<br>・')) : (lemNamesFromContents.length === 1 ? (visualStyle.label + '：' + lemNamesFromContents[0]) : nameForLabel);
+                contentsSummary = lemNamesFromContents.length > 1 ? lemNamesFromContents.join('<br>・') : (lemNamesFromContents.length === 1 ? lemNamesFromContents[0] : nameForLabel);
             } else if (filterMode === 'blueprint') {
                 contentsSummary = blueprintNamesFromContents.length > 1 ? (visualStyle.label + '：<br>・' + blueprintNamesFromContents.join('<br>・')) : (blueprintNamesFromContents.length === 1 ? (visualStyle.label + '：' + blueprintNamesFromContents[0]) : (nameForLabel ? visualStyle.label + '：' + nameForLabel : name));
             } else {
@@ -556,8 +556,13 @@
             var objNameMap = attrToDisplayName[attribute];
             var objectName = objNameMap ? (isJa ? objNameMap.jp : objNameMap.en) : name;
             var contentsSummary;
-            if (filterMode) {
-                contentsSummary = filterMode === 'lem' ? formatContentsSummaryForPopup(visualStyle.label, lemNames) : formatContentsSummaryForPopup(visualStyle.label, blueprintNames);
+            if (filterMode === 'lem') {
+                contentsSummary = lemNames.length > 1 ? lemNames.join('<br>・') : (lemNames.length === 1 ? lemNames[0] : (nameForLabel || ''));
+            } else if (filterMode === 'blueprint') {
+                contentsSummary = formatContentsSummaryForPopup(visualStyle.label, blueprintNames);
+                if (contentsSummary === '' && nameForLabel) contentsSummary = visualStyle.label + '：' + nameForLabel;
+            } else if (filterMode) {
+                contentsSummary = formatContentsSummaryForPopup(visualStyle.label, blueprintNames);
                 if (contentsSummary === '' && nameForLabel) contentsSummary = visualStyle.label + '：' + nameForLabel;
             } else {
                 contentsSummary = categoriesArr.length > 0 ? formatAllContentsForPopup(categoriesArr, isJa) : name;
