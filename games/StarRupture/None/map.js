@@ -329,7 +329,8 @@
                     if (c.cat_id === 'lem' && (c.item_jp || c.item_en || c.item_name_jp || c.item_name_en)) {
                         var jp = c.item_name_jp || c.item_jp;
                         var en = c.item_name_en || c.item_en;
-                        var rank = (c.attributes && c.attributes['ランク']) || '';
+                        var attrs = c.attributes || c.props || {};
+                        var rank = attrs['ランク'] || '';
                         lemNamesFromContents.push(formatLemDisplayName(jp, en, rank, isJa));
                     }
                 });
