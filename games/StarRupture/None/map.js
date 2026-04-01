@@ -582,6 +582,110 @@
 
     var cacheBuster = 't=' + Date.now();
 
+    // -------- エリア描画（areas.json） --------
+    var areaLayer = null;
+    map.createPane('areas');  // ピンより背面に配置するため専用ペインを作成
+    map.getPane('areas').style.zIndex = 350;
+
+    function styleAreaPolygon(area) {
+        // attribute や cat_id などからスタイルを決めてもよいが、ここではひとまず固定色系
+        return {
+            color: '#ffffff',
+            weight: 2,
+            opacity: 1,
+            fillColor: '#00ffff',
+            fillOpacity: 0.18,
+            pane: 'areas'
+        };
+    }
+
+    function addAreasFromJson(areas) {
+        if (!Array.isArray(areas) || areas.length === 0) return;
+        if (areaLayer) {
+            map.removeLayer(areaLayer);
+        }
+        areaLayer = L.layerGroup([], { pane: 'areas' });
+
+        areas.forEach(function (a) {
+            if (!a) return;
+            var shape = a.shape || 'polygon';
+            var latlngs;
+            if (shape === 'circle') {
+                var cx = a.x, cy = a.y, radius = a.radius;
+                if (typeof cx !== 'number' || typeof cy !== 'number' || typeof radius !== 'number') return;
+                var center = map.unproject([cx, cy], maxZoom);
+                // 半径はピクセルベースなのでズームでスケールされるが、概ねの大きさとして扱う
+                var circle = L.circle(center, {
+                    radius: radius, // 単位は任意; マップはCRS.Simpleなのでスケーリングは相対的
+                    color: '#ffffff',
+                    weight: 2,
+                    opacity: 1,
+                    fillColor: '#00ffff',
+                    fillOpacity: 0.18,
+                    pane: 'areas'
+                });
+                bindAreaPopup(circle, a);
+                areaLayer.addLayer(circle);
+                return;
+            }
+
+            if (shape === 'rect') {
+                var x = a.x, y = a.y, w = a.width, h = a.height;
+                if (typeof x !== 'number' || typeof y !== 'number' || typeof w !== 'number' || typeof h !== 'number') return;
+                var rectPts = [
+                    [x, y],
+                    [x + w, y],
+                    [x + w, y + h],
+                    [x, y + h]
+                ];
+                latlngs = rectPts.map(function (pt) { return map.unproject(pt, maxZoom); });
+            } else {
+                var pts = a.points || [];
+                if (!Array.isArray(pts) || pts.length < 3) return;
+                latlngs = pts.map(function (pt) {
+                    if (!Array.isArray(pt) || pt.length < 2) return null;
+                    return map.unproject([pt[0], pt[1]], maxZoom);
+                }).filter(Boolean);
+            }
+
+            if (!latlngs || latlngs.length < 3) return;
+            var poly = L.polygon(latlngs, styleAreaPolygon(a));
+            bindAreaPopup(poly, a);
+            areaLayer.addLayer(poly);
+        });
+
+        areaLayer.addTo(map);
+    }
+
+    function bindAreaPopup(layer, area) {
+        var name = isJa ? (area.name_jp || area.name_en || '') : (area.name_en || area.name_jp || '');
+        var memo = isJa ? (area.memo_jp || '') : (area.memo_en || area.memo_jp || '');
+        var title = name || (isJa ? 'エリア' : 'Area');
+        var html = '<div style="font-family:sans-serif;min-width:180px;">' +
+            '<div style="font-size:14px;font-weight:bold;margin-bottom:4px;border-bottom:1px solid #ccc;padding-bottom:4px;">' +
+            title + '</div>';
+        if (memo) {
+            html += '<div style="font-size:12px;color:#444;background:#f4f4f4;padding:5px;border-radius:3px;line-height:1.4;">' +
+                String(memo).replace(/<br\s*\/?>/g, '<br>') + '</div>';
+        }
+        html += '</div>';
+        layer.bindPopup(html);
+    }
+
+    function loadAreas() {
+        var areasUrl = baseUrl + 'areas.json';
+        return fetch(areasUrl + (areasUrl.indexOf('?') >= 0 ? '&' : '?') + cacheBuster)
+            .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+            .then(function (data) {
+                var areas = data && data.areas ? data.areas : (Array.isArray(data) ? data : []);
+                addAreasFromJson(areas);
+            })
+            .catch(function (e) {
+                // areas.json が無くても致命的ではないので warn のみにする
+                if (isDebug) console.warn('map.js: areas.json load failed or not found', e);
+            });
+    }
+
     // data-pins 指定時は pins_export.json を優先
     if (customPins !== null && customPins !== '') {
         fetch(pinsJsonUrl + (pinsJsonUrl.indexOf('?') >= 0 ? '&' : '?') + cacheBuster)
@@ -589,19 +693,26 @@
             .then(function(data) {
                 var pins = data && data.pins ? data.pins : (Array.isArray(data) ? data : []);
                 addMarkersFromPins(pins);
+                return loadAreas();
             })
             .catch(function(e) {
                 console.warn('map.js: pins_export.json load failed, falling back to CSV', e);
                 return fetch(csvUrl + '?' + cacheBuster).then(function(r) { if (!r.ok) throw new Error(r.status); return r.text(); });
             })
             .then(function(text) {
-                if (typeof text === 'string') loadFromCSV(text);
+                if (typeof text === 'string') {
+                    loadFromCSV(text);
+                    return loadAreas();
+                }
             })
             .catch(function(e) { console.error('map.js:', e); });
     } else {
         fetch(csvUrl + '?' + cacheBuster)
             .then(function(r) { if (!r.ok) throw new Error(r.status); return r.text(); })
-            .then(loadFromCSV)
+            .then(function (text) {
+                loadFromCSV(text);
+                return loadAreas();
+            })
             .catch(function(e) {
                 console.error('map.js: Failed to load pins. Check CSV URL and CORS.', e);
             });

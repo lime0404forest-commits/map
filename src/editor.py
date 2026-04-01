@@ -702,6 +702,7 @@ class MapEditor(ctk.CTkToplevel):
         self.game_path = os.path.join(GAMES_ROOT, game_name, region_name)
         self.tile_dir = os.path.join(self.game_path, "tiles")
         self.config_path = os.path.join(self.game_path, "config.json")
+        self.areas_path = os.path.join(self.game_path, "areas.json")
         
         self.load_config()
         
@@ -723,6 +724,17 @@ class MapEditor(ctk.CTkToplevel):
         
         self.data_list = []
         self.current_uid = None
+        # エリア編集用の状態
+        self.area_list = []
+        self.current_area_uid = None
+        self.area_mode = "idle"          # idle / create_polygon / create_circle / create_rect / edit_polygon
+        self.area_temp_points = []       # 新規作成中ポリゴン用
+        self.area_drag_index = None      # 制御点ドラッグ中インデックス
+        self.area_drag_mode = None       # create_shape / move_area
+        self.area_drag_start = None      # ドラッグ開始時の画像座標
+        self.area_preview_shape = None   # ドラッグ中の仮プレビュー
+        self.area_show_points = tk.BooleanVar(value=True)
+        self.area_edit_enabled = tk.BooleanVar(value=True)
         self.temp_coords = None
         self.is_autoscrolling = False
         self.tile_cache = {}
@@ -739,6 +751,9 @@ class MapEditor(ctk.CTkToplevel):
 
         self.setup_ui()
         self.load_csv()
+        self.load_areas()
+        self.is_dirty = False
+        self.update_title_dirty()
         self.update_idletasks()
         self.after(100, self.refresh_map)
         self.run_autoscroll_loop()
@@ -1299,7 +1314,8 @@ class MapEditor(ctk.CTkToplevel):
         self.grid_columnconfigure(1, weight=1); self.grid_rowconfigure(0, weight=1)
         self.canvas = tk.Canvas(self, bg="#0d0d0d", highlightthickness=0)
         self.canvas.grid(row=0, column=1, sticky="nsew")
-        self.sidebar = ctk.CTkFrame(self, width=500, corner_radius=0)
+        # サイドバーはやや細くして、マップエリアを広く確保
+        self.sidebar = ctk.CTkFrame(self, width=420, corner_radius=0)
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         
         f_top = ctk.CTkFrame(self.sidebar, fg_color="#34495e", corner_radius=0)
@@ -1422,6 +1438,66 @@ class MapEditor(ctk.CTkToplevel):
 
         f_foot = ctk.CTkFrame(self.sidebar, fg_color="transparent")
         f_foot.pack(fill="x", side=tk.BOTTOM, padx=20, pady=20)
+        self.setup_menu_bar()
+        # エリア編集ボタン群（アコーディオン、初期は閉）
+        self.area_panel_expanded = False
+        f_area = ctk.CTkFrame(f_foot, fg_color=BOX_FG, corner_radius=BOX_CORNER, border_width=BOX_BORDER_WIDTH, border_color=BOX_BORDER_COLOR)
+        f_area.pack(fill="x", pady=(0, 10))
+        header_row = ctk.CTkFrame(f_area, fg_color="transparent")
+        header_row.pack(fill="x", padx=BOX_PADX, pady=(BOX_PADY, 5))
+        self.lbl_area_toggle = ctk.CTkLabel(header_row, text="▶ エリア編集", font=("Meiryo", 11, "bold"), cursor="hand2")
+        self.lbl_area_toggle.pack(side="left")
+        self.lbl_area_toggle.bind("<Button-1>", lambda e: self.toggle_area_panel())
+        header_row.bind("<Button-1>", lambda e: self.toggle_area_panel())
+        self.btn_area_edit_toggle = ctk.CTkButton(
+            header_row,
+            text="編集: ON",
+            command=self.toggle_area_edit_enabled,
+            width=80,
+            height=26,
+            fg_color="#2ecc71"
+        )
+        self.btn_area_edit_toggle.pack(side="right")
+        self.f_area_body = ctk.CTkFrame(f_area, fg_color="transparent")
+        f_area_btns = ctk.CTkFrame(self.f_area_body, fg_color="transparent")
+        f_area_btns.pack(fill="x", padx=BOX_PADX, pady=(0, 4))
+        self.btn_area_poly = ctk.CTkButton(f_area_btns, text="多角形エリア作成", command=lambda: self.set_area_mode("create_polygon"), fg_color="#1abc9c", height=28)
+        self.btn_area_poly.pack(fill="x", pady=1)
+        self.btn_area_circle = ctk.CTkButton(f_area_btns, text="円エリア作成", command=lambda: self.set_area_mode("create_circle"), fg_color="#2980b9", height=28)
+        self.btn_area_circle.pack(fill="x", pady=1)
+        self.btn_area_rect = ctk.CTkButton(f_area_btns, text="四角エリア作成", command=lambda: self.set_area_mode("create_rect"), fg_color="#8e44ad", height=28)
+        self.btn_area_rect.pack(fill="x", pady=1)
+        f_area_actions = ctk.CTkFrame(self.f_area_body, fg_color="transparent")
+        f_area_actions.pack(fill="x", padx=BOX_PADX, pady=(0, 4))
+        self.btn_area_point_toggle = ctk.CTkButton(
+            f_area_actions, text="制御点: ON", command=self.toggle_area_points, fg_color="#34495e", height=30
+        )
+        self.btn_area_point_toggle.pack(fill="x", pady=1)
+        self.btn_area_close_poly = ctk.CTkButton(
+            f_area_actions, text="多角形を確定", command=self.finalize_polygon_area, fg_color="#16a085", height=30
+        )
+        self.btn_area_close_poly.pack(fill="x", pady=1)
+        self.btn_area_edit_points = ctk.CTkButton(
+            f_area_actions, text="制御点編集", command=self.start_edit_polygon_mode, fg_color="#2c3e50", height=30
+        )
+        self.btn_area_edit_points.pack(fill="x", pady=1)
+        f_area_rotate = ctk.CTkFrame(self.f_area_body, fg_color="transparent")
+        f_area_rotate.pack(fill="x", padx=BOX_PADX, pady=(0, 4))
+        self.btn_area_rot_ccw = ctk.CTkButton(
+            f_area_rotate, text="↺10°", command=lambda: self.rotate_current_area(-10), fg_color="#7f8c8d", height=30
+        )
+        self.btn_area_rot_ccw.pack(side="left", padx=2)
+        self.btn_area_rot_cw = ctk.CTkButton(
+            f_area_rotate, text="↻10°", command=lambda: self.rotate_current_area(10), fg_color="#7f8c8d", height=30
+        )
+        self.btn_area_rot_cw.pack(side="left", padx=2)
+        f_area_save = ctk.CTkFrame(self.f_area_body, fg_color="transparent")
+        f_area_save.pack(fill="x", padx=BOX_PADX, pady=(0, BOX_PADY))
+        self.btn_area_save = ctk.CTkButton(f_area_save, text="💾 エリア保存", command=self.save_current_area, fg_color="#27ae60", height=30)
+        self.btn_area_save.pack(fill="x", pady=1)
+        self.btn_area_delete = ctk.CTkButton(f_area_save, text="🗑️ エリア削除", command=self.delete_current_area, fg_color="#c0392b", height=30)
+        self.btn_area_delete.pack(fill="x", pady=1)
+
         self.btn_delete = ctk.CTkButton(f_foot, text="🗑️ ピン削除", command=self.delete_data, fg_color="#c0392b", hover_color="#e74c3c", height=35)
         self.btn_delete.pack(fill="x", side=tk.BOTTOM, pady=(15, 0))
         ctk.CTkButton(f_foot, text="ピン保存 (Ctrl+Enter)", command=self.save_data, fg_color="#2980b9", height=50, font=("Meiryo", 14, "bold")).pack(fill="x", pady=5)
@@ -1489,6 +1565,8 @@ class MapEditor(ctk.CTkToplevel):
                     k = f"{path}_{ts}"
                     if k not in self.tile_cache: self.tile_cache[k] = ImageTk.PhotoImage(Image.open(path).resize((ts, ts), Image.Resampling.NEAREST))
                     self.canvas.create_image(tx*ts, ty*ts, anchor="nw", image=self.tile_cache[k])
+        # エリアをタイルの上・ピンの下に描画
+        self._draw_areas(r)
         for d in self.data_list:
             # 後方互換性：attributeまたはcategory_pinから属性を取得
             attr_key = d.get('attribute') or d.get('category_pin', 'MISC_OTHER')
@@ -1528,33 +1606,128 @@ class MapEditor(ctk.CTkToplevel):
 
     def on_left_down(self, event):
         r = self.get_ratio(); mx, my = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y); cx, cy = mx/r, my/r
+        if not self.area_edit_enabled.get():
+            # エリア編集無効時は従来のマップ操作のみ
+            if self.is_crop_mode and not self.active_tool:
+                b = self.crop_box; bx, by, bw, bh = b["x"]*r, b["y"]*r, b["w"]*r, b["h"]*r
+                if (bx+bw-20 <= mx <= bx+bw+5) and (by+bh-20 <= my <= by+bh+5): self.drag_mode = "resize_br"; return
+                elif (b["x"] <= cx <= b["x"]+b["w"]) and (b["y"] <= cy <= b["y"]+b["h"]): self.drag_mode = "move"; self.drag_offset = (cx - b["x"], cy - b["y"]); return
+            self.drag_start = (event.x, event.y); self.has_dragged = False; self.canvas.scan_mark(event.x, event.y)
+            return
         if self.is_crop_mode and not self.active_tool:
             b = self.crop_box; bx, by, bw, bh = b["x"]*r, b["y"]*r, b["w"]*r, b["h"]*r
             if (bx+bw-20 <= mx <= bx+bw+5) and (by+bh-20 <= my <= by+bh+5): self.drag_mode = "resize_br"; return
             elif (b["x"] <= cx <= b["x"]+b["w"]) and (b["y"] <= cy <= b["y"]+b["h"]): self.drag_mode = "move"; self.drag_offset = (cx - b["x"], cy - b["y"]); return
+        # 円/四角はドラッグで範囲作成
+        if self.area_mode in ("create_circle", "create_rect"):
+            self.area_drag_mode = "create_shape"
+            self.area_drag_start = (cx, cy)
+            self.area_preview_shape = {"shape": self.area_mode, "x0": cx, "y0": cy, "x1": cx, "y1": cy}
+            return
+        # 選択エリアの移動（idle 時）
+        if self.area_mode == "idle" and self.current_area_uid:
+            area = next((a for a in self.area_list if a.get("uid") == self.current_area_uid), None)
+            if area and self.hit_test_area(cx, cy) is area:
+                self.area_drag_mode = "move_area"
+                self.area_drag_start = (cx, cy)
+                return
+        # エリア制御点ドラッグ開始判定（edit_polygon 時）
+        if self.area_mode == "edit_polygon" and self.current_area_uid:
+            area = next((a for a in self.area_list if a.get("uid") == self.current_area_uid), None)
+            if area and area.get("shape", "polygon") == "polygon":
+                pts = area.get("points") or []
+                for idx, (ax, ay) in enumerate(pts):
+                    px, py = ax*r, ay*r
+                    if abs(px - mx) <= 12 and abs(py - my) <= 12:
+                        self.area_drag_index = idx
+                        return
         self.drag_start = (event.x, event.y); self.has_dragged = False; self.canvas.scan_mark(event.x, event.y)
 
     def on_left_drag(self, event):
         r = self.get_ratio(); cx, cy = self.canvas.canvasx(event.x)/r, self.canvas.canvasy(event.y)/r
+        if self.area_drag_mode == "create_shape" and self.area_preview_shape:
+            self.area_preview_shape["x1"] = cx
+            self.area_preview_shape["y1"] = cy
+            self.has_dragged = True
+            self.refresh_map()
+            return
+        if self.area_drag_mode == "move_area" and self.current_area_uid and self.area_drag_start:
+            dx = cx - self.area_drag_start[0]
+            dy = cy - self.area_drag_start[1]
+            self.move_current_area(dx, dy)
+            self.area_drag_start = (cx, cy)
+            self.has_dragged = True
+            self.refresh_map()
+            return
+        if self.area_drag_index is not None and self.area_mode == "edit_polygon" and self.current_area_uid:
+            area = next((a for a in self.area_list if a.get("uid") == self.current_area_uid), None)
+            if area and area.get("shape", "polygon") == "polygon":
+                pts = area.get("points") or []
+                if 0 <= self.area_drag_index < len(pts):
+                    pts[self.area_drag_index][0] = cx
+                    pts[self.area_drag_index][1] = cy
+                    area["points"] = pts
+                    self.refresh_map()
+                    return
         if self.drag_mode == "move": self.crop_box["x"], self.crop_box["y"] = cx - self.drag_offset[0], cy - self.drag_offset[1]; self.refresh_map(); return
         elif self.drag_mode == "resize_br": self.crop_box["w"], self.crop_box["h"] = max(160, cx - self.crop_box["x"]), (cx - self.crop_box["x"]) * (9/16); self.refresh_map(); return
         if abs(event.x - self.drag_start[0]) > 5: self.has_dragged = True; self.canvas.scan_dragto(event.x, event.y, gain=1); self.refresh_map()
 
     def on_left_up(self, event):
-        if self.drag_mode: self.drag_mode = None; return
+        if self.drag_mode:
+            self.drag_mode = None
+            return
+        if self.area_drag_mode == "create_shape":
+            self._finalize_shape_by_drag(event)
+            self.area_drag_mode = None
+            self.area_drag_start = None
+            self.area_preview_shape = None
+            return
+        if self.area_drag_mode == "move_area":
+            self.area_drag_mode = None
+            self.area_drag_start = None
+            self.mark_dirty()
+            return
+        if self.area_drag_index is not None:
+            self.area_drag_index = None
+            self.mark_dirty()
+            return
         if not self.has_dragged:
             r = self.get_ratio(); cx, cy = self.canvas.canvasx(event.x)/r, self.canvas.canvasy(event.y)/r
             if self.is_crop_mode and self.active_tool:
                 if self.active_tool == "here": self.here_pos = {"x": cx, "y": cy}
                 elif self.active_tool == "arrow": self.arrow_pos = {"x": cx, "y": cy}
                 self.refresh_map(); return
+            # エリア作成モード（多角形 / 円 / 四角）
+            if self.area_mode in ("create_polygon", "create_circle", "create_rect"):
+                self.handle_area_creation_click(cx, cy)
+                return
             if self.edit_pos_mode_uid:
                 for d in self.data_list:
-                    if d['uid'] == self.edit_pos_mode_uid: d['x'], d['y'] = cx, cy; self.write_files(); break
+                    if d['uid'] == self.edit_pos_mode_uid: d['x'], d['y'] = cx, cy; self.mark_dirty(); break
                 self.edit_pos_mode_uid = None; self.refresh_map(); return
+            # まずピン当たり判定（ピン優先）
             for d in self.data_list:
-                if abs(d['x']-cx)<(16/r) and abs(d['y']-cy)<(16/r): self.current_uid = d['uid']; self.load_to_ui(d); self.refresh_map(); return
-            self.current_uid, self.temp_coords = None, (cx, cy); self.lbl_coords.configure(text=f"座標: ({int(cx)}, {int(cy)})"); self.refresh_map()
+                if abs(d['x']-cx)<(16/r) and abs(d['y']-cy)<(16/r):
+                    self.current_uid = d['uid']
+                    self.current_area_uid = None
+                    self.load_to_ui(d)
+                    self.refresh_map()
+                    return
+            # ピンがなければエリア当たり判定
+            hit_area = self.hit_test_area(cx, cy)
+            if hit_area is not None:
+                self.current_area_uid = hit_area.get("uid")
+                self.current_uid = None
+                self.load_area_to_ui(hit_area)
+                self.refresh_map()
+                return
+            # どちらもヒットしない場合は新規ピン座標として記録
+            self.current_uid = None
+            self.current_area_uid = None
+            self.temp_coords = (cx, cy)
+            self.lbl_coords.configure(text=f"座標: ({int(cx)}, {int(cy)})")
+            self.refresh_map()
 
     def toggle_crop_mode(self): self.is_crop_mode = not self.is_crop_mode; st = "normal" if self.is_crop_mode else "disabled"; self.btn_crop_exec.configure(state=st); self.refresh_map()
     def set_tool(self, t): self.active_tool = None if self.active_tool == t else t; self.refresh_map()
@@ -1567,7 +1740,430 @@ class MapEditor(ctk.CTkToplevel):
             mx, my = self.winfo_pointerx()-self.winfo_rootx(), self.winfo_pointery()-self.winfo_rooty(); dx, dy = (mx-self.autoscroll_origin[0]), (my-self.autoscroll_origin[1])
             if abs(dx)>20 or abs(dy)>20: self.canvas.xview_scroll(int(dx/35), "units"); self.canvas.yview_scroll(int(dy/35), "units"); self.refresh_map()
         self.after(10, self.run_autoscroll_loop)
-    def on_close(self): self.destroy(); self.master.deiconify()
+    def setup_menu_bar(self):
+        menubar = tk.Menu(self)
+        file_menu = tk.Menu(menubar, tearoff=0)
+        file_menu.add_command(label="保存", command=self.save_all_changes, accelerator="Ctrl+S")
+        file_menu.add_separator()
+        file_menu.add_command(label="終了", command=self.on_close)
+        menubar.add_cascade(label="ファイル", menu=file_menu)
+        # self.config は設定用dictと名称が衝突しているので configure を使う
+        self.configure(menu=menubar)
+        self.bind("<Control-s>", lambda e: self.save_all_changes())
+
+    def toggle_area_panel(self):
+        self.area_panel_expanded = not self.area_panel_expanded
+        if self.area_panel_expanded:
+            self.f_area_body.pack(fill="x")
+            self.lbl_area_toggle.configure(text="▼ エリア編集")
+        else:
+            self.f_area_body.pack_forget()
+            self.lbl_area_toggle.configure(text="▶ エリア編集")
+
+    def mark_dirty(self):
+        self.is_dirty = True
+        self.update_title_dirty()
+
+    def mark_clean(self):
+        self.is_dirty = False
+        self.update_title_dirty()
+
+    def update_title_dirty(self):
+        base_title = self.title().replace(" *", "")
+        if self.is_dirty and not base_title.endswith(" *"):
+            self.title(base_title + " *")
+        elif not self.is_dirty:
+            self.title(base_title)
+
+    def save_all_changes(self):
+        self.write_files()
+        self.save_areas()
+        self.mark_clean()
+        messagebox.showinfo("保存", "変更内容を保存しました。")
+
+    def on_close(self):
+        if self.is_dirty:
+            ans = messagebox.askyesnocancel("終了確認", "未保存の変更があります。保存して終了しますか？")
+            if ans is None:
+                return
+            if ans:
+                self.save_all_changes()
+        self.destroy()
+        self.master.deiconify()
+
+    # --- エリア描画・編集ヘルパー ---
+    def _get_area_fill_color(self, area):
+        """エリアの色を attribute の type などから決定"""
+        attr_id = area.get("attribute") or ""
+        obj_type = "other"
+        if attr_id and attr_id in self.attr_mapping:
+            info = self.attr_mapping[attr_id]
+            if isinstance(info, dict):
+                obj_type = info.get("type", "other")
+        color_map = {
+            "loot": "#2ecc71",
+            "landmark": "#3498db",
+            "colony": "#e67e22",
+            "other": "#7f8c8d"
+        }
+        base = color_map.get(obj_type, "#7f8c8d")
+        # 半透明風に見えるよう淡い塗りを使う
+        return base
+
+    def _draw_areas(self, r):
+        for area in self.area_list:
+            shape = area.get("shape", "polygon")
+            fill = self._get_area_fill_color(area)
+            outline = "#ffffff"
+            is_selected = area.get("uid") == self.current_area_uid
+            width = 3 if is_selected else 1
+            stipple = "gray25" if is_selected else "gray50"
+            if shape == "circle":
+                # 円もポリゴンとして描画して矩形・多角形と同じ見た目に揃える
+                cx_img, cy_img = float(area.get("x", 0)), float(area.get("y", 0))
+                radius_img = float(area.get("radius", 0))
+                if radius_img <= 0:
+                    continue
+                cx, cy, radius = cx_img*r, cy_img*r, radius_img*r
+                segs = 32
+                flat = []
+                for i in range(segs):
+                    theta = (2 * math.pi * i) / segs
+                    px = cx + radius * math.cos(theta)
+                    py = cy + radius * math.sin(theta)
+                    flat.extend([px, py])
+                self.canvas.create_polygon(*flat, outline=outline, width=width, fill=fill, stipple=stipple)
+            elif shape == "rect":
+                x = float(area.get("x", 0))*r
+                y = float(area.get("y", 0))*r
+                w = float(area.get("width", 0))*r
+                h = float(area.get("height", 0))*r
+                if w <= 0 or h <= 0:
+                    continue
+                self.canvas.create_rectangle(x, y, x+w, y+h,
+                                             outline=outline, width=width, fill=fill, stipple=stipple)
+            else:
+                pts = area.get("points") or []
+                if len(pts) < 3:
+                    continue
+                flat = []
+                for (ax, ay) in pts:
+                    flat.extend([ax*r, ay*r])
+                self.canvas.create_polygon(*flat, outline=outline, width=width, fill=fill, stipple=stipple)
+                # 制御点の可視化（編集モード時）
+                if self.area_show_points.get() and self.area_mode == "edit_polygon" and is_selected:
+                    for idx, (ax, ay) in enumerate(pts):
+                        px, py = ax*r, ay*r
+                        c = "#ff4757" if idx == 0 else "#ffffff"
+                        self.canvas.create_oval(px-7, py-7, px+7, py+7, fill=c, outline="#000000")
+        # 作成中ポリゴンのプレビュー（始点強調＋閉路ガイド）
+        if self.area_mode == "create_polygon" and self.area_temp_points:
+            pts = self.area_temp_points
+            if len(pts) >= 2:
+                flat = []
+                for (ax, ay) in pts:
+                    flat.extend([ax*r, ay*r])
+                self.canvas.create_line(*flat, fill="#00d2d3", width=2)
+                sx, sy = pts[0][0]*r, pts[0][1]*r
+                ex, ey = pts[-1][0]*r, pts[-1][1]*r
+                self.canvas.create_line(ex, ey, sx, sy, fill="#00d2d3", width=1, dash=(4, 3))
+            if self.area_show_points.get():
+                for idx, (ax, ay) in enumerate(pts):
+                    px, py = ax*r, ay*r
+                    c = "#ff4757" if idx == 0 else "#ffffff"
+                    self.canvas.create_oval(px-7, py-7, px+7, py+7, fill=c, outline="#000000")
+        # 円/四角のドラッグ作成プレビュー
+        if self.area_preview_shape:
+            shp = self.area_preview_shape
+            x0, y0, x1, y1 = shp["x0"]*r, shp["y0"]*r, shp["x1"]*r, shp["y1"]*r
+            if shp["shape"] == "create_rect":
+                self.canvas.create_rectangle(min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1),
+                                             outline="#00d2d3", width=2, dash=(6, 4))
+            elif shp["shape"] == "create_circle":
+                radius = ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5
+                self.canvas.create_oval(x0-radius, y0-radius, x0+radius, y0+radius,
+                                        outline="#00d2d3", width=2, dash=(6, 4))
+
+    def set_area_mode(self, mode):
+        """エリア編集モードの切替"""
+        if mode not in ("idle", "create_polygon", "create_circle", "create_rect", "edit_polygon"):
+            mode = "idle"
+        if not self.area_edit_enabled.get() and mode != "idle":
+            # 編集が無効のときは強制的に idle のまま
+            return
+        self.area_mode = mode
+        self.area_temp_points = []
+        self.area_drag_index = None
+        self.area_drag_mode = None
+        self.area_drag_start = None
+        self.area_preview_shape = None
+        self.refresh_map()
+
+    def handle_area_creation_click(self, cx, cy):
+        """エリア作成モード時のクリック処理"""
+        if self.area_mode == "create_polygon":
+            # クリックごとに制御点を追加、3点以上で保存ボタンで確定
+            self.area_temp_points.append([cx, cy])
+            self.refresh_map()
+
+    def _finalize_shape_by_drag(self, event):
+        """ドラッグで作成した円/四角を確定"""
+        if not self.area_preview_shape:
+            return
+        shp = self.area_preview_shape
+        x0, y0 = shp["x0"], shp["y0"]
+        x1, y1 = shp["x1"], shp["y1"]
+        if shp["shape"] == "create_rect":
+            x = min(x0, x1)
+            y = min(y0, y1)
+            w = abs(x1 - x0)
+            h = abs(y1 - y0)
+            if w < 3 or h < 3:
+                return
+            self._create_area_record(shape="rect", x=x, y=y, width=w, height=h)
+        elif shp["shape"] == "create_circle":
+            dx, dy = x1 - x0, y1 - y0
+            radius = (dx*dx + dy*dy) ** 0.5
+            if radius < 3:
+                return
+            self._create_area_record(shape="circle", x=x0, y=y0, radius=radius)
+        self.set_area_mode("idle")
+
+    def toggle_area_points(self):
+        self.area_show_points.set(not self.area_show_points.get())
+        txt = "制御点: ON" if self.area_show_points.get() else "制御点: OFF"
+        self.btn_area_point_toggle.configure(text=txt)
+        self.refresh_map()
+
+    def finalize_polygon_area(self):
+        if self.area_mode != "create_polygon":
+            messagebox.showinfo("多角形確定", "多角形作成モードで実行してください。")
+            return
+        if len(self.area_temp_points) < 3:
+            messagebox.showwarning("多角形確定", "制御点を3点以上指定してください。")
+            return
+        self._create_area_record(shape="polygon")
+        self.area_temp_points = []
+        self.set_area_mode("edit_polygon")
+
+    def start_edit_polygon_mode(self):
+        if not self.current_area_uid:
+            messagebox.showwarning("制御点編集", "先にエリアを選択してください。")
+            return
+        if not self.area_edit_enabled.get():
+            messagebox.showinfo("制御点編集", "エリア編集をONにしてください。")
+            return
+        area = next((a for a in self.area_list if a.get("uid") == self.current_area_uid), None)
+        if not area or area.get("shape", "polygon") != "polygon":
+            messagebox.showinfo("制御点編集", "多角形エリアのみ制御点編集できます。")
+            return
+        self.set_area_mode("edit_polygon")
+
+    def toggle_area_edit_enabled(self):
+        self.area_edit_enabled.set(not self.area_edit_enabled.get())
+        if not self.area_edit_enabled.get():
+            self.set_area_mode("idle")
+            self.btn_area_edit_toggle.configure(text="編集: OFF", fg_color="#7f8c8d")
+        else:
+            self.btn_area_edit_toggle.configure(text="編集: ON", fg_color="#2ecc71")
+        self.refresh_map()
+
+    def move_current_area(self, dx, dy):
+        area = next((a for a in self.area_list if a.get("uid") == self.current_area_uid), None)
+        if not area:
+            return
+        shape = area.get("shape", "polygon")
+        if shape == "circle":
+            area["x"] = float(area.get("x", 0.0)) + dx
+            area["y"] = float(area.get("y", 0.0)) + dy
+        elif shape == "rect":
+            area["x"] = float(area.get("x", 0.0)) + dx
+            area["y"] = float(area.get("y", 0.0)) + dy
+        else:
+            pts = area.get("points") or []
+            area["points"] = [[p[0] + dx, p[1] + dy] for p in pts]
+        self.mark_dirty()
+
+    def rotate_current_area(self, delta_deg):
+        """選択中エリアを中心回りに回転（矩形は多角形に変換して扱う）"""
+        import math
+        if not self.current_area_uid:
+            messagebox.showwarning("回転", "先にエリアを選択してください。")
+            return
+        if not self.area_edit_enabled.get():
+            messagebox.showinfo("回転", "エリア編集をONにしてください。")
+            return
+        area = next((a for a in self.area_list if a.get("uid") == self.current_area_uid), None)
+        if not area:
+            return
+        shape = area.get("shape", "polygon")
+        if shape == "circle":
+            messagebox.showinfo("回転", "円エリアの回転は不要です。")
+            return
+        # 回転対象の頂点列を取得
+        if shape == "rect":
+            x = float(area.get("x", 0.0))
+            y = float(area.get("y", 0.0))
+            w = float(area.get("width", 0.0))
+            h = float(area.get("height", 0.0))
+            pts = [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]
+        else:
+            pts = area.get("points") or []
+            if len(pts) < 3:
+                messagebox.showwarning("回転", "回転できる頂点が足りません。")
+                return
+        # 中心（重心）を求める
+        cx = sum(p[0] for p in pts) / len(pts)
+        cy = sum(p[1] for p in pts) / len(pts)
+        rad = math.radians(delta_deg)
+        cos_a, sin_a = math.cos(rad), math.sin(rad)
+        new_pts = []
+        for px, py in pts:
+            dx, dy = px - cx, py - cy
+            rx = cx + dx * cos_a - dy * sin_a
+            ry = cy + dx * sin_a + dy * cos_a
+            new_pts.append([rx, ry])
+        area["shape"] = "polygon"
+        area["points"] = new_pts
+        area["x"] = cx
+        area["y"] = cy
+        area["width"] = 0.0
+        area["height"] = 0.0
+        self.mark_dirty()
+        self.refresh_map()
+
+    def _create_area_record(self, shape="polygon", x=0.0, y=0.0, radius=0.0, width=0.0, height=0.0):
+        """現在のUI内容と形状情報からエリアレコードを新規作成"""
+        # attribute などはピンと同じUIから取得
+        attribute = (self.cmb_attribute.get() or "").strip()
+        rev_cat_map = {v: k for k, v in self.cat_mapping.items()}
+        attribute_id = rev_cat_map.get(attribute, "")
+        name_jp = self.ent_name_jp.get().strip()
+        name_en = self.ent_name_en.get().strip()
+        memo_jp = self.txt_memo_jp.get("1.0", "end-1c").replace("\n", "<br>")
+        memo_en = self.txt_memo_en.get("1.0", "end-1c").replace("\n", "<br>")
+        importance = self.cmb_importance.get().strip()
+        # 簡易版として categories 等はまだ使わず、将来拡張に備えてフィールドだけ用意
+        area = {
+            "uid": f"AREA_{len(self.area_list)+1}",
+            "shape": shape,
+            "x": float(x),
+            "y": float(y),
+            "radius": float(radius),
+            "width": float(width),
+            "height": float(height),
+            "points": [p[:] for p in self.area_temp_points] if shape == "polygon" else [],
+            "attribute": attribute_id,
+            "name_jp": name_jp,
+            "name_en": name_en,
+            "importance": importance,
+            "memo_jp": memo_jp,
+            "memo_en": memo_en,
+            "categories": [],
+            "updated_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        }
+        self.area_list.append(area)
+        self.current_area_uid = area["uid"]
+        self.mark_dirty()
+
+    def hit_test_area(self, cx, cy):
+        """クリック位置からエリア（shape問わず）を検索"""
+        # 円・四角はバウンディングボックスで当たり判定
+        for area in reversed(self.area_list):
+            shape = area.get("shape", "polygon")
+            if shape == "circle":
+                ax, ay = float(area.get("x", 0.0)), float(area.get("y", 0.0))
+                r = float(area.get("radius", 0.0))
+                if r <= 0:
+                    continue
+                dx, dy = cx - ax, cy - ay
+                if dx*dx + dy*dy <= r*r:
+                    return area
+            elif shape == "rect":
+                x = float(area.get("x", 0.0))
+                y = float(area.get("y", 0.0))
+                w = float(area.get("width", 0.0))
+                h = float(area.get("height", 0.0))
+                if x <= cx <= x + w and y <= cy <= y + h:
+                    return area
+        # ポリゴンはポイントインポリゴン
+        for area in reversed(self.area_list):
+            shape = area.get("shape", "polygon")
+            if shape != "polygon":
+                continue
+            pts = area.get("points") or []
+            if len(pts) < 3:
+                continue
+            inside = False
+            j = len(pts) - 1
+            for i in range(len(pts)):
+                xi, yi = pts[i]
+                xj, yj = pts[j]
+                intersect = ((yi > cy) != (yj > cy)) and (cx < (xj - xi) * (cy - yi) / (yj - yi + 1e-9) + xi)
+                if intersect:
+                    inside = not inside
+                j = i
+            if inside:
+                return area
+        return None
+
+    def load_area_to_ui(self, area):
+        """エリア選択時にUIへ反映"""
+        self.clear_ui()
+        # attribute
+        attr_key = area.get("attribute") or ""
+        attr_display = self.cat_mapping.get(attr_key, "")
+        if attr_display:
+            self.cmb_attribute.set(attr_display)
+            self.on_attribute_changed()
+        # 表示名・メモ
+        if area.get("name_jp"):
+            self.ent_name_jp.insert(0, area.get("name_jp", ""))
+        if area.get("name_en"):
+            self.ent_name_en.insert(0, area.get("name_en", ""))
+        if area.get("memo_jp"):
+            self.txt_memo_jp.insert("1.0", area.get("memo_jp", "").replace("<br>", "\n"))
+        if area.get("memo_en"):
+            self.txt_memo_en.insert("1.0", area.get("memo_en", "").replace("<br>", "\n"))
+        if area.get("importance"):
+            self.cmb_importance.set(area.get("importance"))
+        self.lbl_coords.configure(text=f"エリア: {area.get('uid')}")
+
+    def save_current_area(self):
+        """現在選択中のエリアにUI内容を保存"""
+        if not self.current_area_uid:
+            messagebox.showwarning("エリア保存", "エリアが選択されていません。")
+            return
+        area = next((a for a in self.area_list if a.get("uid") == self.current_area_uid), None)
+        if not area:
+            messagebox.showwarning("エリア保存", "エリアが見つかりません。")
+            return
+        attribute = (self.cmb_attribute.get() or "").strip()
+        rev_cat_map = {v: k for k, v in self.cat_mapping.items()}
+        attribute_id = rev_cat_map.get(attribute, "")
+        area["attribute"] = attribute_id
+        area["name_jp"] = self.ent_name_jp.get().strip()
+        area["name_en"] = self.ent_name_en.get().strip()
+        area["memo_jp"] = self.txt_memo_jp.get("1.0", "end-1c").replace("\n", "<br>")
+        area["memo_en"] = self.txt_memo_en.get("1.0", "end-1c").replace("\n", "<br>")
+        area["importance"] = self.cmb_importance.get().strip()
+        area["updated_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        self.mark_dirty()
+        self.refresh_map()
+        messagebox.showinfo("エリア保存", "エリア情報を更新しました。（未保存）")
+
+    def delete_current_area(self):
+        """現在選択中のエリアを削除"""
+        if not self.current_area_uid:
+            messagebox.showwarning("エリア削除", "エリアが選択されていません。")
+            return
+        if not messagebox.askyesno("エリア削除", "選択中のエリアを削除しますか？"):
+            return
+        self.area_list = [a for a in self.area_list if a.get("uid") != self.current_area_uid]
+        self.current_area_uid = None
+        self.mark_dirty()
+        self.clear_ui()
+        self.refresh_map()
 
     # --- 保存・読込 ---
     def save_data(self):
@@ -1843,12 +2439,12 @@ class MapEditor(ctk.CTkToplevel):
             for d in self.data_list:
                 if d['uid'] == self.current_uid: d.update({k:v for k,v in dr.items() if v is not None})
         else: self.data_list.append(dr)
-        self.write_files(); self.current_uid = self.temp_coords = None; self.refresh_map(); self.clear_ui()
+        self.mark_dirty(); self.current_uid = self.temp_coords = None; self.refresh_map(); self.clear_ui()
 
     def delete_data(self):
         if not self.current_uid or not messagebox.askyesno("確認", "削除しますか？"): return
         self.data_list = [d for d in self.data_list if d['uid'] != self.current_uid]
-        self.write_files(); self.current_uid = None; self.clear_ui(); self.refresh_map()
+        self.mark_dirty(); self.current_uid = None; self.clear_ui(); self.refresh_map()
 
     def write_files(self):
         p = os.path.join(self.game_path, self.config["save_file"])
@@ -1881,6 +2477,54 @@ class MapEditor(ctk.CTkToplevel):
                     if 'updated_at' not in row: d['updated_at'] = ""
                     rows.append(d)
                 self.data_list = rows
+
+    # --- エリアデータの保存・読込（areas.json） ---
+    def load_areas(self):
+        """areas.json からエリア情報を読み込む"""
+        self.area_list = []
+        if not os.path.exists(self.areas_path):
+            return
+        try:
+            with open(self.areas_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            areas = data.get("areas", [])
+            norm_areas = []
+            for a in areas:
+                if not isinstance(a, dict):
+                    continue
+                # 座標関係は float に正規化
+                for key in ("x", "y", "radius", "width", "height"):
+                    if key in a and a[key] is not None:
+                        try:
+                            a[key] = float(a[key])
+                        except Exception:
+                            pass
+                pts = a.get("points") or []
+                norm_pts = []
+                for pt in pts:
+                    if isinstance(pt, (list, tuple)) and len(pt) == 2:
+                        try:
+                            norm_pts.append([float(pt[0]), float(pt[1])])
+                        except Exception:
+                            continue
+                a["points"] = norm_pts
+                if "uid" not in a and norm_pts:
+                    a["uid"] = f"AREA_{len(norm_areas)+1}"
+                norm_areas.append(a)
+            self.area_list = norm_areas
+        except Exception:
+            # 壊れていてもエディタ自体は動くようにする
+            self.area_list = []
+
+    def save_areas(self):
+        """エリア情報を areas.json に保存する"""
+        data = {"areas": self.area_list or []}
+        try:
+            with open(self.areas_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+        except Exception:
+            # 保存エラーはメッセージだけに留める
+            messagebox.showerror("エリア保存エラー", "areas.json の保存に失敗しました。")
 
     def load_to_ui(self, d):
         self.clear_ui()
