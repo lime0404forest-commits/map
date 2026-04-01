@@ -20,14 +20,33 @@
     var filterMode = mapDiv.getAttribute('data-filter');
     var customCsv = mapDiv.getAttribute('data-csv');
     var customPins = mapDiv.getAttribute('data-pins');  // pins_export.json 用
+    // テスト用: 未指定時は「その他」等も表示（本番 embed では付けない想定）
+    var showAllPins = mapDiv.getAttribute('data-show-all-pins') === 'true';
 
-    // データソース: data-csv / data-pins がなければ同階層のファイルを相対パスで参照
-    var baseUrl = '';
-    var scriptSrc = document.currentScript && document.currentScript.src;
-    if (scriptSrc) {
-        var idx = scriptSrc.lastIndexOf('/');
-        if (idx >= 0) baseUrl = scriptSrc.substring(0, idx + 1);
+    // map.js の配置ディレクトリを baseUrl にする（currentScript が null の環境向けフォールバック付き）
+    function resolveMapJsBaseUrl() {
+        var s = document.currentScript && document.currentScript.src;
+        if (s) {
+            var idx = s.lastIndexOf('/');
+            if (idx >= 0) return s.substring(0, idx + 1);
+        }
+        var scripts = document.getElementsByTagName('script');
+        for (var i = scripts.length - 1; i >= 0; i--) {
+            var src = scripts[i].src || '';
+            if (!src || src.indexOf('leaflet') >= 0) continue;
+            if (src.indexOf('map.js') >= 0) {
+                var j = src.lastIndexOf('/');
+                if (j >= 0) return src.substring(0, j + 1);
+            }
+        }
+        // embed.html と csv を同じフォルダに置いた場合の最終手段
+        var loc = window.location.href.split('#')[0];
+        var k = loc.lastIndexOf('/');
+        if (k >= 0) return loc.substring(0, k + 1);
+        return '';
     }
+
+    var baseUrl = resolveMapJsBaseUrl();
 
     var csvUrl = customCsv || (baseUrl + 'master_data.csv');
     var pinsJsonUrl = customPins || (baseUrl + 'pins_export.json');
@@ -154,6 +173,10 @@
             if ((filterMode === 'blueprint' || filterMode === 'lem') && key === 'start') {
                 activeCategories.add(key);
             }
+        } else if (showAllPins) {
+            if (key === 'trash' && !isDebug) return;
+            if (key === 'war_bonds' || key === 'trade_item') return;
+            activeCategories.add(key);
         } else {
             var hiddenKeys = ['monolith', 'scanner', 'cave', 'other', 'point', 'trade_item', 'war_bonds'];
             if (!hiddenKeys.includes(key)) activeCategories.add(key);
@@ -714,7 +737,10 @@
                 return loadAreas();
             })
             .catch(function(e) {
-                console.error('map.js: Failed to load pins. Check CSV URL and CORS.', e);
+                console.error('map.js: Failed to load pins. csvUrl=', csvUrl, e);
             });
+    }
+    if (isDebug) {
+        console.log('map.js (none_test): baseUrl=', baseUrl, 'csvUrl=', csvUrl, 'pinsJsonUrl=', pinsJsonUrl, 'showAllPins=', showAllPins);
     }
 })();
