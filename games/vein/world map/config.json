@@ -1,0 +1,18 @@
+{
+    "orig_w": 5878,
+    "orig_h": 5886,
+    "map_file": "map.png",
+    "save_file": "master_data.csv",
+    "cat_mapping": {
+        "LOC_BASE": "拠点",
+        "LOC_ENEMY": "敵・ボス",
+        "LOC_RESOURCE": "資源・素材",
+        "LOC_TREASURE": "宝箱",
+        "LOC_MEMO": "メモ"
+    },
+    "category_list": [
+        "設計図",
+        "LEM",
+        "その他"
+    ]
+}

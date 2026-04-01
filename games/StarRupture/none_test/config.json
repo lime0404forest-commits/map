@@ -1,0 +1,260 @@
+{
+    "orig_w": 6253,
+    "orig_h": 7104,
+    "map_file": "map.png",
+    "save_file": "master_data.csv",
+    "object_types": {
+        "loot": {
+            "name_jp": "アイテムルート源",
+            "name_en": "Loot Source"
+        },
+        "landmark": {
+            "name_jp": "ランドマーク",
+            "name_en": "Landmark"
+        },
+        "colony": {
+            "name_jp": "群生地",
+            "name_en": "Colony"
+        },
+        "other": {
+            "name_jp": "その他",
+            "name_en": "Other"
+        }
+    },
+    "attr_mapping": {
+        "DEAD_BODY": {
+            "name_jp": "遺体",
+            "name_en": "Dead Body",
+            "type": "loot",
+            "attributes": {
+                "場所": {
+                    "type": "select",
+                    "options": ["地上", "洞窟内"]
+                }
+            }
+        },
+        "STORAGE_BOX": {
+            "name_jp": "ストレージボックス",
+            "name_en": "Storage Box",
+            "type": "loot",
+            "attributes": {}
+        },
+        "DRONE_WRECK": {
+            "name_jp": "ドローンの残骸",
+            "name_en": "Drone Wreck",
+            "type": "loot",
+            "attributes": {}
+        },
+        "RUBBLE_PILE": {
+            "name_jp": "がれきの山",
+            "name_en": "Rubble Pile",
+            "type": "loot",
+            "attributes": {}
+        },
+        "PERSONAL_STORAGE": {
+            "name_jp": "パーソナルストレージ",
+            "name_en": "Personal Storage",
+            "type": "loot",
+            "attributes": {}
+        },
+        "CONSOLE": {
+            "name_jp": "コンソール",
+            "name_en": "Console",
+            "type": "loot",
+            "attributes": {}
+        },
+        "UNDERGROUND_CAVE": {
+            "name_jp": "地下洞窟",
+            "name_en": "Underground Cave",
+            "type": "landmark",
+            "attributes": {}
+        },
+        "MONOLITH": {
+            "name_jp": "モノリス",
+            "name_en": "Monolith",
+            "type": "landmark",
+            "attributes": {}
+        },
+        "GEO_SCANNER": {
+            "name_jp": "ジオスキャナー",
+            "name_en": "Geo Scanner",
+            "type": "landmark",
+            "attributes": {}
+        },
+        "SPACESHIP": {
+            "name_jp": "宇宙船",
+            "name_en": "Spaceship",
+            "type": "landmark",
+            "attributes": {}
+        },
+        "COLONY": {
+            "name_jp": "群生地",
+            "name_en": "Colony",
+            "type": "colony",
+            "attributes": {}
+        },
+        "ITEM_PRINTER": {
+            "name_jp": "アイテムプリンター",
+            "name_en": "Item Printer",
+            "type": "other",
+            "attributes": {}
+        },
+        "SEARCH": {
+            "name_jp": "サーチ",
+            "name_en": "Search",
+            "type": "other",
+            "attributes": {}
+        },
+        "KEYCARD": {
+            "name_jp": "キーカード",
+            "name_en": "Keycard",
+            "type": "other",
+            "attributes": {}
+        }
+    },
+    "cat_mapping": {
+        "DEAD_BODY": "遺体",
+        "STORAGE_BOX": "ストレージボックス",
+        "DRONE_WRECK": "ドローンの残骸",
+        "RUBBLE_PILE": "がれきの山",
+        "PERSONAL_STORAGE": "パーソナルストレージ",
+        "CONSOLE": "コンソール",
+        "UNDERGROUND_CAVE": "地下洞窟",
+        "MONOLITH": "モノリス",
+        "GEO_SCANNER": "ジオスキャナー",
+        "SPACESHIP": "宇宙船",
+        "COLONY": "群生地",
+        "ITEM_PRINTER": "アイテムプリンター",
+        "SEARCH": "サーチ",
+        "KEYCARD": "キーカード"
+    },
+    "category_master": {
+        "設計図": {
+            "id": "blueprint",
+            "name_jp": "設計図",
+            "name_en": "Blueprint",
+            "type": "loot",
+            "input_type": "item_select",
+            "show_qty": true
+        },
+        "LEM": {
+            "id": "lem",
+            "name_jp": "LEM",
+            "name_en": "LEM",
+            "type": "loot",
+            "input_type": "item_select",
+            "show_qty": true,
+            "attributes": {
+                "ランク": {"type": "select", "options": ["下級", "中級", "接頭語なし", "上級"]}
+            }
+        },
+        "戦時債権": {
+            "id": "war_bonds",
+            "name_jp": "戦時債権",
+            "name_en": "War Bonds",
+            "type": "loot",
+            "input_type": "qty_only",
+            "show_qty": true
+        },
+        "交換アイテム": {
+            "id": "trade_item",
+            "name_jp": "交換アイテム",
+            "name_en": "Trade Item",
+            "type": "loot",
+            "input_type": "item_select",
+            "show_qty": false
+        },
+        "キーカード": {
+            "id": "keycard",
+            "name_jp": "キーカード",
+            "name_en": "Keycard",
+            "type": "loot",
+            "input_type": "item_select",
+            "show_qty": false
+        },
+        "植物": {
+            "id": "plant",
+            "name_jp": "植物",
+            "name_en": "Plant",
+            "type": "colony",
+            "input_type": "item_select",
+            "show_qty": false
+        }
+    },
+    "category_list": ["設計図", "LEM", "戦時債権", "交換アイテム", "キーカード", "植物"],
+    "item_master": {
+        "設計図": {
+            "Rotor": {"name_jp": "ローター", "name_en": "Rotor"},
+            "Tube": {"name_jp": "チューブ", "name_en": "Tube"},
+            "Stator": {"name_jp": "ステーター", "name_en": "Stator"},
+            "Stabilizer": {"name_jp": "スタビライザー", "name_en": "Stabilizer"},
+            "Synthetic Silicon": {"name_jp": "合成シリコン", "name_en": "Synthetic Silicon"},
+            "Hardening Agent": {"name_jp": "硬化剤", "name_en": "Hardening Agent"},
+            "Valve": {"name_jp": "バルブ", "name_en": "Valve"},
+            "Electronics": {"name_jp": "電子部品", "name_en": "Electronics"},
+            "Chemicals": {"name_jp": "化学物質", "name_en": "Chemicals"},
+            "Turbine": {"name_jp": "タービン", "name_en": "Turbine"},
+            "Electromagnetic Coil": {"name_jp": "電磁コイル", "name_en": "Electromagnetic Coil"},
+            "Pressure Tank": {"name_jp": "加圧タンク", "name_en": "Pressure Tank"},
+            "Condenser": {"name_jp": "蓄電器", "name_en": "Condenser"},
+            "Laser Emitter": {"name_jp": "レーザーエミッター", "name_en": "Laser Emitter"},
+            "Scanner": {"name_jp": "スキャナー", "name_en": "Scanner"}
+        },
+        "LEM": {
+            "Swapper LEM": {"name_jp": "スワッパーLEM", "name_en": "Swapper LEM"},
+            "Lifegiver LEM": {"name_jp": "ライフギバーLEM", "name_en": "Lifegiver LEM"},
+            "Air Jumper LEM": {"name_jp": "エアジャンパーLEM", "name_en": "Air Jumper LEM"},
+            "Deatheater LEM": {"name_jp": "デスイーターLEM", "name_en": "Deatheater LEM"},
+            "Infiltrator LEM": {"name_jp": "インフィルトレーターLEM", "name_en": "Infiltrator LEM"},
+            "Immuner LEM": {"name_jp": "イミューナーLEM", "name_en": "Immuner LEM"},
+            "Miner LEM": {"name_jp": "マイナーLEM", "name_en": "Miner LEM"},
+            "Runner LEM": {"name_jp": "ランナーLEM", "name_en": "Runner LEM"},
+            "Dodger LEM": {"name_jp": "ドッジャーLEM", "name_en": "Dodger LEM"},
+            "Shieldgiver LEM": {"name_jp": "シールドギバーLEM", "name_en": "Shieldgiver LEM"},
+            "Fallguy LEM": {"name_jp": "フォールガイLEM", "name_en": "Fallguy LEM"},
+            "Dietician LEM": {"name_jp": "ダイエティシャンLEM", "name_en": "Dietician LEM"},
+            "Resister LEM": {"name_jp": "レジスターLEM", "name_en": "Resister LEM"},
+            "Slider LEM": {"name_jp": "スライダーLEM", "name_en": "Slider LEM"},
+            "Resurrector LEM": {"name_jp": "レズレクターLEM", "name_en": "Resurrector LEM"},
+            "Scalper LEM": {"name_jp": "スカルパーLEM", "name_en": "Scalper LEM"},
+            "Reloader LEM": {"name_jp": "リローダーLEM", "name_en": "Reloader LEM"},
+            "Irrigator LEM": {"name_jp": "イリゲーターLEM", "name_en": "Irrigator LEM"},
+            "Shieldfixer LEM": {"name_jp": "シールドフィクサーLEM", "name_en": "Shieldfixer LEM"},
+            "Detoxifier LEM": {"name_jp": "デトキシファイアーLEM", "name_en": "Detoxifier LEM"},
+            "Reprinter LEM": {"name_jp": "レプリンターLEM", "name_en": "Reprinter LEM"},
+            "Fixer LEM": {"name_jp": "フィクサーLEM", "name_en": "Fixer LEM"},
+            "Companion LEM": {"name_jp": "コンパニオンLEM", "name_en": "Companion LEM"},
+            "Aimer LEM": {"name_jp": "エイマーLEM", "name_en": "Aimer LEM"},
+            "Endurancegiver LEM": {"name_jp": "エンデュランスギバーLEM", "name_en": "Endurancegiver LEM"},
+            "Glutton LEM": {"name_jp": "グルトンLEM", "name_en": "Glutton LEM"}
+        },
+        "戦時債権": {
+            "War Bonds": {"name_jp": "戦時債権", "name_en": "War Bonds"}
+        },
+        "交換アイテム": {
+            "Unknown Logic Board": {"name_jp": "不明なロジックボード", "name_en": "Unknown Logic Board", "attributes": {"ポイント": {"type": "fixed", "value": 200}}},
+            "Damaged Logic Board": {"name_jp": "損傷したロジックボード", "name_en": "Damaged Logic Board", "attributes": {"ポイント": {"type": "fixed", "value": 400}}},
+            "Damaged Energy Storage": {"name_jp": "損傷したエネルギーストレージ", "name_en": "Damaged Energy Storage", "attributes": {"ポイント": {"type": "fixed", "value": 2000}}},
+            "Damaged Personal Interface": {"name_jp": "損傷したパーソナルインターフェース", "name_en": "Damaged Personal Interface", "attributes": {"ポイント": {"type": "fixed", "value": 500}}},
+            "Damaged Local Scanner": {"name_jp": "損傷したローカルスキャナー", "name_en": "Damaged Local Scanner", "attributes": {"ポイント": {"type": "fixed", "value": 3500}}},
+            "Damaged Memory Module": {"name_jp": "損傷したメモリモジュール", "name_en": "Damaged Memory Module", "attributes": {"ポイント": {"type": "fixed", "value": 350}}},
+            "Unknown Casing": {"name_jp": "不明なケース", "name_en": "Unknown Casing", "attributes": {"ポイント": {"type": "fixed", "value": 1000}}},
+            "Unknown Module": {"name_jp": "不明なモジュール", "name_en": "Unknown Module", "attributes": {"ポイント": {"type": "fixed", "value": 2000}}},
+            "Unknown Vial": {"name_jp": "不明なバイアル", "name_en": "Unknown Vial", "attributes": {"ポイント": {"type": "fixed", "value": 350}}},
+            "Damaged Lab Dish": {"name_jp": "損傷したシャーレ", "name_en": "Damaged Lab Dish", "attributes": {"ポイント": {"type": "fixed", "value": 5000}}},
+            "Damaged Specimen Sample": {"name_jp": "損傷した標本サンプル", "name_en": "Damaged Specimen Sample", "attributes": {"ポイント": {"type": "fixed", "value": 4000}}},
+            "Damaged Memory Core": {"name_jp": "損傷したメモリーコア", "name_en": "Damaged Memory Core", "attributes": {"ポイント": {"type": "fixed", "value": 70000}}},
+            "Security Logger": {"name_jp": "セキュリティログ", "name_en": "Security Logger", "attributes": {"ポイント": {"type": "fixed", "value": 1500}}},
+            "Frame Memory Module": {"name_jp": "フレームメモリモジュール", "name_en": "Frame Memory Module", "attributes": {"ポイント": {"type": "fixed", "value": 7000}}}
+        },
+        "キーカード": {
+            "Redleaf Override Access Card": {"name_jp": "レッドリーフオーバーライドアクセスカード", "name_en": "Redleaf Override Access Card"},
+            "Dr. Ellis's Security Clearance Card": {"name_jp": "エリス博士のセキュリティクリアランスカード", "name_en": "Dr. Ellis's Security Clearance Card"},
+            "Dr. Diaz's Security Clearance Card": {"name_jp": "ディアズ博士のセキュリティクリアランスカード", "name_en": "Dr. Diaz's Security Clearance Card"},
+            "Eng. Perkins's Security Clearance Card": {"name_jp": "パーキンス技師のセキュリティクリアランスカード", "name_en": "Eng. Perkins's Security Clearance Card"}
+        },
+        "植物": {
+            "Prism Herb": {"name_jp": "プリズムハーブ", "name_en": "Prism Herb"}
+        }
+    }
+}
