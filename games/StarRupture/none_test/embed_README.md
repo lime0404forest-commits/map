@@ -1,34 +1,33 @@
-# none_test（テスト用）— ブログ埋め込み
+# none_test（テスト用）— 埋め込み・反映方法
 
-このフォルダは **本番 `None` とデータを分けて試す** ためのセットです。  
-`map.js` は **スクリプトURLのディレクトリを `baseUrl` として** `master_data.csv` / `pins_export.json` / `areas.json` を読みます。
+`map.js` は **スクリプトのURLのディレクトリを `baseUrl` として**、同じ階層の `master_data.csv` / `pins_export.json`（任意）/ `areas.json` を読みます。
 
-## 読み込む map.js のURL（共通）
+---
 
-`none_test` 完結用:
+## おすすめ: 即時反映（ファイルマネージャー・GitHub不要）
 
-`https://raw.githack.com/lime0404forest-commits/map/main/games/StarRupture/none_test/map.js?v=20260218_none_test`
+サーバーの **同一ディレクトリ** に次を置きます（名前はそのまま）。
 
-更新したら **`?v=` の日付やサフィックスを変えて** キャッシュを避けてください。
+| ファイル | 必須 |
+|----------|------|
+| `embed.html` | iframe 用ページにする場合 |
+| `map.js` | 必須 |
+| `master_data.csv` | ピンをCSVから読む場合（どちらか） |
+| `pins_export.json` | ピンをJSONから読む場合（どちらか） |
+| `areas.json` | エリア表示（無くても動く） |
 
-## カスタムHTMLブロック
+- **`embed.html` は `<script src="map.js">` で相対読み込み** になっています。  
+  アップロード後、ブラウザで  
+  `https://あなたのドメイン/…/embed.html`  
+  を開けば、**上書き保存した内容がそのまま反映**されます（CDNキャッシュなし）。
 
-- `blog_embed_snippet.html` — 全部用
-- `blueprint_embed_snippet.html` — 設計図用
-- `lem_embed_snippet.html` — LEM用  
+### iframe でブログに載せる例
 
-いずれも上記 **none_test の map.js** を参照するようになっています。
-
-## iframe で `embed.html` を載せる場合
-
-`raw.githubusercontent.com` のURLは **X-Frame-Options 等で iframe から弾かれる**ことが多いです。  
-次のように **[raw.githack.com](https://raw.githack.com/) のURL** を `src` に使ってください。
-
-**開発用（コミット直後に近い内容が見える・キャッシュ弱め）**
+`embed.html` を置いた **実際のURL** を `src` にします。
 
 ```html
 <iframe
-  src="https://raw.githack.com/lime0404forest-commits/map/main/games/StarRupture/none_test/embed.html"
+  src="https://YOUR-DOMAIN/path/to/embed.html"
   title="StarRupture マップ（テスト）"
   width="100%"
   height="640"
@@ -38,16 +37,28 @@
 ></iframe>
 ```
 
-**本番キャッシュ用（raw.githack の画面で表示される Production URL）**  
-サイトに貼る最終版は、必要に応じて [raw.githack.com](https://raw.githack.com/) で生成した **Production** の `embed.html` URL に差し替えてください。
+### カスタムHTMLブロックに直接貼る場合
 
-## 単体プレビュー
+`blog_embed_snippet_selfhost.html` を使い、コメントのとおり **`YOUR_BASE_URL` を自サーバーのディレクトリURL（末尾 `/`）** に置き換えてください。  
+`map.js` と同じ場所に `master_data.csv` / `areas.json` を置けば即反映です。
 
-- ローカル: `index.html`（同階層の `map.js` を相対読み込み）
-- 完全HTML: `embed.html`（上記 githack URL で開く）
+---
 
-## 反映手順
+## GitHub / raw.githack 経由（反映が遅れがち）
 
-1. このリポジトリの `games/StarRupture/none_test/` を **lime0404forest-commits/map** に push  
-2. 埋め込み側の `?v=` を更新  
-3. githack Production を使う場合は、初回や更新後にキャッシュが効くまで少し時間がかかることがあります
+push と CDN キャッシュの都合で遅延します。バックアップ・共有用として利用。
+
+- `blog_embed_snippet.html` などは **githack の `none_test/map.js`** を参照。
+- iframe 用の githack URL は `embed_README` 旧版や [raw.githack.com](https://raw.githack.com/) を参照。
+
+---
+
+## ローカル確認
+
+- `index.html` — 同階層の `map.js` を相対読み込み（開発用）
+
+---
+
+## タイル画像について
+
+`map.js` 内の `tileUrl` は外部CDNのままです。タイルも自サーバーにしたい場合は `map.js` の `tileUrl` を書き換えてからアップロードしてください。

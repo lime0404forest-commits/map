@@ -49,8 +49,8 @@
         <button id="fullscreen-btn">⛶ 全画面表示</button>
     </div>
 
-    <!-- none_test 完結: map.js から同階層の master_data.csv / areas.json を読む（script の baseUrl 依存） -->
-    <script src="https://raw.githack.com/lime0404forest-commits/map/main/games/StarRupture/none_test/map.js?v=20260218_none_test"></script>
+    <!-- 同一フォルダ配置用: ファイルマネージャーでこのHTMLと map.js を同じURL階層に置くと即反映（GitHub不要） -->
+    <script src="map.js"></script>
     <script>
         document.getElementById('fullscreen-btn').addEventListener('click', function() {
             var elem = document.getElementById('map-container');
