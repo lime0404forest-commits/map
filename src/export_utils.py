@@ -37,7 +37,7 @@ def resolve_pin_for_display(pin, config):
     1本のピンを、マスタから表示名を解決した「ブログ用」の辞書に変換する。
     pin: CSV 1行相当の辞書（uid, x, y, attribute, obj_attributes, categories, ...）
     config: config.json の内容
-    戻り値: id, coords, obj_id, obj_jp, obj_en, obj_props, contents[], importance, memo_jp, memo_en, updated_at
+    戻り値: id, coords, obj_id, obj_jp, obj_en, obj_props, contents[], importance, memo_jp, memo_en, updated_at, link_url_jp, link_url_en
     """
     attr_mapping = config.get("attr_mapping", {})
     category_master = config.get("category_master", {})
@@ -111,7 +111,9 @@ def resolve_pin_for_display(pin, config):
         "importance": pin.get("importance", ""),
         "memo_jp": pin.get("memo_jp", ""),
         "memo_en": pin.get("memo_en", ""),
-        "updated_at": pin.get("updated_at", "")
+        "updated_at": pin.get("updated_at", ""),
+        "link_url_jp": (pin.get("link_url_jp") or "").strip(),
+        "link_url_en": (pin.get("link_url_en") or "").strip(),
     }
 
 

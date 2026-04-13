@@ -1,0 +1,11 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- map.js ? PIN_SVG_LAYERS ???????????????? -->
+  <g id="pin-frame" fill="white">
+    <circle cx="24" cy="24" r="17"/>
+    <path d="M24 47L29.1962 38.75H18.8038L24 47Z"/>
+  </g>
+  <g id="pin-inner-bg">
+    <circle cx="24" cy="24" r="15" fill="currentColor"/>
+  </g>
+  <g id="pin-symbol-overlay"></g>
+</svg>

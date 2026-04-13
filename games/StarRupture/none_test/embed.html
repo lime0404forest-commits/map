@@ -24,12 +24,13 @@
             filter: drop-shadow(0 0 2px rgba(0,0,0,0.8));
             cursor: pointer;
         }
-        .zoom-level-0 .emoji-icon div, .zoom-level-1 .emoji-icon div, .zoom-level-2 .emoji-icon div { font-size: 16px !important; }
-        .zoom-level-3 .emoji-icon div { font-size: 24px !important; }
-        .zoom-level-4 .emoji-icon div, .zoom-level-5 .emoji-icon div {
-            font-size: 18px !important; opacity: 0.8;
-        }
-        .zoom-level-4 .emoji-icon div:hover, .zoom-level-5 .emoji-icon div:hover {
+        #game-map.zoom-level-0 .emoji-icon div { font-size: 10px !important; }
+        #game-map.zoom-level-1 .emoji-icon div { font-size: 11px !important; }
+        #game-map.zoom-level-2 .emoji-icon div { font-size: 13px !important; }
+        #game-map.zoom-level-3 .emoji-icon div { font-size: 17px !important; }
+        #game-map.zoom-level-4 .emoji-icon div { font-size: 21px !important; opacity: 0.8; }
+        #game-map.zoom-level-5 .emoji-icon div { font-size: 24px !important; opacity: 0.8; }
+        #game-map.zoom-level-4 .emoji-icon div:hover, #game-map.zoom-level-5 .emoji-icon div:hover {
             transform: scale(1.0); z-index: 10000 !important; opacity: 1; filter: drop-shadow(0 0 8px #fff);
         }
         .item-tooltip {
@@ -39,6 +40,41 @@
         }
         .leaflet-tooltip-right:before { border-right-color: rgba(0, 0, 0, 0.85); }
         .debug-marker div { opacity: 0.5; font-size: 12px !important; }
+        .demo-svg-icon { background: transparent !important; border: none !important; }
+        .demo-svg-inner { filter: drop-shadow(0 0 2px rgba(0,0,0,0.85)); }
+        /* デモピン: 枠・背景SVGは Leaflet の iconSize いっぱい（以前の 28〜40px 固定が枠を小さく見せていた） */
+        .demo-svg-icon .demo-svg-inner svg { display: block; width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; }
+        /* デモピン: #game-map の zoom-level-*（map.js が zoomend で付与）に合わせて全体スケール */
+        .map-pin-leaflet-shell { background: transparent !important; border: none !important; }
+        .demo-svg-icon.demo-pin-zoom-adapt {
+            transform-origin: 50% 50%;
+            transition: transform 0.12s ease-out;
+        }
+        #game-map.zoom-level-0 .demo-svg-icon.demo-pin-zoom-adapt { transform: scale(0.22); }
+        #game-map.zoom-level-1 .demo-svg-icon.demo-pin-zoom-adapt { transform: scale(0.28); }
+        #game-map.zoom-level-2 .demo-svg-icon.demo-pin-zoom-adapt { transform: scale(0.38); }
+        #game-map.zoom-level-3 .demo-svg-icon.demo-pin-zoom-adapt { transform: scale(0.54); }
+        #game-map.zoom-level-4 .demo-svg-icon.demo-pin-zoom-adapt { transform: scale(0.72); }
+        #game-map.zoom-level-5 .demo-svg-icon.demo-pin-zoom-adapt { transform: scale(0.88); }
+        /* pins_export.json の SVG 複合マーカー（map-pin-svg-composite）も同じズームスケール */
+        .map-pin-svg-composite { background: transparent !important; border: none !important; }
+        .map-pin-svg-composite.demo-pin-zoom-adapt {
+            transform-origin: 50% 100%;
+            transition: transform 0.12s ease-out;
+        }
+        #game-map.zoom-level-0 .map-pin-svg-composite.demo-pin-zoom-adapt { transform: scale(0.22); }
+        #game-map.zoom-level-1 .map-pin-svg-composite.demo-pin-zoom-adapt { transform: scale(0.28); }
+        #game-map.zoom-level-2 .map-pin-svg-composite.demo-pin-zoom-adapt { transform: scale(0.38); }
+        #game-map.zoom-level-3 .map-pin-svg-composite.demo-pin-zoom-adapt { transform: scale(0.54); }
+        #game-map.zoom-level-4 .map-pin-svg-composite.demo-pin-zoom-adapt { transform: scale(0.72); }
+        #game-map.zoom-level-5 .map-pin-svg-composite.demo-pin-zoom-adapt { transform: scale(0.88); }
+        /* アイコンは 24×24（親の scale で一緒に縮尺連動） */
+        .demo-pin-composite { overflow: visible; }
+        .demo-pin-icon-img {
+            width: 24px !important; height: 24px !important; max-width: 24px !important; max-height: 24px !important;
+            object-fit: contain !important; box-sizing: border-box !important;
+            filter: drop-shadow(0 0 1px rgba(0,0,0,0.6));
+        }
         :fullscreen #game-map { height: 100vh !important; width: 100vw !important; }
         :-webkit-full-screen #game-map { height: 100vh !important; width: 100vw !important; }
     </style>
@@ -46,7 +82,17 @@
 <body>
     <div id="map-container">
         <!-- data-show-all-pins: デフォルトでは「その他」等が非表示のため、テストでは全カテゴリ表示 -->
-        <div id="game-map" data-zoom="2" data-show-all-pins="true" style="width: 100%; height: 100%;"></div>
+        <!-- data-demo-svg-icon: 同フォルダの SVG を地図上に試し表示（data-demo-svg-href でファイル名変更可） -->
+        <!--
+          アイコン取得: map.js と frame1.svg が同じURLフォルダならそのまま。
+          map.js だけ別ドメイン（例: raw/githack）のときは、CSVと同じ場所の絶対URLを指定:
+          data-demo-svg-base-url="https://あなたのブログ/.../none_test/"
+          または data-demo-svg-icon-url="https://.../frame1.svg"
+        -->
+        <div id="game-map" data-zoom="2" data-show-all-pins="true" data-demo-svg-icon="true"
+             data-demo-pin-marker-size="56"
+             data-demo-svg-color="#e53935" data-demo-svg-icon-href="frame1.svg" data-demo-svg-icon-color="#1a1a1a"
+             style="width: 100%; height: 100%;"></div>
         <button id="fullscreen-btn">⛶ 全画面表示</button>
     </div>
 

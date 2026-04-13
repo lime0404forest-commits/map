@@ -1,3 +1,144 @@
 {
-  "areas": []
+  "areas": [
+    {
+      "uid": "AREA_1",
+      "shape": "circle",
+      "x": 3827.554286295963,
+      "y": 3614.2474200830266,
+      "radius": 230.7175817995185,
+      "width": 0.0,
+      "height": 0.0,
+      "points": [],
+      "attribute": "COLONY",
+      "name_jp": "プリズムハーブ",
+      "name_en": "Prism Herb",
+      "importance": "(なし)",
+      "memo_jp": "",
+      "memo_en": "",
+      "categories": [],
+      "updated_at": "2026-04-01T15:04:18",
+      "fill_color_override": "#ffbfbf"
+    },
+    {
+      "uid": "AREA_2",
+      "shape": "polygon",
+      "x": 3100.1581592307343,
+      "y": 3391.8902140974133,
+      "radius": 0.0,
+      "width": 0.0,
+      "height": 0.0,
+      "points": [
+        [
+          3170.6668068404783,
+          3527.0486245584984
+        ],
+        [
+          3116.926691470301,
+          3418.1541802557704
+        ],
+        [
+          3064.600789662497,
+          3515.7349160595145
+        ],
+        [
+          2955.706345359768,
+          3398.3551903825473
+        ],
+        [
+          2985.4048301696034,
+          3273.904396893715
+        ],
+        [
+          3121.1693321574207,
+          3249.8627663333723
+        ],
+        [
+          3286.6323189550726,
+          3360.171424198474
+        ]
+      ],
+      "attribute": "",
+      "name_jp": "",
+      "name_en": "",
+      "importance": "(なし)",
+      "memo_jp": "",
+      "memo_en": "",
+      "categories": [],
+      "updated_at": "2026-04-01T15:09:56"
+    },
+    {
+      "uid": "AREA_3",
+      "shape": "polygon",
+      "x": 2573.868683519033,
+      "y": 3841.004035405326,
+      "radius": 0.0,
+      "width": 0.0,
+      "height": 0.0,
+      "points": [
+        [
+          2262.741699796952,
+          3604.830370489019
+        ],
+        [
+          2884.995667241114,
+          3604.8303704890186
+        ],
+        [
+          2884.995667241114,
+          4077.1777003216325
+        ],
+        [
+          2262.741699796952,
+          4077.177700321633
+        ]
+      ],
+      "attribute": "COLONY",
+      "name_jp": "プリズムハーブ群生地",
+      "name_en": "Prism HerbColony",
+      "importance": "(なし)",
+      "memo_jp": "",
+      "memo_en": "",
+      "categories": [],
+      "updated_at": "2026-04-01T15:48:19",
+      "fill_color_override": "#ffbfbf"
+    },
+    {
+      "uid": "AREA_4",
+      "shape": "circle",
+      "x": 3519.0282154417614,
+      "y": 2692.9142738729925,
+      "radius": 397.26231650902685,
+      "width": 0.0,
+      "height": 0.0,
+      "points": [],
+      "attribute": "COLONY",
+      "name_jp": "プリズムハーブ群生地群生地",
+      "name_en": "Prism HerbColonyColony",
+      "importance": "(なし)",
+      "memo_jp": "",
+      "memo_en": "",
+      "categories": [],
+      "updated_at": "2026-04-01T15:48:39",
+      "fill_color_override": "#ffbfbf"
+    },
+    {
+      "uid": "AREA_5",
+      "shape": "rect",
+      "x": 1646.244038455747,
+      "y": 2304.312944453031,
+      "radius": 0.0,
+      "width": 628.0592490462682,
+      "height": 342.967508011614,
+      "points": [],
+      "attribute": "COLONY",
+      "name_jp": "プリズムハーブ群生地群生地群生地",
+      "name_en": "Prism HerbColonyColonyColony",
+      "importance": "(なし)",
+      "memo_jp": "",
+      "memo_en": "",
+      "categories": [],
+      "fill_color_override": "#ffbfbf",
+      "updated_at": "2026-04-02T21:30:50"
+    }
+  ]
 }

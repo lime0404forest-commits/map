@@ -30,14 +30,90 @@
           2429.2053563111376
         ]
       ],
-      "attribute": "",
-      "name_jp": "",
-      "name_en": "",
+      "attribute": "POI",
+      "name_jp": "刑務所",
+      "name_en": "Clinton Correctional Facility",
       "importance": "(なし)",
+      "memo_jp": "刑務所。武器やツールを集めるのに最適。",
+      "memo_en": "Prison – Best for Weapons & Tools",
+      "categories": [],
+      "updated_at": "2026-04-05T18:09:38",
+      "show_center_icon": true,
+      "category": ""
+    },
+    {
+      "uid": "AREA_2",
+      "shape": "polygon",
+      "x": 0.0,
+      "y": 0.0,
+      "radius": 0.0,
+      "width": 0.0,
+      "height": 0.0,
+      "points": [
+        [
+          1355.9362673395192,
+          2651.761276960414
+        ],
+        [
+          1339.1416734918566,
+          2661.55812337155
+        ],
+        [
+          1405.0950093850793,
+          2760.888439493489
+        ],
+        [
+          1435.1046663360953,
+          2740.5247437052994
+        ],
+        [
+          1386.7263560602337,
+          2666.2232883292345
+        ]
+      ],
+      "attribute": "POI",
+      "name_jp": "",
+      "name_en": "Lyon Mtn. Quarantine Center",
+      "importance": "5",
+      "memo_jp": "",
+      "memo_en": "",
+      "categories": [
+        {
+          "cat_id": "BUILDING",
+          "category": "建物",
+          "cat_name_en": "Building",
+          "item_id": "HOSPITAL",
+          "item_name_jp": "病院",
+          "item_name_en": "Hospital",
+          "qty": "1",
+          "attributes": {}
+        }
+      ],
+      "fill_color_override": "",
+      "show_center_icon": true,
+      "updated_at": "2026-04-05T18:24:25",
+      "category": "建物"
+    },
+    {
+      "uid": "AREA_3",
+      "shape": "circle",
+      "x": 1371.4948764662356,
+      "y": 3160.9632812630703,
+      "radius": 68.86159508991781,
+      "width": 0.0,
+      "height": 0.0,
+      "points": [],
+      "attribute": "POI",
+      "name_jp": "A1廃棄物集積場",
+      "name_en": "Mass Dump Site A1",
+      "importance": "",
       "memo_jp": "",
       "memo_en": "",
       "categories": [],
-      "updated_at": "2026-03-31T17:47:36"
+      "fill_color_override": "",
+      "show_center_icon": true,
+      "updated_at": "2026-04-10T10:27:57",
+      "category": ""
     }
   ]
 }
