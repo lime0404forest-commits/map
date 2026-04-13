@@ -1,0 +1,171 @@
+{
+    "orig_w": 5878,
+    "orig_h": 5886,
+    "map_file": "map.png",
+    "save_file": "master_data.csv",
+    "cat_mapping": {
+        "LOOT_CONTAINER": "コンテナ",
+        "SHIPWRECK": "沈没船",
+        "UNDERWATER_CAVE": "水中洞窟",
+        "POI": "POI"
+    },
+    "category_list": [
+        "ウェポンケース",
+        "軍用クレート",
+        "捨てられた軍用クレート",
+        "沈没船",
+        "教会",
+        "病院"
+    ],
+    "attr_mapping": {
+        "LOOT_CONTAINER": {
+            "name_jp": "コンテナ",
+            "name_en": "Loot Container",
+            "type": "loot",
+            "attributes": {},
+            "use_category_slots": true
+        },
+        "SHIPWRECK": {
+            "name_jp": "沈没船",
+            "name_en": "Shipwreck",
+            "type": "loot",
+            "attributes": {},
+            "use_category_slots": true
+        },
+        "UNDERWATER_CAVE": {
+            "name_jp": "水中洞窟",
+            "name_en": "Underwater Cave",
+            "type": "loot",
+            "attributes": {},
+            "use_category_slots": true
+        },
+        "POI": {
+            "name_jp": "POI",
+            "name_en": "POI",
+            "type": "loot",
+            "attributes": {},
+            "use_category_slots": true
+        }
+    },
+    "category_master": {
+        "ウェポンケース": {
+            "id": "WEAPON_CASE",
+            "name_jp": "ウェポンケース",
+            "name_en": "Weapon Case",
+            "type": "loot",
+            "input_type": "qty_only",
+            "show_qty": true,
+            "object_ids": [
+                "LOOT_CONTAINER"
+            ]
+        },
+        "軍用クレート": {
+            "id": "MILITARY_CRRATE",
+            "name_jp": "軍用クレート",
+            "name_en": "Military Crate",
+            "type": "loot",
+            "input_type": "qty_only",
+            "show_qty": true,
+            "object_ids": [
+                "LOOT_CONTAINER"
+            ]
+        },
+        "捨てられた軍用クレート": {
+            "id": "DUNPED_MILITARY_CRATE",
+            "name_jp": "捨てられた軍用クレート",
+            "name_en": "Dunped Military Crate",
+            "type": "loot",
+            "input_type": "qty_only",
+            "show_qty": true,
+            "object_ids": [
+                "LOOT_CONTAINER"
+            ]
+        },
+        "沈没船": {
+            "id": "SHIPWRECK",
+            "name_jp": "沈没船",
+            "name_en": "Shipwreck",
+            "type": "loot",
+            "input_type": "qty_only",
+            "show_qty": true,
+            "object_ids": [
+                "SHIPWRECK"
+            ]
+        },
+        "教会": {
+            "id": "CHURCH",
+            "name_jp": "教会",
+            "name_en": "Church",
+            "type": "landmark",
+            "input_type": "qty_only",
+            "show_qty": false,
+            "object_ids": [
+                "POI"
+            ]
+        },
+        "病院": {
+            "id": "HOSPITAL",
+            "name_jp": "病院",
+            "name_en": "Hospital",
+            "type": "landmark",
+            "input_type": "qty_only",
+            "show_qty": false
+        }
+    },
+    "item_master": {},
+    "pin_marker_by_attribute": {
+        "LOOT_CONTAINER": {
+            "background_color": "#ff0000",
+            "icon_color": "#ffffff",
+            "svg_icon_id": "marker-crate3"
+        },
+        "SHIPWRECK": {
+            "display_style": "icon_only",
+            "icon_color": "#4848ff",
+            "background_color": "#004080",
+            "svg_icon_id": "marker-boatwreck"
+        },
+        "UNDERWATER_CAVE": {
+            "background_color": "#747474",
+            "icon_color": "#ffffff",
+            "svg_icon_id": "marker-cave"
+        }
+    },
+    "pin_marker_by_category_id": {
+        "CHURCH": {
+            "background_color": "#3498db",
+            "icon_color": "#ffffff",
+            "svg_icon_id": "marker-church"
+        }
+    },
+    "object_type_ui_order": [
+        "loot",
+        "landmark",
+        "colony",
+        "other"
+    ],
+    "object_type_display_names": {
+        "loot": "アイテムルート源",
+        "landmark": "ランドマーク",
+        "colony": "群生地",
+        "other": "その他"
+    },
+    "object_type_config": {
+        "loot": {
+            "default_pin_inner_color": "#2ecc71",
+            "default_use_category_slots": true
+        },
+        "landmark": {
+            "default_pin_inner_color": "#3498db",
+            "default_use_category_slots": false
+        },
+        "colony": {
+            "default_pin_inner_color": "#e67e22",
+            "default_use_category_slots": true
+        },
+        "other": {
+            "default_pin_inner_color": "#7f8c8d",
+            "default_use_category_slots": true
+        }
+    }
+}

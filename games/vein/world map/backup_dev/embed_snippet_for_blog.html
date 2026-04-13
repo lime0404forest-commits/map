@@ -1,0 +1,30 @@
+<!--
+  lost-in-games.com などの記事・固定ページに「地図だけ」埋め込む用。
+
+  【推奨】方法1: このリポジトリの embed_lost_in_games.html を
+            test-vein-map と同じサーバーにアップロードしたうえで iframe する。
+            （1ページに地図が1つだけのとき簡単で安全）
+
+  記事の HTML に次をそのまま貼り付け:
+-->
+
+<iframe
+    src="https://lost-in-games.com/test-vein-map/embed_lost_in_games.html"
+    title="VEIN World Map"
+    width="100%"
+    height="560"
+    style="border:0;display:block;max-width:100%;min-height:420px;"
+    loading="lazy"
+    referrerpolicy="no-referrer-when-downgrade"
+></iframe>
+
+<!--
+  方法2: pins_export を使わず CSV のみにする場合は、embed_lost_in_games.html 側で
+          data-pins 属性を削除する（master_data.csv が読まれる）。
+
+  方法3: アイコンを test-vein-map に置いていない場合は、
+          data-svg-icons-common-base を共通アセットの絶対URLに変更するか、
+          test-vein-map/assets/icons/ に SVG をアップロードする。
+
+  注意: エリア用ファイル名は areas.json（area.json ではない）。
+-->
