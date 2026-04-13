@@ -1,5 +1,5 @@
 (function() {
-    console.log("StarRupture map.js v20260410 (editor CSV: name_jp / category / categories JSON)");
+    console.log("StarRupture map.js v20260411 (hover: item + qty, omit ×1; matches editor preview)");
 
     var maxZoom = 5;
     var imgW = 6253;
@@ -179,6 +179,83 @@
         });
 
         return filteredLines.length > 0 ? filteredLines.join('<br>') : '';
+    }
+
+    function parseCategoriesObjects(jsonStr) {
+        if (!jsonStr || String(jsonStr).trim().charAt(0) !== '[') return [];
+        try {
+            var arr = JSON.parse(jsonStr);
+            return Array.isArray(arr) ? arr : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function categoryLabelFromEntry(c, isJa) {
+        if (!c) return '';
+        var v = isJa
+            ? (c.cat_jp || c.category || c.cat_en || c.cat_name_en || '')
+            : (c.cat_en || c.cat_name_en || c.category || c.cat_jp || '');
+        return String(v || '').trim();
+    }
+
+    function itemNameFromEntry(c, isJa) {
+        if (!c) return '';
+        var v = isJa
+            ? (c.item_name_jp || c.item_jp || c.item_name_en || c.item_en || '')
+            : (c.item_name_en || c.item_en || c.item_name_jp || c.item_jp || '');
+        return String(v || '').trim();
+    }
+
+    function itemQtyStringForEntry(c) {
+        if (!c) return '';
+        var hasItem = c.item_id && String(c.item_id).trim();
+        if (hasItem) {
+            var iq = c.item_qty;
+            if (iq != null && String(iq).trim() !== '') return String(iq).trim();
+            var q = c.qty;
+            if (q != null && String(q).trim() !== '') return String(q).trim();
+            return '1';
+        }
+        var q2 = c.qty;
+        return (q2 != null && String(q2).trim() !== '') ? String(q2).trim() : '';
+    }
+
+    function hoverQtySuffix(qtyStr) {
+        if (qtyStr == null || String(qtyStr).trim() === '') return '';
+        var s = String(qtyStr).trim();
+        var n = parseFloat(s, 10);
+        if (!isNaN(n) && n === 1) return '';
+        return ' ×' + s;
+    }
+
+    function lockpickReqSuffix(c, isJa) {
+        if (!c || !c.attributes || typeof c.attributes !== 'object') return '';
+        var a = c.attributes;
+        var has25 = !!(a.req_lockpick_lv25 === true || String(a.req_lockpick_lv25 || '').toLowerCase() === 'true' || String(a.req_lockpick_lv25 || '') === '1');
+        var has75 = !!(a.req_lockpick_lv75 === true || String(a.req_lockpick_lv75 || '').toLowerCase() === 'true' || String(a.req_lockpick_lv75 || '') === '1');
+        if (!has25 && !has75) return '';
+        var lv = [];
+        if (has25) lv.push('25');
+        if (has75) lv.push('75');
+        if (isJa) return '（要ロックピック Lv.' + lv.join('/Lv.') + '）';
+        return ' (Req. Lv.' + lv.join('/Lv.') + ')';
+    }
+
+    /** pin_site_preview.build_hover_tooltip_text と同じルール（カテゴリ接頭辞なし・数量1は非表示） */
+    function buildHoverTooltipTextFromContents(contents, isJa) {
+        var rows = [];
+        (contents || []).forEach(function(c) {
+            if (!c) return;
+            var itemName = itemNameFromEntry(c, isJa);
+            var cat = categoryLabelFromEntry(c, isJa);
+            var qty = itemQtyStringForEntry(c);
+            var req = lockpickReqSuffix(c, isJa);
+            var suffix = hoverQtySuffix(qty) + req;
+            if (itemName) rows.push(itemName + suffix);
+            else if (cat) rows.push(cat + suffix);
+        });
+        return rows.length ? rows.join('\n') : '';
     }
 
     if (!filterMode || filterMode === 'lem') {
@@ -376,6 +453,15 @@
 
                 var memo = data.memo || '';
 
+                var hoverFromContents = '';
+                if (isEditorCsv) {
+                    hoverFromContents = buildHoverTooltipTextFromContents(
+                        parseCategoriesObjects(cell(row, colIdx, 'categories')),
+                        isJa
+                    );
+                }
+                var rawText = hoverFromContents || (memo ? memo : name);
+
                 var latLng = map.unproject([data.x, data.y], maxZoom);
                 var marker;
 
@@ -409,7 +495,6 @@
                 p += '</div>';
                 marker.bindPopup(p);
 
-                var rawText = memo ? memo : name;
                 var tooltipText = filterMode ? cleanTextForFilter(rawText, filterMode) : rawText;
 
                 var tooltipOptions;

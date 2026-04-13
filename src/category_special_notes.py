@@ -8,7 +8,7 @@ category_master[<カテゴリ名JP>].special_notes: list[dict]
   - 必要/推奨: detail_kind "level"|"skill_level"|"equipment"|"skill"
       level: level (int)
       skill_level: skill_id, skill_level_value (int)
-      equipment: equipment_name (str)
+      equipment: equipment_name_jp, equipment_name_en（旧 equipment_name は JP として読込）
       skill: skill_id
 
 skill_name_master: list[{"id","name_jp","name_en"}]
@@ -321,11 +321,19 @@ class SpecialNoteBlock(ctk.CTkFrame):
             self._detail_widgets["_l2i_sl"] = l2i
             return
         if detail_kind == DETAIL_EQUIPMENT:
-            ctk.CTkLabel(inner, text="装備（アイテム名）").pack(anchor="w")
-            ent = ctk.CTkEntry(inner, width=360)
-            ent.insert(0, (data.get("equipment_name") or ""))
-            ent.pack(fill="x", pady=2)
-            self._detail_widgets["eq_ent"] = ent
+            legacy = (data.get("equipment_name") or "").strip()
+            jp0 = (data.get("equipment_name_jp") or legacy or "").strip()
+            en0 = (data.get("equipment_name_en") or "").strip()
+            ctk.CTkLabel(inner, text="装備名（日本語）").pack(anchor="w")
+            ent_jp = ctk.CTkEntry(inner, width=360)
+            ent_jp.insert(0, jp0)
+            ent_jp.pack(fill="x", pady=2)
+            self._detail_widgets["eq_ent_jp"] = ent_jp
+            ctk.CTkLabel(inner, text="装備名（English）").pack(anchor="w", pady=(6, 0))
+            ent_en = ctk.CTkEntry(inner, width=360)
+            ent_en.insert(0, en0)
+            ent_en.pack(fill="x", pady=2)
+            self._detail_widgets["eq_ent_en"] = ent_en
             return
         if detail_kind == DETAIL_SKILL:
             ctk.CTkLabel(inner, text="スキル").pack(anchor="w")
@@ -397,10 +405,12 @@ class SpecialNoteBlock(ctk.CTkFrame):
             out["skill_level_value"] = lv
             return out
         if dk == DETAIL_EQUIPMENT:
-            ent = self._detail_widgets.get("eq_ent")
-            if not ent:
+            ent_jp = self._detail_widgets.get("eq_ent_jp")
+            ent_en = self._detail_widgets.get("eq_ent_en")
+            if not ent_jp or not ent_en:
                 return None
-            out["equipment_name"] = ent.get().strip()
+            out["equipment_name_jp"] = ent_jp.get().strip()
+            out["equipment_name_en"] = ent_en.get().strip()
             return out
         if dk == DETAIL_SKILL:
             cmb = self._detail_widgets.get("sk_cmb")

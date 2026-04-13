@@ -1,6 +1,6 @@
 (function() {
     'use strict';
-    // map.js v20260216 - 全部用: 複数アイテム・戦時債権数量・換金ポイント表示
+    // map.js v20260411 - ホバー: アイテム＋数量のみ（×1省略）、フィルタ時もカテゴリ接頭辞なし（pin_site_preview と一致）
 
     var maxZoom = 5;
     var imgW = 6253;
@@ -223,6 +223,75 @@
         return filtered.length > 0 ? filtered.join('<br>') : '';
     }
 
+    function categoryLabelFromEntry(c, isJa) {
+        if (!c) return '';
+        var v = isJa
+            ? (c.cat_jp || c.category || c.cat_en || c.cat_name_en || '')
+            : (c.cat_en || c.cat_name_en || c.category || c.cat_jp || '');
+        return String(v || '').trim();
+    }
+
+    function itemNameFromEntry(c, isJa) {
+        if (!c) return '';
+        var v = isJa
+            ? (c.item_name_jp || c.item_jp || c.item_name_en || c.item_en || '')
+            : (c.item_name_en || c.item_en || c.item_name_jp || c.item_jp || '');
+        return String(v || '').trim();
+    }
+
+    function itemQtyStringForEntry(c) {
+        if (!c) return '';
+        var hasItem = c.item_id && String(c.item_id).trim();
+        if (hasItem) {
+            var iq = c.item_qty;
+            if (iq != null && String(iq).trim() !== '') return String(iq).trim();
+            var q = c.qty;
+            if (q != null && String(q).trim() !== '') return String(q).trim();
+            return '1';
+        }
+        var q2 = c.qty;
+        return (q2 != null && String(q2).trim() !== '') ? String(q2).trim() : '';
+    }
+
+    function hoverQtySuffix(qtyStr) {
+        if (qtyStr == null || String(qtyStr).trim() === '') return '';
+        var s = String(qtyStr).trim();
+        var n = parseFloat(s, 10);
+        if (!isNaN(n) && n === 1) return '';
+        return ' ×' + s;
+    }
+
+    function lockpickReqSuffix(c, isJa) {
+        if (!c) return '';
+        var a = c.attributes;
+        if ((!a || typeof a !== 'object') && c.props && typeof c.props === 'object') a = c.props;
+        if (!a || typeof a !== 'object') return '';
+        var has25 = !!(a.req_lockpick_lv25 === true || String(a.req_lockpick_lv25 || '').toLowerCase() === 'true' || String(a.req_lockpick_lv25 || '') === '1');
+        var has75 = !!(a.req_lockpick_lv75 === true || String(a.req_lockpick_lv75 || '').toLowerCase() === 'true' || String(a.req_lockpick_lv75 || '') === '1');
+        if (!has25 && !has75) return '';
+        var lv = [];
+        if (has25) lv.push('25');
+        if (has75) lv.push('75');
+        if (isJa) return '（要ロックピック Lv.' + lv.join('/Lv.') + '）';
+        return ' (Req. Lv.' + lv.join('/Lv.') + ')';
+    }
+
+    /** pin_site_preview.build_hover_tooltip_text と同じ */
+    function buildHoverTooltipTextFromContents(contents, isJa) {
+        var rows = [];
+        (contents || []).forEach(function(c) {
+            if (!c) return;
+            var itemName = itemNameFromEntry(c, isJa);
+            var cat = categoryLabelFromEntry(c, isJa);
+            var qty = itemQtyStringForEntry(c);
+            var req = lockpickReqSuffix(c, isJa);
+            var suffix = hoverQtySuffix(qty) + req;
+            if (itemName) rows.push(itemName + suffix);
+            else if (cat) rows.push(cat + suffix);
+        });
+        return rows.length ? rows.join('\n') : '';
+    }
+
     function createMarkerFromPin(pin, visualStyle, myCategories, bpNum, displayName, memo, rawText, tooltipLabelText, objectName, contentsSummary) {
         var coords = pin.coords || [pin.x, pin.y];
         var x = coords[0], y = coords[1];
@@ -257,13 +326,16 @@
         popupHtml += '</div>';
         marker.bindPopup(popupHtml);
 
-        // フィルタモード時: tooltipLabelText を優先。全部用時: contentsSummary があればそのプレーンテキスト版をツールチップに（複数アイテムを一覧表示）
+        // フィルタ時: アイテム名のみ（カテゴリ接頭辞なし）。通常時: rawText = buildHover…||メモ||名前
         var tooltipText;
         if (filterMode) {
             tooltipText = tooltipLabelText || displayName || cleanTextForFilter(rawText, filterMode);
         } else {
-            var summaryPlain = (contentsSummary && String(contentsSummary).trim()) ? contentsSummary.replace(/<br\s*\/?>\s*・?/g, ', ') : '';
-            tooltipText = summaryPlain || rawText;
+            tooltipText = rawText;
+            if (!tooltipText || String(tooltipText).trim() === '') {
+                var summaryPlain = (contentsSummary && String(contentsSummary).trim()) ? contentsSummary.replace(/<br\s*\/?>\s*・?/g, ', ') : '';
+                tooltipText = summaryPlain || rawText;
+            }
         }
         if (!tooltipText || String(tooltipText).trim() === '') {
             tooltipText = rawText || visualStyle.label || '—';
@@ -339,8 +411,9 @@
 
             var displayName = name;
             var memo = isJa ? (pin.memo_jp || '') : (pin.memo_en || pin.memo_jp || '');
-            var rawText = memo || name;
-            var tooltipLabelText = filterMode ? (filterMode === 'lem' ? nameForLabel : (visualStyle.label + '：' + nameForLabel)) : '';
+            var hoverPlain = buildHoverTooltipTextFromContents(contents, isJa);
+            var rawText = hoverPlain || memo || name;
+            var tooltipLabelText = filterMode ? nameForLabel : '';
 
             var objNameMap = attrToDisplayName[objId];
             var objectName = (pin.obj_jp || pin.obj_en) ? (isJa ? (pin.obj_jp || pin.obj_en) : (pin.obj_en || pin.obj_jp)) : (objNameMap ? (isJa ? objNameMap.jp : objNameMap.en) : name);
@@ -550,8 +623,9 @@
 
             var displayName = name;
             var memo = isJa ? (cols[13] || '') : (cols[14] || cols[13] || '');
-            var rawText = memo || name;
-            var tooltipLabelText = filterMode ? (filterMode === 'lem' ? nameForLabel : (visualStyle.label + '：' + nameForLabel)) : '';
+            var hoverPlain = buildHoverTooltipTextFromContents(categoriesArr, isJa);
+            var rawText = hoverPlain || memo || name;
+            var tooltipLabelText = filterMode ? nameForLabel : '';
 
             var objNameMap = attrToDisplayName[attribute];
             var objectName = objNameMap ? (isJa ? objNameMap.jp : objNameMap.en) : name;

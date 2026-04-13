@@ -2,6 +2,9 @@
 """
 category_master[*].special_notes から map.js / pin_site_preview 用の
 category_special_rules を生成する（単一の正とする）。
+
+装備（detail_kind equipment）ルールは item_name_jp / item_name_en を出力し、
+旧データ互換のため item_name（JP 優先）も付与する。
 """
 from __future__ import annotations
 
@@ -42,7 +45,12 @@ def _note_to_rule_for_map(note: Dict[str, Any]) -> Dict[str, Any]:
         return base
     if dk == "equipment":
         base["req_type"] = "装備"
-        base["item_name"] = (note.get("equipment_name") or "").strip()
+        legacy = (note.get("equipment_name") or "").strip()
+        j = (note.get("equipment_name_jp") or legacy or "").strip()
+        e = (note.get("equipment_name_en") or "").strip()
+        base["item_name_jp"] = j
+        base["item_name_en"] = e
+        base["item_name"] = j or e
         return base
     if dk == "skill":
         base["req_type"] = "スキル"

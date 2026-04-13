@@ -105,6 +105,19 @@ def item_qty_for_hover(c: Optional[Dict]) -> str:
     return item_qty_string_for_entry(c)
 
 
+def hover_qty_suffix(qty_str: str) -> str:
+    """ホバー用: 数量が 1（または 1.0）のときは × を付けない。"""
+    if qty_str is None or not str(qty_str).strip():
+        return ""
+    s = str(qty_str).strip()
+    try:
+        if float(s) == 1.0:
+            return ""
+    except ValueError:
+        pass
+    return f" ×{s}"
+
+
 def category_labels_from_contents(contents: List[Dict], is_ja: bool, legacy_category: str) -> List[str]:
     labels: List[str] = []
     for c in contents or []:
@@ -163,11 +176,12 @@ def special_rule_text(rule: Dict, is_ja: bool, skill_name_master: Dict) -> str:
         return ""
     nt = _s(rule.get("note_type")).strip()
     rt = _s(rule.get("req_type")).strip()
+    nt_disp = nt if is_ja else ({"必要条件": "Required", "推奨条件": "Recommended", "メモ": "Memo"}.get(nt, nt))
     app = _s(rule.get("applicability") or "always").strip()
     if app == "sometimes":
         maybe_tag = "（場合あり）" if is_ja else " (Sometimes)"
     elif app == "lenient":
-        maybe_tag = "（やや緩め）" if is_ja else " (Relaxed)"
+        maybe_tag = "（必要な場合がある）" if is_ja else " (May be required)"
     else:
         maybe_tag = ""
     if nt == "メモ":
@@ -180,31 +194,38 @@ def special_rule_text(rule: Dict, is_ja: bool, skill_name_master: Dict) -> str:
         t2 = men or leg or mjp
         return f"Memo: {t2}" if t2 else ""
     if rt == "装備":
-        iname = _s(rule.get("item_name")).strip()
+        legacy = _s(rule.get("item_name")).strip()
+        j = _s(rule.get("item_name_jp")).strip()
+        e = _s(rule.get("item_name_en")).strip()
+        if not j and legacy:
+            j = legacy
+        if not e and legacy:
+            e = legacy
+        iname = (j or e) if is_ja else (e or j)
         icnt = _s(rule.get("item_count")).strip()
         if not iname:
             return ""
         body = f"{iname} ×{icnt}" if icnt else iname
-        return f"{nt}{maybe_tag}: {body}"
+        return f"{nt_disp}{maybe_tag}: {body}"
     if rt == "スキルレベル":
         sid2 = _s(rule.get("skill_id")).strip()
         slv = _s(rule.get("skill_level")).strip()
         if not sid2 or not slv:
             return ""
         nm2 = skill_display_name_for_rule(sid2, is_ja, skill_name_master)
-        return f"{nt}{maybe_tag}: {nm2} Lv.{slv}"
+        return f"{nt_disp}{maybe_tag}: {nm2} Lv.{slv}"
     if rt == "スキル":
         sid3 = _s(rule.get("skill_id")).strip()
         if not sid3:
             return ""
         nm3 = skill_display_name_for_rule(sid3, is_ja, skill_name_master)
         if is_ja:
-            return f"{nt}{maybe_tag}: スキル {nm3}"
-        return f"{nt}{maybe_tag}: Skill {nm3}"
+            return f"{nt_disp}{maybe_tag}: スキル {nm3}"
+        return f"{nt_disp}{maybe_tag}: Skill {nm3}"
     lv = _s(rule.get("level")).strip()
     if not lv:
         return ""
-    return f"{nt}{maybe_tag}: Lv.{lv}"
+    return f"{nt_disp}{maybe_tag}: Lv.{lv}"
 
 
 def category_special_rules_for_entry(
@@ -346,10 +367,9 @@ def build_hover_tooltip_text(
         cat = category_label_from_entry(c, is_ja)
         qty = item_qty_string_for_entry(c)
         req = lockpick_req_suffix(c, is_ja)
-        qty_part = f" ×{qty}" if qty else ""
-        suffix = qty_part + req
+        suffix = hover_qty_suffix(qty) + req
         if item_name:
-            rows.append((f"{cat}：" if cat else "") + item_name + suffix)
+            rows.append(item_name + suffix)
         elif cat:
             rows.append(cat + suffix)
     if rows:

@@ -418,16 +418,18 @@
 
     function applyPinMarkerPartial(pin, pm) {
         if (!pm || typeof pm !== 'object') return;
+        var touched = false;
         var sid = (pm.svg_icon_id || '').trim();
-        if (sid) pin.svg_icon_id = sid;
+        if (sid) { pin.svg_icon_id = sid; touched = true; }
         var scp = (pm.svg_icon_scope || '').trim();
         if (scp) pin.svg_icon_scope = scp;
         var ic = (pm.icon_color || '').trim();
-        if (/^#[0-9a-fA-F]{6}$/.test(ic)) pin.marker_icon_color = ic;
+        if (/^#[0-9a-fA-F]{6}$/.test(ic)) { pin.marker_icon_color = ic; touched = true; }
         var bg = (pm.background_color || '').trim();
-        if (/^#[0-9a-fA-F]{6}$/.test(bg)) pin.marker_bg_color = bg;
+        if (/^#[0-9a-fA-F]{6}$/.test(bg)) { pin.marker_bg_color = bg; touched = true; }
         var ds = (pm.display_style || '').trim();
         if (ds) pin.marker_display_style = normalizeMarkerDisplayStyle(ds);
+        else if (touched) pin.marker_display_style = 'standard';
     }
 
     function pinMarkerEntryForAttribute(attrRaw) {
@@ -712,6 +714,15 @@
         return itemQtyStringForEntry(c);
     }
 
+    /** ホバー用: 数量が 1 のときは × を付けない（pin_site_preview.hover_qty_suffix と一致） */
+    function hoverQtySuffix(qtyStr) {
+        if (qtyStr == null || String(qtyStr).trim() === '') return '';
+        var s = String(qtyStr).trim();
+        var n = parseFloat(s, 10);
+        if (!isNaN(n) && n === 1) return '';
+        return ' ×' + s;
+    }
+
     function lockpickReqSuffix(c, isJa) {
         if (!c || !c.attributes || typeof c.attributes !== 'object') return '';
         var a = c.attributes;
@@ -751,9 +762,10 @@
         if (!rule || typeof rule !== 'object') return '';
         var nt = String(rule.note_type || '').trim();
         var rt = String(rule.req_type || '').trim();
+        var ntDisp = isJa ? nt : ({ '必要条件': 'Required', '推奨条件': 'Recommended', 'メモ': 'Memo' }[nt] || nt);
         var app = String(rule.applicability || 'always').trim();
         var maybeTag = app === 'sometimes' ? (isJa ? '（場合あり）' : ' (Sometimes)')
-            : (app === 'lenient' ? (isJa ? '（やや緩め）' : ' (Relaxed)') : '');
+            : (app === 'lenient' ? (isJa ? '（必要な場合がある）' : ' (May be required)') : '');
         if (nt === 'メモ') {
             var mjp = String(rule.memo_jp || '').trim();
             var men = String(rule.memo_en || '').trim();
@@ -766,27 +778,32 @@
             return t2 ? ('Memo: ' + t2) : '';
         }
         if (rt === '装備') {
-            var iname = String(rule.item_name || '').trim();
+            var legacy = String(rule.item_name || '').trim();
+            var ij = String(rule.item_name_jp || '').trim();
+            var ie = String(rule.item_name_en || '').trim();
+            if (!ij && legacy) ij = legacy;
+            if (!ie && legacy) ie = legacy;
+            var iname = isJa ? (ij || ie) : (ie || ij);
             var icnt = String(rule.item_count || '').trim();
             if (!iname) return '';
-            return nt + maybeTag + ': ' + (icnt ? (iname + ' ×' + icnt) : iname);
+            return ntDisp + maybeTag + ': ' + (icnt ? (iname + ' ×' + icnt) : iname);
         }
         if (rt === 'スキルレベル') {
             var sid2 = String(rule.skill_id || '').trim();
             var slv = String(rule.skill_level || '').trim();
             if (!sid2 || !slv) return '';
             var nm2 = skillDisplayNameForRule(sid2, isJa);
-            return nt + maybeTag + ': ' + nm2 + ' Lv.' + slv;
+            return ntDisp + maybeTag + ': ' + nm2 + ' Lv.' + slv;
         }
         if (rt === 'スキル') {
             var sid3 = String(rule.skill_id || '').trim();
             if (!sid3) return '';
             var nm3 = skillDisplayNameForRule(sid3, isJa);
-            return nt + maybeTag + ': ' + (isJa ? ('スキル ' + nm3) : ('Skill ' + nm3));
+            return ntDisp + maybeTag + ': ' + (isJa ? ('スキル ' + nm3) : ('Skill ' + nm3));
         }
         var lv = String(rule.level || '').trim();
         if (!lv) return '';
-        return nt + maybeTag + ': Lv.' + lv;
+        return ntDisp + maybeTag + ': Lv.' + lv;
     }
 
     function specialTextForEntry(c, isJa) {
@@ -891,9 +908,8 @@
                 var qty = itemQtyStringForEntry(c);
                 var req = lockpickReqSuffix(c, isJa);
                 // hover では特記事項（カテゴリ特記ルール）とメモは出さない（popup 側）
-                var qtyPart = qty ? (' ×' + qty) : '';
-                var suffix = qtyPart + req;
-                if (itemName) rows.push((cat ? (cat + '：') : '') + itemName + suffix);
+                var suffix = hoverQtySuffix(qty) + req;
+                if (itemName) rows.push(itemName + suffix);
                 else if (cat) rows.push(cat + suffix);
             });
         }

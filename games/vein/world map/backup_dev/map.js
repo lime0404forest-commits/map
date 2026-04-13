@@ -418,16 +418,18 @@
 
     function applyPinMarkerPartial(pin, pm) {
         if (!pm || typeof pm !== 'object') return;
+        var touched = false;
         var sid = (pm.svg_icon_id || '').trim();
-        if (sid) pin.svg_icon_id = sid;
+        if (sid) { pin.svg_icon_id = sid; touched = true; }
         var scp = (pm.svg_icon_scope || '').trim();
         if (scp) pin.svg_icon_scope = scp;
         var ic = (pm.icon_color || '').trim();
-        if (/^#[0-9a-fA-F]{6}$/.test(ic)) pin.marker_icon_color = ic;
+        if (/^#[0-9a-fA-F]{6}$/.test(ic)) { pin.marker_icon_color = ic; touched = true; }
         var bg = (pm.background_color || '').trim();
-        if (/^#[0-9a-fA-F]{6}$/.test(bg)) pin.marker_bg_color = bg;
+        if (/^#[0-9a-fA-F]{6}$/.test(bg)) { pin.marker_bg_color = bg; touched = true; }
         var ds = (pm.display_style || '').trim();
         if (ds) pin.marker_display_style = normalizeMarkerDisplayStyle(ds);
+        else if (touched) pin.marker_display_style = 'standard';
     }
 
     function pinMarkerEntryForAttribute(attrRaw) {
@@ -765,7 +767,12 @@
             return t2 ? ('Memo: ' + t2) : '';
         }
         if (rt === '装備') {
-            var iname = String(rule.item_name || '').trim();
+            var legacy = String(rule.item_name || '').trim();
+            var ij = String(rule.item_name_jp || '').trim();
+            var ie = String(rule.item_name_en || '').trim();
+            if (!ij && legacy) ij = legacy;
+            if (!ie && legacy) ie = legacy;
+            var iname = isJa ? (ij || ie) : (ie || ij);
             var icnt = String(rule.item_count || '').trim();
             if (!iname) return '';
             return nt + maybeTag + ': ' + (icnt ? (iname + ' ×' + icnt) : iname);

@@ -18,7 +18,8 @@
         "ツール",
         "発電機",
         "スキルブック",
-        "その他のアイテム"
+        "その他のアイテム",
+        "テスト"
     ],
     "attr_mapping": {
         "POI": {
@@ -82,6 +83,27 @@
             "show_qty": false,
             "object_ids": [
                 "DEPLOYABLES"
+            ],
+            "special_notes": [
+                {
+                    "kind": "required_lenient",
+                    "detail_kind": "level",
+                    "default_enabled": false,
+                    "level": 25
+                },
+                {
+                    "kind": "required_lenient",
+                    "detail_kind": "level",
+                    "default_enabled": false,
+                    "level": 75
+                },
+                {
+                    "kind": "required",
+                    "detail_kind": "equipment",
+                    "default_enabled": false,
+                    "equipment_name_jp": "改良されたつるはし",
+                    "equipment_name_en": "Improved Pickaxe"
+                }
             ]
         },
         "医療品コンテナ": {
@@ -160,6 +182,14 @@
             "object_ids": [
                 "DEPLOYABLES"
             ]
+        },
+        "テスト": {
+            "id": "TEST",
+            "name_jp": "テスト",
+            "name_en": "test",
+            "type": "loot",
+            "input_type": "item_select",
+            "show_qty": true
         }
     },
     "item_master": {
@@ -582,7 +612,7 @@
             "svg_icon_scope": "common",
             "icon_color": "#80ffff",
             "background_color": "#2ecc71",
-            "display_style": "icon_only"
+            "display_style": "standard"
         },
         "PRISON": {
             "svg_icon_id": "marker-building",
@@ -603,14 +633,14 @@
             "svg_icon_scope": "common",
             "icon_color": "#ffc8c8",
             "background_color": "#2ecc71",
-            "display_style": "icon_only"
+            "display_style": "standard"
         },
         "CABIN": {
             "svg_icon_id": "marker-cabin",
             "svg_icon_scope": "common",
             "icon_color": "#80ff80",
             "background_color": "#2ecc71",
-            "display_style": "icon_only"
+            "display_style": "standard"
         },
         "PUBLIC_BUILDING": {
             "svg_icon_id": "marker-building",
@@ -624,14 +654,21 @@
             "svg_icon_scope": "common",
             "icon_color": "#80ffff",
             "background_color": "#2ecc71",
-            "display_style": "icon_only"
+            "display_style": "standard"
         },
         "FARM": {
             "svg_icon_id": "marker-farm",
             "svg_icon_scope": "common",
             "icon_color": "#ffffff",
             "background_color": "#2ecc71",
-            "display_style": "icon_only"
+            "display_style": "standard"
+        },
+        "FACTORY": {
+            "svg_icon_id": "marker-factory",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#2ecc71",
+            "display_style": "standard"
         },
         "SHIPWRECK": {
             "svg_icon_id": "marker-boatwreck",
@@ -645,7 +682,7 @@
             "svg_icon_scope": "common",
             "icon_color": "#80ff80",
             "background_color": "#2ecc71",
-            "display_style": "icon_only"
+            "display_style": "standard"
         },
         "CAVE": {
             "svg_icon_id": "marker-cave",
@@ -659,23 +696,73 @@
             "svg_icon_scope": "common",
             "icon_color": "#80ff80",
             "background_color": "#2ecc71",
-            "display_style": "icon_only"
+            "display_style": "standard"
         },
         "LAKE": {
             "svg_icon_id": "marker-pond",
             "svg_icon_scope": "common",
             "icon_color": "#80ffff",
             "background_color": "#2ecc71",
-            "display_style": "icon_only"
-        },
-        "FACTORY": {
-            "svg_icon_id": "marker-factory",
-            "svg_icon_scope": "common",
-            "icon_color": "#ffffff",
-            "background_color": "#2ecc71",
-            "display_style": "icon_only"
+            "display_style": "standard"
         }
     },
-    "category_special_rules": {},
-    "skill_name_master": []
+    "category_special_rules": {
+        "武器コンテナ": {
+            "rules": [
+                {
+                    "note_type": "必要条件",
+                    "applicability": "lenient",
+                    "default_enabled": false,
+                    "level": "25"
+                },
+                {
+                    "note_type": "必要条件",
+                    "applicability": "lenient",
+                    "default_enabled": false,
+                    "level": "75"
+                },
+                {
+                    "note_type": "必要条件",
+                    "applicability": "always",
+                    "default_enabled": false,
+                    "req_type": "装備",
+                    "item_name_jp": "改良されたつるはし",
+                    "item_name_en": "Improved Pickaxe",
+                    "item_name": "改良されたつるはし"
+                }
+            ]
+        },
+        "LOOT_CONTAINER": {
+            "rules": [
+                {
+                    "note_type": "必要条件",
+                    "applicability": "lenient",
+                    "default_enabled": false,
+                    "level": "25"
+                },
+                {
+                    "note_type": "必要条件",
+                    "applicability": "lenient",
+                    "default_enabled": false,
+                    "level": "75"
+                },
+                {
+                    "note_type": "必要条件",
+                    "applicability": "always",
+                    "default_enabled": false,
+                    "req_type": "装備",
+                    "item_name_jp": "改良されたつるはし",
+                    "item_name_en": "Improved Pickaxe",
+                    "item_name": "改良されたつるはし"
+                }
+            ]
+        }
+    },
+    "skill_name_master": [
+        {
+            "id": "SKILL_15481",
+            "name_jp": "開錠",
+            "name_en": "Lockpicking"
+        }
+    ]
 }
