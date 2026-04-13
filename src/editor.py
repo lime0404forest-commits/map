@@ -143,10 +143,10 @@ class SettingsWindow(ctk.CTkToplevel):
     def _configure_cat_table_columns(self, f):
         m = self._mcol
         f.grid_columnconfigure(0, weight=0, minsize=m(92))
-        f.grid_columnconfigure(1, weight=1, minsize=m(148))
+        f.grid_columnconfigure(1, weight=0, minsize=m(168))
         f.grid_columnconfigure(2, weight=1, minsize=m(148))
-        f.grid_columnconfigure(3, weight=1, minsize=m(118))
-        f.grid_columnconfigure(4, weight=0, minsize=m(108))
+        f.grid_columnconfigure(3, weight=1, minsize=m(148))
+        f.grid_columnconfigure(4, weight=1, minsize=m(118))
         f.grid_columnconfigure(5, weight=0, minsize=m(108))
         f.grid_columnconfigure(6, weight=0, minsize=m(46))
         f.grid_columnconfigure(7, weight=0, minsize=m(228))
@@ -217,10 +217,10 @@ class SettingsWindow(ctk.CTkToplevel):
 
     def _sync_cat_row_widget_sizes(self, r):
         s = getattr(self, "_master_col_scale", 1.0)
+        r["obj_group"].configure(width=max(88, int(164 * s)))
         r["name_jp"].configure(width=max(64, int(148 * s)))
         r["name_en"].configure(width=max(64, int(148 * s)))
         r["id"].configure(width=max(56, int(118 * s)))
-        r["obj_group"].configure(width=max(88, int(164 * s)))
         r["input_type"].configure(width=max(88, int(104 * s)))
 
     def _sync_item_row_widget_sizes(self, r):
@@ -302,10 +302,10 @@ class SettingsWindow(ctk.CTkToplevel):
         self._f_head_cat = f_head
         hr = 0
         ctk.CTkLabel(f_head, text="並替", anchor="w", font=("Meiryo", 9, "bold"), text_color="#888888").grid(row=hr, column=0, sticky="w", padx=4, pady=2)
-        ctk.CTkLabel(f_head, text="カテゴリ名(JP)", anchor="w", font=("Meiryo", 11, "bold")).grid(row=hr, column=1, sticky="w", padx=4, pady=2)
-        ctk.CTkLabel(f_head, text="カテゴリ名(EN)", anchor="w", font=("Meiryo", 11, "bold")).grid(row=hr, column=2, sticky="w", padx=4, pady=2)
-        ctk.CTkLabel(f_head, text="ID", anchor="w", font=("Meiryo", 11, "bold"), text_color="#888888").grid(row=hr, column=3, sticky="w", padx=4, pady=2)
-        ctk.CTkLabel(f_head, text="対応オブジェクト", anchor="w", font=("Meiryo", 11, "bold")).grid(row=hr, column=4, sticky="w", padx=4, pady=2)
+        ctk.CTkLabel(f_head, text="対応オブジェクト", anchor="w", font=("Meiryo", 11, "bold")).grid(row=hr, column=1, sticky="w", padx=4, pady=2)
+        ctk.CTkLabel(f_head, text="カテゴリ名(JP)", anchor="w", font=("Meiryo", 11, "bold")).grid(row=hr, column=2, sticky="w", padx=4, pady=2)
+        ctk.CTkLabel(f_head, text="カテゴリ名(EN)", anchor="w", font=("Meiryo", 11, "bold")).grid(row=hr, column=3, sticky="w", padx=4, pady=2)
+        ctk.CTkLabel(f_head, text="ID", anchor="w", font=("Meiryo", 11, "bold"), text_color="#888888").grid(row=hr, column=4, sticky="w", padx=4, pady=2)
         ctk.CTkLabel(f_head, text="入力形式", anchor="w", font=("Meiryo", 11, "bold")).grid(row=hr, column=5, sticky="w", padx=4, pady=2)
         ctk.CTkLabel(f_head, text="数量", anchor="w", font=("Meiryo", 11, "bold")).grid(row=hr, column=6, sticky="w", padx=4, pady=2)
         f_h_pin = ctk.CTkFrame(f_head, fg_color="transparent")
@@ -329,7 +329,7 @@ class SettingsWindow(ctk.CTkToplevel):
         self._f_head_item = f_head
         hr = 0
         ctk.CTkLabel(f_head, text="並替", anchor="w", font=("Meiryo", 9, "bold"), text_color="#888888").grid(row=hr, column=0, sticky="w", padx=4, pady=2)
-        ctk.CTkLabel(f_head, text="グループ", anchor="w", font=("Meiryo", 11, "bold")).grid(row=hr, column=1, sticky="w", padx=4, pady=2)
+        ctk.CTkLabel(f_head, text="対応カテゴリ", anchor="w", font=("Meiryo", 11, "bold")).grid(row=hr, column=1, sticky="w", padx=4, pady=2)
         ctk.CTkLabel(f_head, text="ID", anchor="w", font=("Meiryo", 11, "bold")).grid(row=hr, column=2, sticky="w", padx=4, pady=2)
         ctk.CTkLabel(f_head, text="名前(JP)", anchor="w", font=("Meiryo", 11, "bold")).grid(row=hr, column=3, sticky="w", padx=4, pady=2)
         ctk.CTkLabel(f_head, text="名前(EN)", anchor="w", font=("Meiryo", 11, "bold")).grid(row=hr, column=4, sticky="w", padx=4, pady=2)
@@ -1370,6 +1370,7 @@ class SettingsWindow(ctk.CTkToplevel):
         typ = (cat_info.get("type") or "").strip().lower()
         if not typ:
             return ""
+        am = self.config.get("attr_mapping", {}) or {}
         rows = list(self.attr_rows)
         if self._attr_split_mode:
             rows.extend(self.route_attr_rows)
@@ -1378,7 +1379,7 @@ class SettingsWindow(ctk.CTkToplevel):
             if not oid:
                 ne = (r.get("name_en") and r["name_en"].get() or "").strip()
                 oid = self.generate_id_from_en(ne)
-            o = self.attr_mapping.get(oid)
+            o = am.get(oid)
             if isinstance(o, dict) and str(o.get("type", "")).strip().lower() == typ:
                 return oid
         return ""
@@ -1408,20 +1409,20 @@ class SettingsWindow(ctk.CTkToplevel):
         rw = 0
         self._place_master_row_reorder_grid(f, self.cat_rows, rw, 0)
         s = getattr(self, "_master_col_scale", 1.0)
-        e_name_jp = ctk.CTkEntry(f, width=max(64, int(148 * s)))
-        e_name_jp.insert(0, name_jp)
-        e_name_jp.grid(row=rw, column=1, sticky="ew", padx=4, pady=2)
-        e_name_en = ctk.CTkEntry(f, width=max(64, int(148 * s)))
-        e_name_en.insert(0, name_en)
-        e_name_en.grid(row=rw, column=2, sticky="ew", padx=4, pady=2)
-        e_id = ctk.CTkEntry(f, width=max(56, int(118 * s)), placeholder_text="ID")
-        e_id.insert(0, cat_id)
-        e_id.grid(row=rw, column=3, sticky="ew", padx=4, pady=2)
         obj_labels, obj_l2i = self._master_object_options()
         cmb_obj = ctk.CTkComboBox(f, values=obj_labels, width=max(88, int(164 * s)))
         sel_lab = next((lb for lb, oid in obj_l2i.items() if oid == (object_attr_id or "").strip()), "(なし)")
         cmb_obj.set(sel_lab if sel_lab in obj_labels else "(なし)")
-        cmb_obj.grid(row=rw, column=4, sticky="w", padx=4, pady=2)
+        cmb_obj.grid(row=rw, column=1, sticky="w", padx=4, pady=2)
+        e_name_jp = ctk.CTkEntry(f, width=max(64, int(148 * s)))
+        e_name_jp.insert(0, name_jp)
+        e_name_jp.grid(row=rw, column=2, sticky="ew", padx=4, pady=2)
+        e_name_en = ctk.CTkEntry(f, width=max(64, int(148 * s)))
+        e_name_en.insert(0, name_en)
+        e_name_en.grid(row=rw, column=3, sticky="ew", padx=4, pady=2)
+        e_id = ctk.CTkEntry(f, width=max(56, int(118 * s)), placeholder_text="ID")
+        e_id.insert(0, cat_id)
+        e_id.grid(row=rw, column=4, sticky="ew", padx=4, pady=2)
         input_type_options = ["item_select", "qty_only"]
         input_type_names = {"item_select": "アイテム選択", "qty_only": "数量のみ"}
         cmb_input = ctk.CTkComboBox(f, values=[input_type_names[t] for t in input_type_options], width=max(88, int(104 * s)))
@@ -1485,7 +1486,7 @@ class SettingsWindow(ctk.CTkToplevel):
     def _master_item_group_values(self):
         vals = []
         seen = set()
-        # 仕様: アイテムのグループはカテゴリ（JP名）一覧
+        # 仕様: アイテムの対応カテゴリはカテゴリ（JP名）一覧
         for r in self.cat_rows:
             jp = (r.get("name_jp") and r["name_jp"].get() or "").strip()
             if jp and jp not in seen:
@@ -1620,8 +1621,8 @@ class SettingsWindow(ctk.CTkToplevel):
             if not new_grp or new_grp == old_grp:
                 return
             if messagebox.askyesno(
-                "グループ変更",
-                "選択したグループ（カテゴリ）のマーカー設定をこのアイテムに引き継ぎますか？",
+                "対応カテゴリ変更",
+                "選択した対応カテゴリのマーカー設定をこのアイテムに引き継ぎますか？",
                 parent=self,
             ):
                 self._inherit_marker_from_category_to_item(rr, new_grp)
