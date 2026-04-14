@@ -5,7 +5,7 @@
     "save_file": "master_data.csv",
     "cat_mapping": {
         "POI": "POI",
-        "DEPLOYABLES": "設置物"
+        "DEPLOYABLES": "コンテナ・アイテムなど"
     },
     "category_list": [
         "建物",
@@ -29,7 +29,7 @@
             "use_category_slots": true
         },
         "DEPLOYABLES": {
-            "name_jp": "設置物",
+            "name_jp": "コンテナ・アイテムなど",
             "name_en": "Deployables",
             "type": "loot",
             "attributes": {},
@@ -47,7 +47,8 @@
             "show_qty": false,
             "object_ids": [
                 "POI"
-            ]
+            ],
+            "object_attr_id": "POI"
         },
         "地形": {
             "id": "TERRAIN",
@@ -59,7 +60,8 @@
             "show_qty": false,
             "object_ids": [
                 "POI"
-            ]
+            ],
+            "object_attr_id": "POI"
         },
         "場所・エリア・スポット": {
             "id": "SITE",
@@ -71,7 +73,8 @@
             "show_qty": false,
             "object_ids": [
                 "POI"
-            ]
+            ],
+            "object_attr_id": "POI"
         },
         "武器コンテナ": {
             "id": "LOOT_CONTAINER",
@@ -82,6 +85,30 @@
             "show_qty": false,
             "object_ids": [
                 "DEPLOYABLES"
+            ],
+            "object_attr_id": "POI",
+            "special_notes": [
+                {
+                    "kind": "required_lenient",
+                    "detail_kind": "skill_level",
+                    "default_enabled": false,
+                    "skill_id": "SKILL_19221",
+                    "skill_level_value": 25
+                },
+                {
+                    "kind": "required_lenient",
+                    "detail_kind": "skill_level",
+                    "default_enabled": false,
+                    "skill_id": "SKILL_19221",
+                    "skill_level_value": 75
+                },
+                {
+                    "kind": "required_lenient",
+                    "detail_kind": "equipment",
+                    "default_enabled": false,
+                    "equipment_name_jp": "改良されたつるはし",
+                    "equipment_name_en": "Improved Pickaxe"
+                }
             ]
         },
         "医療品コンテナ": {
@@ -93,6 +120,15 @@
             "show_qty": false,
             "object_ids": [
                 "DEPLOYABLES"
+            ],
+            "object_attr_id": "POI",
+            "special_notes": [
+                {
+                    "kind": "memo",
+                    "memo_jp": "テスト",
+                    "memo_en": "",
+                    "default_enabled": false
+                }
             ]
         },
         "ツールコンテナ": {
@@ -104,7 +140,8 @@
             "show_qty": false,
             "object_ids": [
                 "DEPLOYABLES"
-            ]
+            ],
+            "object_attr_id": "POI"
         },
         "武器": {
             "id": "WEAPON",
@@ -115,6 +152,15 @@
             "show_qty": true,
             "object_ids": [
                 "DEPLOYABLES"
+            ],
+            "object_attr_id": "POI",
+            "special_notes": [
+                {
+                    "kind": "memo",
+                    "memo_jp": "位置は固定。",
+                    "memo_en": "",
+                    "default_enabled": true
+                }
             ]
         },
         "ツール": {
@@ -126,7 +172,8 @@
             "show_qty": false,
             "object_ids": [
                 "DEPLOYABLES"
-            ]
+            ],
+            "object_attr_id": "POI"
         },
         "発電機": {
             "id": "POWER_GENERATOR",
@@ -137,7 +184,8 @@
             "show_qty": true,
             "object_ids": [
                 "DEPLOYABLES"
-            ]
+            ],
+            "object_attr_id": "POI"
         },
         "スキルブック": {
             "id": "SKILL_BOOK",
@@ -148,7 +196,8 @@
             "show_qty": true,
             "object_ids": [
                 "DEPLOYABLES"
-            ]
+            ],
+            "object_attr_id": "POI"
         },
         "その他のアイテム": {
             "id": "MISC",
@@ -159,7 +208,8 @@
             "show_qty": true,
             "object_ids": [
                 "DEPLOYABLES"
-            ]
+            ],
+            "object_attr_id": "POI"
         }
     },
     "item_master": {
@@ -676,6 +726,111 @@
             "display_style": "icon_only"
         }
     },
-    "category_special_rules": {},
-    "skill_name_master": []
+    "category_special_rules": {
+        "武器コンテナ": {
+            "rules": [
+                {
+                    "note_type": "必要条件",
+                    "applicability": "lenient",
+                    "default_enabled": false,
+                    "req_type": "スキルレベル",
+                    "skill_id": "SKILL_19221",
+                    "skill_level": "25"
+                },
+                {
+                    "note_type": "必要条件",
+                    "applicability": "lenient",
+                    "default_enabled": false,
+                    "req_type": "スキルレベル",
+                    "skill_id": "SKILL_19221",
+                    "skill_level": "75"
+                },
+                {
+                    "note_type": "必要条件",
+                    "applicability": "lenient",
+                    "default_enabled": false,
+                    "req_type": "装備",
+                    "item_name_jp": "改良されたつるはし",
+                    "item_name_en": "Improved Pickaxe",
+                    "item_name": "改良されたつるはし"
+                }
+            ]
+        },
+        "LOOT_CONTAINER": {
+            "rules": [
+                {
+                    "note_type": "必要条件",
+                    "applicability": "lenient",
+                    "default_enabled": false,
+                    "req_type": "スキルレベル",
+                    "skill_id": "SKILL_19221",
+                    "skill_level": "25"
+                },
+                {
+                    "note_type": "必要条件",
+                    "applicability": "lenient",
+                    "default_enabled": false,
+                    "req_type": "スキルレベル",
+                    "skill_id": "SKILL_19221",
+                    "skill_level": "75"
+                },
+                {
+                    "note_type": "必要条件",
+                    "applicability": "lenient",
+                    "default_enabled": false,
+                    "req_type": "装備",
+                    "item_name_jp": "改良されたつるはし",
+                    "item_name_en": "Improved Pickaxe",
+                    "item_name": "改良されたつるはし"
+                }
+            ]
+        },
+        "医療品コンテナ": {
+            "rules": [
+                {
+                    "note_type": "メモ",
+                    "memo_jp": "テスト",
+                    "memo_en": "",
+                    "default_enabled": false
+                }
+            ]
+        },
+        "MEDICAL_CONTAINER": {
+            "rules": [
+                {
+                    "note_type": "メモ",
+                    "memo_jp": "テスト",
+                    "memo_en": "",
+                    "default_enabled": false
+                }
+            ]
+        },
+        "武器": {
+            "rules": [
+                {
+                    "note_type": "メモ",
+                    "memo_jp": "位置は固定。",
+                    "memo_en": "",
+                    "default_enabled": true
+                }
+            ]
+        },
+        "WEAPON": {
+            "rules": [
+                {
+                    "note_type": "メモ",
+                    "memo_jp": "位置は固定。",
+                    "memo_en": "",
+                    "default_enabled": true
+                }
+            ]
+        }
+    },
+    "skill_name_master": [
+        {
+            "id": "SKILL_19221",
+            "name_jp": "開錠",
+            "name_en": "Lockpicking"
+        }
+    ]
 }

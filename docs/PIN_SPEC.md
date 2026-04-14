@@ -305,16 +305,17 @@
 
 | 処理 | 責務 |
 |------|------|
-| **on_attribute_changed** | オブジェクト変更時。`obj_type` を取得し、ルール①に従って中身エリアの表示/非表示と追加ボタンの有効/無効を切り替え。オブジェクト属性があれば `show_object_attributes` で表示。`update_category_list_by_type` でカテゴリを type フィルタ。 |
+| **on_attribute_changed** | オブジェクト変更時。`obj_type` とオブジェクト ID（`attr_id`）を取得し、ルール①に従って中身エリアの表示/非表示と追加ボタンの有効/無効を切り替え。オブジェクト属性があれば `show_object_attributes` で表示。`update_category_list_for_pin_object` で分類コンボを更新（`type` に加え、マスタの `object_attr_id` があれば選択中のオブジェクトと一致するカテゴリのみ）。 |
 | **on_slot_category_changed** | スロットのカテゴリ変更時。そのスロットの属性エリアをクリア。`input_type`（qty_only / item_select）と `show_qty` に従い、アイテム選択・数量の表示/非表示を切り替え。item_select のときは `item_master` からアイテム一覧をセット。 |
 | **on_slot_item_changed** | スロットのアイテム変更時。そのスロットの属性エリアをクリア後、選択アイテムの `attributes` に応じて fixed（表示のみ）/ select / number のウィジェットを生成。 |
 | **show_object_attributes** | オブジェクトに属性があるとき、`obj_attr_frame` に number / select の入力欄を生成。 |
-| **update_category_list_by_type** | `filtered_category_list` を obj_type でフィルタし、全スロットのカテゴリコンボボックスの values を更新。 |
+| **update_category_list_for_pin_object** | `filtered_category_list` を組み立てる。`landmark` では空。オブジェクト選択時は `type` が一致し、かつ `object_attr_id` が選択 ID と一致するか、または従来キー `object_ids` に選択 ID が含まれる分類だけ採用。オブジェクト未選択時は `object_attr_id` も `object_ids` も無い分類のみ（`type` で絞る）。全スロットの分類コンボを更新し、候補外は `(なし)` に戻す。 |
+| **_merge_pin_category_combo_values** | `load_to_ui` 用。フィルタ後リストに無い分類名（旧データなど）が必要なとき、当該スロットのコンボにだけ追加する。 |
 
 ### データの流れ（保存・読込）
 
 - **保存**: `save_data` がスロットから `categories_data`（各要素に `cat_id`, `category`, `item_id`, `qty`, `attributes`）を組み立て、マスタにないカテゴリ・アイテムは確認ダイアログ後に追加。CSV に `categories`（JSON）、`obj_attributes`（JSON）、`updated_at` を書き出す。
-- **読込**: `load_to_ui` が `attribute` → オブジェクト設定、`obj_attributes` → オブジェクト属性、`categories` → `cat_id` から表示名を解決しつつスロットを追加・各ウィジェットに値をセット。
+- **読込**: `load_to_ui` が `attribute` → オブジェクト設定（先に `on_attribute_changed` で分類リストを絞る）、`obj_attributes` → オブジェクト属性、`categories` → `cat_id` から表示名を解決しつつスロットを追加・各ウィジェットに値をセット。分類が現在のオブジェクトのフィルタに含まれない旧データのときは `_merge_pin_category_combo_values` で当該スロットのコンボにだけ候補を足す。
 
 ---
 

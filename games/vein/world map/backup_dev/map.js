@@ -714,6 +714,22 @@
         return itemQtyStringForEntry(c);
     }
 
+    function qtyNumericEqualsOne(s) {
+        if (s == null || String(s).trim() === '') return false;
+        var t = String(s).trim().replace(/[０-９]/g, function(ch) {
+            return String.fromCharCode(ch.charCodeAt(0) - 0xFF10 + 0x30);
+        });
+        var n = parseFloat(t, 10);
+        return !isNaN(n) && n === 1;
+    }
+
+    function hoverQtySuffix(qtyStr) {
+        if (qtyStr == null || String(qtyStr).trim() === '') return '';
+        var s = String(qtyStr).trim();
+        if (qtyNumericEqualsOne(s)) return '';
+        return ' ×' + s;
+    }
+
     function lockpickReqSuffix(c, isJa) {
         if (!c || !c.attributes || typeof c.attributes !== 'object') return '';
         var a = c.attributes;
@@ -775,7 +791,8 @@
             var iname = isJa ? (ij || ie) : (ie || ij);
             var icnt = String(rule.item_count || '').trim();
             if (!iname) return '';
-            return nt + maybeTag + ': ' + (icnt ? (iname + ' ×' + icnt) : iname);
+            var body = icnt && !qtyNumericEqualsOne(icnt) ? (iname + ' ×' + icnt) : iname;
+            return nt + maybeTag + ': ' + body;
         }
         if (rt === 'スキルレベル') {
             var sid2 = String(rule.skill_id || '').trim();
@@ -1129,11 +1146,11 @@
             var head = '';
             if (itemName) {
                 head = catLab ? (catLab + '：' + itemName) : itemName;
-                if (qtyStr) head += ' ×' + qtyStr;
+                head += hoverQtySuffix(qtyStr);
                 head += reqSuffix;
             } else if (catLab) {
                 head = catLab;
-                if (qtyStr) head += ' ×' + qtyStr;
+                head += hoverQtySuffix(qtyStr);
                 head += reqSuffix;
             } else {
                 return;

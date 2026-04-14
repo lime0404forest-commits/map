@@ -3,55 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VEIN World Map</title>
+    <title>VEIN World Map (Weapons Subset)</title>
 </head>
 <body style="margin:0;background:#0d0d0d;color:#fff;">
 <!--
-  =============================================================================
-  VEIN 地図 埋め込み（このファイル1つに統合）
-  =============================================================================
-  ■ ローカル確認
-    リポジトリルートで py -m http.server 8080 などを立て、
-    http://127.0.0.1:8080/games/vein/world%20map/embed.html を開く。
-    （map.js・config.json・master_data.csv・tiles・areas.json と同じ階層にこの embed.html を置く想定）
-
-  ■ WordPress など「カスタムHTMLブロック」にそのまま貼る場合
-    下の 「VEIN_MAP_EMBED_COPY_START」から「VEIN_MAP_EMBED_COPY_END」までを
-    まるごとコピー（マーカー行ごと削除してもよい）。
-
-    本番サイトでは次を必ず自環境に合わせて書き換え:
-    - 最後の <script src="map.js"> を、公開中の map.js の絶対URLへ
-      （例: https://example.com/vein-map/map.js）
-    - SVG は既定で「map.js と同じ階層の assets/icons/」を参照（フォルダごとアップロードで可）。
-      別URLの共通アイコンを第2候補にしたいときだけ、任意で data-svg-icons-common-base を付ける
-      （末尾スラッシュ付き。例: https://cdn.example.com/vein-icons/）。サイトルートの /assets/ だけ
-      ではなく map と同じパスに置く場合は属性は不要。
-    - CSV のみ使うなら data-pins は付けない（既定）。pins_export.json を使うときだけ
-      data-pins="pins_export.json" または絶対URLを追加。
-    - 言語切替は iframe の URL クエリで指定可能（推奨）:
-      embed.html?lang=ja / embed.html?lang=en
-      （map.js は ?lang を最優先で判定。次点で #game-map の data-lang）
-    - 表示プリセット（同一DBでデチューン版）:
-      embed.html?preset=weapons
-      （view-presets.json のルールを適用。必要なら #game-map に
-      data-view-preset="weapons" を付けても同等）
-    - 重要度表示（既定OFF）:
-      #game-map に data-importance-visual="off|size|size+glow"
-      URL なら ?importance_visual=size など。UIの「重要度で強調表示」でON/OFF切替可。
-
-    注意: テーマやセキュリティ設定によっては <script> がブロックされる。その場合は
-    このHTMLを別URLで静的ホストし iframe で読み込む方法に切り替える。
-  =============================================================================
+  武器デチューン版（同一DB共用）
+  - map.js / config.json / master_data.csv は通常版と同じ
+  - #game-map の data-view-preset="weapons" だけ変更
+  - 言語は ?lang=ja / ?lang=en で切替
 -->
-
-<!-- VEIN_MAP_EMBED_COPY_START -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <style>
     .vein-map-embed-root { box-sizing: border-box; }
     .vein-map-embed-root * { box-sizing: border-box; }
     .vein-map-embed-root #map-container { position: relative; width: 100%; min-height: 560px; height: 88vh; border: 1px solid #333; overflow: hidden; }
-    /* 左フィルター表示時は map.js が #map-container / #game-map の高さ下限を確保する（真っ白防止） */
     .vein-map-embed-root #game-map { width: 100%; height: 100%; min-height: 520px; background: #0d0d0d; }
     .vein-map-embed-root .emoji-icon div {
         display: flex; justify-content: center; align-items: center;
@@ -110,6 +76,7 @@
              data-zoom="3"
              data-center-x="2200"
              data-center-y="3300"
+             data-view-preset="weapons"
              data-importance-visual="off"
              data-show-all-pins="true"
              data-demo-pin-marker-size="32"
@@ -117,7 +84,5 @@
     </div>
 </div>
 <script src="map.js"></script>
-<!-- VEIN_MAP_EMBED_COPY_END -->
-
 </body>
 </html>

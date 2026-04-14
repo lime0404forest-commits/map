@@ -105,16 +105,26 @@ def item_qty_for_hover(c: Optional[Dict]) -> str:
     return item_qty_string_for_entry(c)
 
 
+def _qty_numeric_equals_one(s: str) -> bool:
+    """数量文字列が数値 1（全角数字・小数可）か。"""
+    if not s or not str(s).strip():
+        return False
+    t = str(s).strip()
+    trans = str.maketrans("０１２３４５６７８９", "0123456789")
+    t = t.translate(trans)
+    try:
+        return float(t) == 1.0
+    except ValueError:
+        return False
+
+
 def hover_qty_suffix(qty_str: str) -> str:
-    """ホバー用: 数量が 1（または 1.0）のときは × を付けない。"""
+    """ホバー・クリックポップアップ用: 数量が 1 のときは × を付けない。2 以上のみ「×数」の形。"""
     if qty_str is None or not str(qty_str).strip():
         return ""
     s = str(qty_str).strip()
-    try:
-        if float(s) == 1.0:
-            return ""
-    except ValueError:
-        pass
+    if _qty_numeric_equals_one(s):
+        return ""
     return f" ×{s}"
 
 
@@ -176,13 +186,18 @@ def special_rule_text(rule: Dict, is_ja: bool, skill_name_master: Dict) -> str:
         return ""
     nt = _s(rule.get("note_type")).strip()
     rt = _s(rule.get("req_type")).strip()
-    nt_disp = nt if is_ja else ({"必要条件": "Required", "推奨条件": "Recommended", "メモ": "Memo"}.get(nt, nt))
     app = _s(rule.get("applicability") or "always").strip()
+    nt_disp = nt if is_ja else ({"必要条件": "Required", "推奨条件": "Recommended", "メモ": "Memo"}.get(nt, nt))
+    # EN の「必要条件(緩め)」は "Required (May require)" を避ける
+    if (not is_ja) and nt == "必要条件" and app == "lenient":
+        nt_disp = "May require"
     if app == "sometimes":
         maybe_tag = "（場合あり）" if is_ja else " (Sometimes)"
     elif app == "lenient":
-        maybe_tag = "（必要な場合がある）" if is_ja else " (May be required)"
+        maybe_tag = "（必要な場合がある）" if is_ja else " (May require)"
     else:
+        maybe_tag = ""
+    if (not is_ja) and nt == "必要条件" and app == "lenient":
         maybe_tag = ""
     if nt == "メモ":
         mjp = _s(rule.get("memo_jp")).strip()
@@ -205,7 +220,10 @@ def special_rule_text(rule: Dict, is_ja: bool, skill_name_master: Dict) -> str:
         icnt = _s(rule.get("item_count")).strip()
         if not iname:
             return ""
-        body = f"{iname} ×{icnt}" if icnt else iname
+        if icnt and not _qty_numeric_equals_one(icnt):
+            body = f"{iname} ×{icnt}"
+        else:
+            body = iname
         return f"{nt_disp}{maybe_tag}: {body}"
     if rt == "スキルレベル":
         sid2 = _s(rule.get("skill_id")).strip()
@@ -336,13 +354,12 @@ def format_all_contents_for_popup_html(contents_arr: List[Dict], is_ja: bool) ->
         head = ""
         if item_name:
             head = f"{cat_lab}：{item_name}" if cat_lab else item_name
-            if qty_str:
-                head += f" ×{qty_str}"
+            # ホバーと同様: 数量が 1 のときは × を付けない
+            head += hover_qty_suffix(qty_str)
             head += req_suffix
         elif cat_lab:
             head = cat_lab
-            if qty_str:
-                head += f" ×{qty_str}"
+            head += hover_qty_suffix(qty_str)
             head += req_suffix
         else:
             continue

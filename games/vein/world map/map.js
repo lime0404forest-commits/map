@@ -18,19 +18,246 @@
         if (document.getElementById('map-pin-leaflet-shell-style')) return;
         var st = document.createElement('style');
         st.id = 'map-pin-leaflet-shell-style';
-        st.textContent = '.map-pin-leaflet-shell{background:transparent!important;border:none!important;}';
+        st.textContent = [
+            '.map-pin-leaflet-shell{background:transparent!important;border:none!important;}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-1 .map-pin-svg-composite,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-1 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-1.emoji-icon div{transform:scale(0.92);}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-2 .map-pin-svg-composite,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-2 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-2.emoji-icon div{transform:scale(0.97);}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-3 .map-pin-svg-composite,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-3 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-3.emoji-icon div{transform:scale(1);}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-4 .map-pin-svg-composite,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-4 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-4.emoji-icon div{transform:scale(1.08);}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-5 .map-pin-svg-composite,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-5 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-5.emoji-icon div{transform:scale(1.16);}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-4 .map-pin-svg-composite,.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-4 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-4.emoji-icon div{',
+            '-webkit-filter:drop-shadow(0 0 6px rgba(255,210,120,0.45));filter:drop-shadow(0 0 6px rgba(255,210,120,0.45));}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-5 .map-pin-svg-composite,.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-5 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-5.emoji-icon div{',
+            '-webkit-filter:drop-shadow(0 0 9px rgba(255,220,140,0.56));filter:drop-shadow(0 0 9px rgba(255,220,140,0.56));}',
+            '.leaflet-marker-icon.map-pin-active{z-index:1200!important;}',
+            '.leaflet-marker-icon.map-pin-active .map-pin-svg-composite,.leaflet-marker-icon.map-pin-active .map-pin-icon-only,.leaflet-marker-icon.map-pin-active.emoji-icon div{',
+            'transform:scale(1.12);transform-origin:50% 50%;',
+            '-webkit-filter:drop-shadow(0 0 10px rgba(255,220,140,0.55));',
+            'filter:drop-shadow(0 0 10px rgba(255,220,140,0.55));',
+            'transition:transform 0.12s ease,filter 0.12s ease;}'
+        ].join('');
+        document.head.appendChild(st);
+    })();
+
+    /** 左ドロワー型フィルター UI（L.control.layers 置き換え）— 落ち着いたトーン・SVG アイコン */
+    (function ensureVeinFilterDrawerStyles() {
+        if (document.getElementById('vein-filter-drawer-style')) return;
+        var st = document.createElement('style');
+        st.id = 'vein-filter-drawer-style';
+        st.textContent = [
+            '#map-container.vein-map-with-filter{display:flex!important;flex-direction:row!important;align-items:stretch!important;width:100%!important;box-sizing:border-box!important;',
+            'min-height:560px!important;height:88vh!important;max-height:100%!important;position:relative!important;overflow:hidden!important;}',
+            '#map-container.vein-map-with-filter #game-map{flex:1 1 auto!important;min-width:0!important;min-height:400px!important;',
+            'align-self:stretch!important;max-height:100%!important;overflow:hidden!important;}',
+            '.vein-filter-drawer{flex:0 0 auto;width:286px;max-width:88vw;box-sizing:border-box;',
+            'background:#121214;border-right:1px solid rgba(255,255,255,0.045);',
+            'display:flex;flex-direction:column;z-index:700;color:#b8b5b0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;',
+            'min-height:0!important;height:100%!important;max-height:100%!important;',
+            'transition:width 0.2s ease,min-width 0.2s ease;overflow:hidden;font-size:13px;}',
+            '.vein-filter-drawer.vein-filter-drawer--collapsed{width:48px;min-width:48px;}',
+            '.vein-filter-drawer__head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 12px 8px;border-bottom:1px solid rgba(255,255,255,0.04);flex-shrink:0;}',
+            '.vein-filter-drawer__title{font-size:10px;font-weight:500;letter-spacing:0.2em;text-transform:uppercase;color:#5a5855;}',
+            '.vein-filter-drawer__toggle{width:30px;height:30px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:transparent;',
+            'color:#8e8c88;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1;transition:background 0.15s,color 0.15s;}',
+            '.vein-filter-drawer__toggle:hover{background:rgba(255,255,255,0.05);color:#c9c6c1;}',
+            '.vein-filter-drawer__scroll{flex:1 1 auto!important;min-height:0!important;overflow-y:auto;overflow-x:hidden;padding:6px 8px 12px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.12) transparent;}',
+            '.vein-filter-drawer__scroll::-webkit-scrollbar{width:5px;}',
+            '.vein-filter-drawer__scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px;}',
+            '.vein-filter-section{margin-bottom:14px;}',
+            '.vein-filter-section:last-child{margin-bottom:4px;}',
+            '.vein-filter-section__label{font-size:9px;font-weight:500;letter-spacing:0.18em;text-transform:uppercase;color:#4a4846;padding:8px 8px 6px;margin:0;}',
+            '.vein-filter-group{margin-bottom:10px;}',
+            '.vein-filter-group__head{display:flex;align-items:center;gap:10px;padding:8px 10px 6px;margin-bottom:0;border-bottom:1px solid rgba(255,255,255,0.035);border-radius:6px 6px 0 0;}',
+            '.vein-filter-group__head.vein-filter-row{margin-bottom:0;}',
+            '.vein-filter-group__title{flex:1;font-size:11px;font-weight:500;color:#8f8b85;letter-spacing:0.06em;}',
+            '.vein-filter-group__body{padding:2px 0 6px 0;}',
+            '.vein-filter-row--nested{margin-left:10px;padding-left:10px;border-left:1px solid rgba(255,255,255,0.05);}',
+            '.vein-filter-row--nested-deep{margin-left:20px;padding-left:10px;border-left:1px solid rgba(255,255,255,0.045);}',
+            '.vein-filter-subgroup-title{margin:6px 0 2px 12px;padding:4px 8px 3px;border-left:1px solid rgba(255,255,255,0.07);font-size:10px;letter-spacing:0.05em;color:#6f6c67;}',
+            '.vein-filter-group--collapsed .vein-filter-group__body{display:none;}',
+            '.vein-filter-group__collapse{flex:0 0 auto;min-width:52px;height:22px;border-radius:999px;border:1px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.03);',
+            'color:#9b978f;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:0 8px;font-size:10px;line-height:1;}',
+            '.vein-filter-group__collapse:hover{background:rgba(255,255,255,0.08);color:#d2cec8;}',
+            '.vein-filter-group__collapse-arrow{display:inline-block;font-size:11px;line-height:1;transform:rotate(0deg);transition:transform 0.14s ease;}',
+            '.vein-filter-group--collapsed .vein-filter-group__collapse-arrow{transform:rotate(-90deg);}',
+            '.vein-filter-group__collapse-label{letter-spacing:0.04em;}',
+            '.vein-filter-drawer--collapsed .vein-filter-group__collapse{display:none;}',
+            '.vein-filter-drawer--collapsed .vein-filter-group__head,.vein-filter-drawer--collapsed .vein-filter-group__title{display:none;}',
+            '.vein-filter-drawer--collapsed .vein-filter-row--nested{margin-left:0;border-left:none;padding-left:6px;}',
+            '.vein-filter-row{display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:2px;border-radius:6px;cursor:pointer;',
+            'border:1px solid transparent;border-left:2px solid transparent;transition:background 0.14s,border-color 0.14s;user-select:none;}',
+            '.vein-filter-row:hover{background:rgba(255,255,255,0.03);}',
+            '.vein-filter-row--on{background:rgba(255,255,255,0.045);border-left-color:rgba(180,175,168,0.35);}',
+            '.vein-filter-row input{position:absolute;opacity:0;width:0;height:0;}',
+            '.vein-filter-icon-svg{flex-shrink:0;color:#6e6b66;opacity:0.92;display:block;}',
+            '.vein-filter-row--on .vein-filter-icon-svg{color:#9c9892;}',
+            '.vein-filter-icon-svg--muted{color:#555350;opacity:0.85;}',
+            '.vein-filter-label{flex:1;font-size:12.5px;font-weight:400;color:#a9a6a1;line-height:1.3;}',
+            '.vein-filter-row--on .vein-filter-label{color:#d4d1cc;}',
+            '.vein-filter-drawer--collapsed .vein-filter-drawer__title,.vein-filter-drawer--collapsed .vein-filter-label,.vein-filter-drawer--collapsed .vein-filter-section__label,.vein-filter-drawer--collapsed .vein-filter-none-label{display:none;}',
+            '.vein-filter-drawer--collapsed .vein-filter-row{justify-content:center;padding:7px 4px;}',
+            '.vein-filter-drawer--collapsed .vein-filter-icon-svg{margin:0;}',
+            '.vein-filter-toggle-ui{flex-shrink:0;width:34px;height:18px;border-radius:999px;background:#1e1e21;position:relative;transition:background 0.16s;border:1px solid rgba(255,255,255,0.06);}',
+            '.vein-filter-toggle-ui::after{content:"";position:absolute;width:14px;height:14px;border-radius:50%;background:#5c5a57;top:1px;left:2px;transition:transform 0.16s,background 0.16s;}',
+            '.vein-filter-row--on .vein-filter-toggle-ui{background:#2c2c30;border-color:rgba(255,255,255,0.08);}',
+            '.vein-filter-row--on .vein-filter-toggle-ui::after{transform:translateX(14px);background:#c8c4be;}',
+            '.vein-filter-drawer--collapsed .vein-filter-toggle-ui{display:none;}',
+            '.leaflet-top.leaflet-right .leaflet-control-zoom a{background:#161618!important;border:1px solid rgba(255,255,255,0.07)!important;color:#b5b2ad!important;}',
+            '.leaflet-top.leaflet-right .leaflet-control-zoom a:hover{background:#1e1e21!important;}',
+            '.leaflet-top.leaflet-right .leaflet-bar{box-shadow:0 2px 12px rgba(0,0,0,0.4);border-radius:8px;overflow:hidden;border:none!important;}',
+            '.vein-fullscreen-btn{background:#161618!important;border:1px solid rgba(255,255,255,0.07)!important;color:#b5b2ad!important;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;cursor:pointer;}',
+            '.vein-fullscreen-btn:hover{background:#1e1e21!important;color:#d0ccc6!important;}',
+            '.leaflet-control.vein-fullscreen-control{margin-top:8px;}',
+            '.vein-filter-adv{margin-top:10px;border-top:1px solid rgba(255,255,255,0.06);padding-top:6px;}',
+            '.vein-filter-adv__summary{cursor:pointer;font-size:10px;font-weight:500;letter-spacing:0.14em;color:#6a6865;padding:8px 6px 6px;list-style:none;user-select:none;}',
+            '.vein-filter-adv__summary::-webkit-details-marker{display:none;}',
+            '.vein-filter-adv__inner{padding:0 2px 10px;}',
+            '.vein-filter-adv__search{width:100%;box-sizing:border-box;margin-bottom:8px;padding:7px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:#1a1a1d;color:#c9c6c1;font-size:12px;}',
+            '.vein-filter-adv__search::placeholder{color:#5c5a57;}',
+            '.vein-filter-adv__list{max-height:240px;overflow-y:auto;scrollbar-width:thin;}',
+            '.vein-filter-adv .vein-filter-row--nested{margin-left:0;padding-left:6px;border-left:none;}',
+            '.vein-filter-drawer--collapsed .vein-filter-adv{display:none;}'
+        ].join('');
         document.head.appendChild(st);
     })();
 
     // 設定読み込み
     var showLabels = mapDiv.getAttribute('data-show-labels') === 'true';
     var htmlZoom = parseInt(mapDiv.getAttribute('data-zoom'), 10);
-    var defaultZoom = (!isNaN(htmlZoom)) ? htmlZoom : 2;
+    // 既定は 1 段階寄り（2 -> 3）
+    var defaultZoom = (!isNaN(htmlZoom)) ? htmlZoom : 3;
+    var centerXRaw = parseFloat(mapDiv.getAttribute('data-center-x'));
+    var centerYRaw = parseFloat(mapDiv.getAttribute('data-center-y'));
+    var defaultCenterX = !isNaN(centerXRaw) ? centerXRaw : 2200;
+    var defaultCenterY = !isNaN(centerYRaw) ? centerYRaw : 3300;
+    var importanceVisualParam = (new URLSearchParams(window.location.search).get('importance_visual') || '').trim().toLowerCase();
+    var importanceVisualRaw = (importanceVisualParam || mapDiv.getAttribute('data-importance-visual') || 'off').trim().toLowerCase();
+    var importanceVisualVariant = 'size';
+    if (importanceVisualRaw === 'size+glow' || importanceVisualRaw === 'size_glow' || importanceVisualRaw === 'glow') {
+        importanceVisualVariant = 'size+glow';
+    } else if (importanceVisualRaw === 'size') {
+        importanceVisualVariant = 'size';
+    }
+    var importanceVisualEnabled = importanceVisualRaw !== 'off' && importanceVisualRaw !== 'false' && importanceVisualRaw !== '0';
     var filterMode = mapDiv.getAttribute('data-filter');
     var customCsv = mapDiv.getAttribute('data-csv');
     var customPins = mapDiv.getAttribute('data-pins');  // pins_export.json 用
     // テスト用: 未指定時は「その他」等も表示（本番 embed では付けない想定）
     var showAllPins = mapDiv.getAttribute('data-show-all-pins') === 'true';
+    // 表示プリセット（embed から指定）: ?preset=weapons / data-view-preset="weapons"
+    // 互換: ?subset=weapons / data-subset も preset として受け付ける
+    var presetMode = (
+        new URLSearchParams(window.location.search).get('preset') ||
+        mapDiv.getAttribute('data-view-preset') ||
+        new URLSearchParams(window.location.search).get('subset') ||
+        mapDiv.getAttribute('data-subset') ||
+        ''
+    ).trim().toLowerCase();
+    var subsetAllowedCategoryIds = null;
+    var subsetAllowedObjectIds = null;
+    var subsetAllowedItemIds = null;
+    var presetDefaultOnObjectIds = null;
+    var presetDefaultOffObjectIds = null;
+    var presetDefaultOnCategoryIds = null;
+    var presetDefaultOnItemIds = null;
+    var presetCollapsedObjectIds = null;
+
+    function setFromIdArray(arr) {
+        if (!Array.isArray(arr) || arr.length === 0) return null;
+        var s = new Set();
+        arr.forEach(function (x) {
+            var v = String(x || '').trim().toUpperCase();
+            if (v) s.add(v);
+        });
+        return s.size > 0 ? s : null;
+    }
+
+    function builtinPresetRule(name) {
+        var n = String(name || '').trim().toLowerCase();
+        if (n === 'weapons' || n === 'weapon') {
+            return {
+                allowed_category_ids: ['LOOT_CONTAINER', 'WEAPON'],
+                allowed_object_ids: ['POI', 'DEPLOYABLES'],
+                allowed_item_ids: [],
+                default_on_object_ids: ['DEPLOYABLES'],
+                default_off_object_ids: ['POI'],
+                default_on_category_ids: [],
+                default_on_item_ids: [],
+                collapsed_object_ids: ['POI']
+            };
+        }
+        return null;
+    }
+
+    function applyViewPresetRule(rule) {
+        subsetAllowedCategoryIds = null;
+        subsetAllowedObjectIds = null;
+        subsetAllowedItemIds = null;
+        presetDefaultOnObjectIds = null;
+        presetDefaultOffObjectIds = null;
+        presetDefaultOnCategoryIds = null;
+        presetDefaultOnItemIds = null;
+        presetCollapsedObjectIds = null;
+        if (!rule || typeof rule !== 'object') return;
+        subsetAllowedCategoryIds = setFromIdArray(rule.allowed_category_ids);
+        subsetAllowedObjectIds = setFromIdArray(rule.allowed_object_ids);
+        subsetAllowedItemIds = setFromIdArray(rule.allowed_item_ids);
+        presetDefaultOnObjectIds = setFromIdArray(rule.default_on_object_ids);
+        presetDefaultOffObjectIds = setFromIdArray(rule.default_off_object_ids);
+        presetDefaultOnCategoryIds = setFromIdArray(rule.default_on_category_ids);
+        presetDefaultOnItemIds = setFromIdArray(rule.default_on_item_ids);
+        presetCollapsedObjectIds = setFromIdArray(rule.collapsed_object_ids);
+    }
+
+    function isSubsetActive() {
+        return !!subsetAllowedCategoryIds || !!subsetAllowedObjectIds || !!subsetAllowedItemIds ||
+            !!presetDefaultOnObjectIds || !!presetDefaultOffObjectIds ||
+            !!presetDefaultOnCategoryIds || !!presetDefaultOnItemIds ||
+            !!presetCollapsedObjectIds;
+    }
+    function normalizeCatId(cid) {
+        return String(cid || '').trim().toUpperCase();
+    }
+    function isCategoryAllowedBySubset(cid) {
+        if (!subsetAllowedCategoryIds) return true;
+        var c = normalizeCatId(cid);
+        if (!c) return false;
+        return subsetAllowedCategoryIds.has(c);
+    }
+    function hasAnySubsetAllowedCategory(catIds) {
+        if (!subsetAllowedCategoryIds) return true;
+        var arr = Array.isArray(catIds) ? catIds : [];
+        for (var i = 0; i < arr.length; i++) {
+            if (isCategoryAllowedBySubset(arr[i])) return true;
+        }
+        return false;
+    }
+    function isItemAllowedBySubset(itemId) {
+        if (!subsetAllowedItemIds) return true;
+        var i = String(itemId || '').trim().toUpperCase();
+        if (!i) return false;
+        return subsetAllowedItemIds.has(i);
+    }
+    function hasAnySubsetAllowedItem(itemIds) {
+        if (!subsetAllowedItemIds) return true;
+        var arr = Array.isArray(itemIds) ? itemIds : [];
+        for (var i = 0; i < arr.length; i++) {
+            if (isItemAllowedBySubset(arr[i])) return true;
+        }
+        return false;
+    }
+    function isObjectAllowedBySubset(objId) {
+        if (!subsetAllowedObjectIds) return true;
+        var o = String(objId || '').trim().toUpperCase();
+        if (!o) return false;
+        return subsetAllowedObjectIds.has(o);
+    }
+    function subsetAllowsMarker(primaryObj, catIds, itemIds) {
+        if (!isSubsetActive()) return true;
+        if (!isObjectAllowedBySubset(primaryObj)) return false;
+        if (isPoiObjectKey(primaryObj)) return hasAnySubsetAllowedItem(itemIds);
+        return hasAnySubsetAllowedCategory(catIds) && hasAnySubsetAllowedItem(itemIds);
+    }
 
     // map.js の配置ディレクトリを baseUrl にする（currentScript が null の環境向けフォールバック付き）
     function resolveMapJsBaseUrl() {
@@ -63,14 +290,43 @@
     var pinsJsonUrl = customPins || (baseUrl + 'pins_export.json');
     var tileUrl = baseUrl + 'tiles/{z}/{x}/{y}.webp';
 
-    var isJa = (document.documentElement.lang || navigator.language || '').toLowerCase().indexOf('ja') === 0;
+    /**
+     * 表示言語の解決順:
+     * 1) URL クエリ (?lang=ja|en)
+     * 2) #game-map data-lang
+     * 3) embed 側 html[lang]
+     * 4) ブラウザ言語
+     */
+    function resolveMapUiLang() {
+        var qLang = (new URLSearchParams(window.location.search).get('lang') || '').trim().toLowerCase();
+        var dLang = (mapDiv.getAttribute('data-lang') || '').trim().toLowerCase();
+        var hLang = (document.documentElement.lang || '').trim().toLowerCase();
+        var nLang = (navigator.language || '').trim().toLowerCase();
+        var raw = qLang || dLang || hLang || nLang || 'ja';
+        if (raw.indexOf('ja') === 0) return 'ja';
+        if (raw.indexOf('en') === 0) return 'en';
+        return 'ja';
+    }
+    var mapUiLang = resolveMapUiLang();
+    var isJa = mapUiLang === 'ja';
     var isDebug = new URLSearchParams(window.location.search).get('debug') === 'true';
 
     // レイヤーフィルター用（config.attr_mapping から再構築）
     var styles = {};
     var attrToStyle = {};
-    /** VEIN: ピン表示グルーピングはオブジェクト(attribute)のみ。カテゴリ cat_id はフィルターに混ぜない。 */
+    /** VEIN: オブジェクト(attribute)フィルター + category_master 由来の cat_id フィルター */
     var catIdToStyle = {};
+    var categoryMasterGlobal = {};
+    var activeCategoryFilters = new Set();
+    /** config.category_list の順（マスタ保存時のカテゴリ行順＝category_master のキー順） */
+    var categoryListOrderGlobal = [];
+    /** config.item_master — 詳細フィルター用 */
+    var itemMasterGlobal = {};
+    var activeItemFilters = new Set();
+    /** メイン階層UI: POI 配下のアイテムフィルター（カテゴリではなく item_id で絞る） */
+    var activePoiItemFilters = new Set();
+    /** config の map_object_attr_ids 順でオブジェクトグループを並べる（無ければ styles のキー順） */
+    var mapObjectAttrIdsOrder = null;
 
     var TYPE_EMOJI = { landmark: '🏛️', loot: '📦', colony: '🌿', other: '📍' };
 
@@ -84,15 +340,40 @@
         var fm = filterMode ? String(filterMode).trim() : '';
         Object.keys(styles).forEach(function (key) {
             if (key === 'trash' && !isDebug) return;
+            if (key === 'other') return;
+            if (!isObjectAllowedBySubset(key)) return;
             if (fm) {
                 if (key.toUpperCase() === fm.toUpperCase()) activeCategories.add(key);
+                return;
+            }
+            var ku = String(key || '').trim().toUpperCase();
+            if (presetDefaultOnObjectIds) {
+                if (presetDefaultOnObjectIds.has(ku)) activeCategories.add(key);
+                return;
+            }
+            if (presetDefaultOffObjectIds && presetDefaultOffObjectIds.has(String(key || '').trim().toUpperCase())) {
                 return;
             }
             activeCategories.add(key);
         });
     }
 
-    /** config.json 読込後: オブジェクトマスタ1件 = フィルター1項目（絵文字・色は type に応じた既定） */
+    function firstObjectStyleKey() {
+        var keys = Object.keys(styles).filter(function (k) {
+            return k !== 'trash' && k !== 'other';
+        });
+        return keys[0] || '';
+    }
+
+    function initActiveCategoryFilters() {
+        activeCategoryFilters.clear();
+        if (!presetDefaultOnCategoryIds) return;
+        presetDefaultOnCategoryIds.forEach(function (cid) {
+            if (isCategoryAllowedBySubset(cid)) activeCategoryFilters.add(String(cid));
+        });
+    }
+
+    /** config.json 読込後: オブジェクトマスタ1件 = フィルター1項目（マーカー用 emoji・色は type に応じた既定） */
     function rebuildVeinFilterFromAttrMapping() {
         styles = {};
         attrToStyle = {};
@@ -108,30 +389,50 @@
             styles[attrId] = {
                 emoji: emojiForObjectType(typ),
                 color: color,
-                label: isJa ? labelJa : labelEn
+                label: isJa ? labelJa : labelEn,
+                objType: typ
             };
             attrToStyle[attrId] = attrId;
             attrToStyle[String(attrId).toUpperCase()] = attrId;
         });
-        styles.other = styles.other || {
-            emoji: TYPE_EMOJI.other,
-            color: '#7f8c8d',
-            label: isJa ? 'その他' : 'Other'
-        };
         if (isDebug) {
-            styles.trash = { emoji: '❌', color: '#555555', label: isJa ? '調査済み(空)' : 'Checked(Empty)' };
+            styles.trash = { emoji: '❌', color: '#555555', label: isJa ? '調査済み(空)' : 'Checked(Empty)', objType: 'other' };
         }
         initActiveCategoriesForVein();
+        initActiveCategoryFilters();
+        initActiveItemFilters();
+        initActivePoiItemFilters();
+    }
+
+    function initActiveItemFilters() {
+        activeItemFilters.clear();
+    }
+
+    function initActivePoiItemFilters() {
+        activePoiItemFilters.clear();
+        if (!presetDefaultOnItemIds) return;
+        presetDefaultOnItemIds.forEach(function (iid) {
+            if (isItemAllowedBySubset(iid)) activePoiItemFilters.add(String(iid));
+        });
     }
 
     function resolveFilterStyleKey(rawAttr) {
         var a = String(rawAttr || '').trim();
-        if (!a) return 'other';
+        var fb = firstObjectStyleKey();
+        if (!a) return fb || a;
         if (styles[a]) return a;
         var u = a.toUpperCase();
         if (attrToStyle[u]) return attrToStyle[u];
         if (attrToStyle[a]) return attrToStyle[a];
-        return 'other';
+        return fb || a;
+    }
+
+    function pickVisualStyle(styleKey) {
+        var st = styles[styleKey];
+        if (st) return st;
+        var fb = firstObjectStyleKey();
+        if (fb && styles[fb]) return styles[fb];
+        return { emoji: TYPE_EMOJI.other, color: '#4a4a4c', label: '', objType: 'loot' };
     }
 
     window.map = L.map('game-map', {
@@ -140,8 +441,61 @@
         maxZoom: maxZoom,
         zoom: defaultZoom,
         maxBoundsViscosity: 0.8,
-        preferCanvas: true
+        preferCanvas: true,
+        zoomControl: false
     });
+    L.control.zoom({ position: 'topright' }).addTo(map);
+
+    function addFullscreenControl() {
+        var target = document.getElementById('map-container') || mapDiv.parentElement || mapDiv;
+        var FullscreenControl = L.Control.extend({
+            options: { position: 'topright' },
+            onAdd: function () {
+                var btn = L.DomUtil.create('button', 'vein-fullscreen-btn');
+                btn.type = 'button';
+                btn.title = isJa ? '全画面表示' : 'Fullscreen';
+                btn.setAttribute('aria-label', btn.title);
+                btn.innerHTML = '&#x26F6;';
+
+                function syncUi() {
+                    var fsOn = !!document.fullscreenElement;
+                    btn.innerHTML = fsOn ? '&#x2715;' : '&#x26F6;';
+                    btn.title = fsOn ? (isJa ? '全画面を終了' : 'Exit fullscreen') : (isJa ? '全画面表示' : 'Fullscreen');
+                    btn.setAttribute('aria-label', btn.title);
+                }
+
+                L.DomEvent.disableClickPropagation(btn);
+                L.DomEvent.on(btn, 'click', function (ev) {
+                    L.DomEvent.stop(ev);
+                    if (!document.fullscreenElement) {
+                        var req = target.requestFullscreen || target.webkitRequestFullscreen || target.msRequestFullscreen;
+                        if (req) {
+                            Promise.resolve(req.call(target)).then(function () {
+                                syncUi();
+                                invalidateMapSizeSoon();
+                            }).catch(function () { /* ignore */ });
+                        }
+                    } else {
+                        var ex = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+                        if (ex) {
+                            Promise.resolve(ex.call(document)).then(function () {
+                                syncUi();
+                                invalidateMapSizeSoon();
+                            }).catch(function () { /* ignore */ });
+                        }
+                    }
+                });
+                document.addEventListener('fullscreenchange', function () {
+                    syncUi();
+                    invalidateMapSizeSoon();
+                });
+                syncUi();
+                return btn;
+            }
+        });
+        map.addControl(new FullscreenControl());
+    }
+    addFullscreenControl();
 
     var imageBounds = new L.LatLngBounds(
         map.unproject([0, imgH], maxZoom),
@@ -154,7 +508,7 @@
 
     map.setMaxBounds(paddedBounds);
     map.fitBounds(imageBounds);
-    map.setZoom(defaultZoom);
+    map.setView(map.unproject([defaultCenterX, defaultCenterY], maxZoom), defaultZoom);
 
     L.tileLayer(tileUrl, {
         minZoom: 0,
@@ -174,6 +528,18 @@
     }
     map.on('zoomend', updateZoomClass);
     updateZoomClass();
+
+    // 親レイアウト後のリサイズ（WordPress 等で高さが後から決まる／フィルター挿入後の再計算）
+    window.addEventListener('resize', function () {
+        try {
+            map.invalidateSize();
+        } catch (eR) { /* ignore */ }
+    });
+    setTimeout(function () {
+        try {
+            map.invalidateSize();
+        } catch (eR2) { /* ignore */ }
+    }, 0);
 
     // デモ用ピン: 内蔵レイヤー + 別ファイルのアイコン（例: frame1.svg）
     // data-demo-svg-href: 省略 / embedded / - → 内蔵ベース＋アイコン別fetch。それ以外 → 従来どおり SVG 丸ごと fetch
@@ -266,7 +632,7 @@
     }
     /** 外部SVGを HTML img で重ねる（SVG内 <image> より表示が安定） */
     function wrapPinBasePlusImgIcon(pinBgColor, iconSrcWithBust, symColor, markerPx) {
-        var mp = markerPx || 56;
+        var mp = markerPx || 32;
         var baseOnly = buildPinStackSvg('', symColor);
         var href = escapeHtmlAttr(iconSrcWithBust);
         return '<div class="demo-pin-composite" style="position:relative;width:' + mp + 'px;height:' + mp + 'px;display:block;">' +
@@ -276,7 +642,7 @@
             'line-height:0;background:transparent;">' + baseOnly + '</div>' +
             '<img src="' + href + '" alt="" decoding="async" draggable="false" ' +
             'class="demo-pin-icon-img" ' +
-            'style="position:absolute;left:50%;top:50%;width:24px;height:24px;max-width:24px;max-height:24px;' +
+            'style="position:absolute;left:50%;top:50%;width:14px;height:14px;max-width:14px;max-height:14px;' +
             'transform:translate(-50%,-50%);object-fit:contain;box-sizing:border-box;pointer-events:none;z-index:2;"/>' +
             '</div>';
     }
@@ -291,7 +657,7 @@
 
     /** Leaflet iconAnchor: マップ座標を viewBox (24,47) の尻尾先に合わせる（48×48 ピンSVG） */
     function leafletPinAnchorAtTail(markerPx) {
-        var mp = markerPx || 56;
+        var mp = markerPx || 32;
         return [Math.round(mp / 2), Math.round((47 * mp) / 48)];
     }
 
@@ -317,7 +683,7 @@
 
         function placeDemoMarker(html) {
             var demoIcon = L.divIcon({
-                html: wrapDivIconZoomScale(html, 'demo-svg-icon demo-pin-zoom-adapt', '50% 50%'),
+                html: wrapDivIconZoomScale(html, 'demo-svg-icon', '50% 50%'),
                 className: MAP_PIN_LEAFLET_SHELL,
                 iconSize: [demoPinMarkerPx, demoPinMarkerPx],
                 iconAnchor: demoPinAnchor
@@ -410,6 +776,55 @@
     var attrMappingGlobal = {};
     var defaultMarkerBgByType = { loot: '#2ecc71', landmark: '#3498db', colony: '#e67e22', other: '#7f8c8d' };
 
+    function normalizeImportanceLevel(value) {
+        var n = parseInt(String(value == null ? '' : value).trim(), 10);
+        if (isNaN(n)) return 0;
+        if (n < 1) return 0;
+        if (n > 5) return 5;
+        return n;
+    }
+
+    function syncMarkerImportanceVisual(marker) {
+        if (!marker) return;
+        var el = marker.getElement ? marker.getElement() : marker._icon;
+        if (!el || !el.classList) return;
+        el.classList.remove('map-pin-importance--on', 'map-pin-importance-glow');
+        el.classList.remove('map-pin-imp-1', 'map-pin-imp-2', 'map-pin-imp-3', 'map-pin-imp-4', 'map-pin-imp-5');
+        var lv = marker.__importanceLevel || 0;
+        if (lv <= 0) return;
+        el.classList.add('map-pin-imp-' + lv);
+        if (!importanceVisualEnabled) return;
+        el.classList.add('map-pin-importance--on');
+        if (importanceVisualVariant === 'size+glow') {
+            el.classList.add('map-pin-importance-glow');
+        }
+    }
+
+    function bindMarkerImportanceVisual(marker, importanceValue) {
+        if (!marker) return;
+        marker.__importanceLevel = normalizeImportanceLevel(importanceValue);
+        if (!marker.__importanceVisualHooked && marker.on) {
+            marker.on('add', function () {
+                syncMarkerImportanceVisual(marker);
+            });
+            marker.__importanceVisualHooked = true;
+        }
+        syncMarkerImportanceVisual(marker);
+    }
+
+    function refreshAllMarkerImportanceVisual() {
+        var i;
+        for (i = 0; i < allMarkers.length; i++) {
+            if (allMarkers[i] && allMarkers[i].marker) {
+                syncMarkerImportanceVisual(allMarkers[i].marker);
+            }
+        }
+        for (i = 0; i < allAreaItems.length; i++) {
+            var iconMarker = allAreaItems[i] && allAreaItems[i].iconMarker;
+            if (iconMarker) syncMarkerImportanceVisual(iconMarker);
+        }
+    }
+
     function normalizeMarkerDisplayStyle(v) {
         var s = String(v || '').trim().toLowerCase().replace(/-/g, '_');
         if (s === 'icon_only' || s === 'icononly') return 'icon_only';
@@ -486,17 +901,130 @@
 
     // activeCategories は config 読込後の rebuildVeinFilterFromAttrMapping() で初期化
 
+    function categoryFilterMasterEnabled() {
+        var n = 0;
+        Object.keys(categoryMasterGlobal).forEach(function (jk) {
+            var e = categoryMasterGlobal[jk];
+            if (e && typeof e === 'object' && String(e.id || '').trim()) n++;
+        });
+        return n > 0;
+    }
+
+    function markerPrimaryObjectKey(itemLike) {
+        var cats = (itemLike && itemLike.categories && itemLike.categories.length) ? itemLike.categories : [];
+        return String(cats[0] || '').trim();
+    }
+
+    function isPoiObjectKey(k) {
+        return String(k || '').trim().toUpperCase() === 'POI';
+    }
+
+    function isDefaultGroupCollapsed(key) {
+        var k = String(key || '').trim().toUpperCase();
+        if (presetCollapsedObjectIds) return presetCollapsedObjectIds.has(k);
+        // 既定: POI は初期で閉じ、その他（コンテナ・アイテム等）は開き
+        return isPoiObjectKey(key);
+    }
+
     function updateVisibleMarkers() {
-        allMarkers.forEach(function(item) {
-            var isCatMatch = item.categories.some(function(cat) { return activeCategories.has(cat); });
-            // VEIN: LEM ランクフィルターは使用しない
-            if (isCatMatch) {
+        var catMasterOn = categoryFilterMasterEnabled();
+        allMarkers.forEach(function (item) {
+            var objOk = item.categories.some(function (cat) {
+                return activeCategories.has(cat);
+            });
+            if (!objOk) {
+                if (map.hasLayer(item.marker)) map.removeLayer(item.marker);
+                return;
+            }
+            var primaryObj = markerPrimaryObjectKey(item);
+            var catOk = true;
+            var poiItemOk = true;
+            if (isPoiObjectKey(primaryObj)) {
+                if (activePoiItemFilters.size > 0) {
+                    var poiItemIds = item.pinItemIds || [];
+                    poiItemOk = poiItemIds.some(function (iid) {
+                        return activePoiItemFilters.has(iid);
+                    });
+                }
+            } else if (catMasterOn && activeCategoryFilters.size > 0) {
+                var pc = item.pinCategoryIds || [];
+                if (pc.length === 0) {
+                    catOk = activeCategoryFilters.has('__none__');
+                } else {
+                    catOk = pc.some(function (cid) {
+                        return activeCategoryFilters.has(cid);
+                    });
+                }
+            }
+            var itemOk = true;
+            if (activeItemFilters.size > 0) {
+                var pItemIds = item.pinItemIds || [];
+                itemOk = pItemIds.some(function (pid) {
+                    return activeItemFilters.has(pid);
+                });
+            }
+            if (objOk && catOk && poiItemOk && itemOk) {
                 if (!map.hasLayer(item.marker)) {
                     item.marker.addTo(map);
                     if (showLabels && item.marker.openTooltip) item.marker.openTooltip();
                 }
             } else {
                 if (map.hasLayer(item.marker)) map.removeLayer(item.marker);
+            }
+        });
+        updateVisibleAreas();
+    }
+
+    /** エリアをピンと同じ activeCategories / category / item フィルタで表示切替 */
+    function updateVisibleAreas() {
+        if (!allAreaItems || allAreaItems.length === 0) return;
+        if (!areaLayer || !areaIconLayerGroup) return;
+        var catMasterOn = categoryFilterMasterEnabled();
+        allAreaItems.forEach(function (entry) {
+            var poly = entry.poly;
+            var iconMarker = entry.iconMarker;
+            var objOk = entry.categories.some(function (cat) {
+                return activeCategories.has(cat);
+            });
+            if (!objOk) {
+                if (areaLayer.hasLayer(poly)) areaLayer.removeLayer(poly);
+                if (iconMarker && areaIconLayerGroup.hasLayer(iconMarker)) areaIconLayerGroup.removeLayer(iconMarker);
+                return;
+            }
+            var primaryObj = markerPrimaryObjectKey(entry);
+            var catOk = true;
+            var poiItemOk = true;
+            if (isPoiObjectKey(primaryObj)) {
+                if (activePoiItemFilters.size > 0) {
+                    var poiItemIds = entry.pinItemIds || [];
+                    poiItemOk = poiItemIds.some(function (iid) {
+                        return activePoiItemFilters.has(iid);
+                    });
+                }
+            } else if (catMasterOn && activeCategoryFilters.size > 0) {
+                var pc = entry.pinCategoryIds || [];
+                if (pc.length === 0) {
+                    catOk = activeCategoryFilters.has('__none__');
+                } else {
+                    catOk = pc.some(function (cid) {
+                        return activeCategoryFilters.has(cid);
+                    });
+                }
+            }
+            var itemOk = true;
+            if (activeItemFilters.size > 0) {
+                var pItemIds = entry.pinItemIds || [];
+                itemOk = pItemIds.some(function (pid) {
+                    return activeItemFilters.has(pid);
+                });
+            }
+            var show = objOk && catOk && poiItemOk && itemOk;
+            if (show) {
+                if (!areaLayer.hasLayer(poly)) areaLayer.addLayer(poly);
+                if (iconMarker && !areaIconLayerGroup.hasLayer(iconMarker)) areaIconLayerGroup.addLayer(iconMarker);
+            } else {
+                if (areaLayer.hasLayer(poly)) areaLayer.removeLayer(poly);
+                if (iconMarker && areaIconLayerGroup.hasLayer(iconMarker)) areaIconLayerGroup.removeLayer(iconMarker);
             }
         });
     }
@@ -545,23 +1073,41 @@
     }
 
     var jsonMarkerPxRaw = parseInt(mapDiv.getAttribute('data-demo-pin-marker-size'), 10);
-    var JSON_PIN_MARKER_PX = (!isNaN(jsonMarkerPxRaw) && jsonMarkerPxRaw >= 44 && jsonMarkerPxRaw <= 80) ? jsonMarkerPxRaw : 56;
+    var JSON_PIN_MARKER_PX = (!isNaN(jsonMarkerPxRaw) && jsonMarkerPxRaw >= 24 && jsonMarkerPxRaw <= 56) ? jsonMarkerPxRaw : 32;
     var JSON_PIN_ANCHOR = leafletPinAnchorAtTail(JSON_PIN_MARKER_PX);
 
-    function svgIconUrlCandidates(pinSvgId, scope) {
+    function svgIconUrlCandidates(pinSvgId) {
         var idPart = encodeURIComponent(pinSvgId) + '.svg';
         var commonU = svgIconsCommonBase ? svgIconsCommonBase.replace(/\/?$/, '/') + idPart : '';
+        /** map.js と同じディレクトリ直下の assets/icons/（サイトルートの /assets/ とは別） */
         var gameU = baseUrl + 'assets/icons/' + idPart;
         var list = [];
-        // scope==='game' のときだけゲームローカルを先に（それ以外は共通 assets を優先＝CSV マージで scope 未設定でも /assets/icons/ が効く）
-        if (scope === 'game') {
-            list.push(gameU);
-            if (commonU) list.push(commonU);
-        } else {
-            if (commonU) list.push(commonU);
-            list.push(gameU);
+        list.push(gameU);
+        if (commonU && commonU !== gameU) {
+            list.push(commonU);
         }
         return list;
+    }
+
+    /** ページ読み込み単位のバスト（ピンごとの Date.now だとキャッシュが効かずサーバ負荷・エラー表示が増える） */
+    var svgFetchSessionBust = 'v=' + Date.now();
+    /** 4xx/5xx やネットワーク失敗した URL は同一セッションで再 fetch しない（507 等の連打を防ぐ） */
+    var svgUrlKnownBad = new Set();
+    /** 同一 svg + 色の objectURL を再利用（同一アイコンのピンが大量にあるときの重複取得を防ぐ） */
+    var svgObjectUrlCache = {};
+    /** 同一キーで取得中の Promise（完了まで共有し、並行 fetch の嵐を防ぐ） */
+    var svgFetchPromiseByKey = {};
+    /** 全候補 URL が失敗したキー（再試行しない） */
+    var svgFetchFailedKeys = new Set();
+
+    function svgResolvedCacheKey(pinSvgId, scope, symHex) {
+        return String(pinSvgId || '') + '\x00' + String(scope || '') + '\x00' + String(symHex || '');
+    }
+
+    function fetchFirstSvgAsObjectUrlAsync(urls, bust, symHex) {
+        return new Promise(function (resolve, reject) {
+            fetchFirstSvgAsObjectUrl(urls, 0, bust, symHex, resolve, reject);
+        });
     }
 
     function fetchFirstSvgAsObjectUrl(urls, index, bust, symHex, done, fail) {
@@ -570,10 +1116,18 @@
             return;
         }
         var u = urls[index];
+        var baseKey = u.split('?')[0];
+        if (svgUrlKnownBad.has(baseKey)) {
+            fetchFirstSvgAsObjectUrl(urls, index + 1, bust, symHex, done, fail);
+            return;
+        }
         var sep = u.indexOf('?') >= 0 ? '&' : '?';
         fetch(u + sep + bust)
             .then(function (r) {
-                if (!r.ok) throw new Error('bad status');
+                if (!r.ok) {
+                    svgUrlKnownBad.add(baseKey);
+                    throw new Error('bad status');
+                }
                 return r.text();
             })
             .then(function (text) {
@@ -583,32 +1137,57 @@
                 done(URL.createObjectURL(blob));
             })
             .catch(function () {
+                svgUrlKnownBad.add(baseKey);
                 fetchFirstSvgAsObjectUrl(urls, index + 1, bust, symHex, done, fail);
             });
     }
 
+    function getOrFetchSvgObjectUrl(pinSvgId, scope, symHex, candidates, done, fail) {
+        var ck = svgResolvedCacheKey(pinSvgId, scope, symHex);
+        if (svgObjectUrlCache[ck]) {
+            done(svgObjectUrlCache[ck]);
+            return;
+        }
+        if (svgFetchFailedKeys.has(ck)) {
+            fail();
+            return;
+        }
+        if (svgFetchPromiseByKey[ck] === undefined) {
+            svgFetchPromiseByKey[ck] = fetchFirstSvgAsObjectUrlAsync(candidates, svgFetchSessionBust, symHex);
+        }
+        svgFetchPromiseByKey[ck].then(
+            function (u) {
+                svgObjectUrlCache[ck] = u;
+                done(u);
+            },
+            function () {
+                svgFetchFailedKeys.add(ck);
+                fail();
+            }
+        );
+    }
+
     /** ピン／エリア共通: アイコンのみマーカー（Leaflet ルートは translate3d のため内側で scale） */
     function attachIconOnlySvgToMarker(marker, pinSvgId, scope, symHex) {
-        var candidates = svgIconUrlCandidates(pinSvgId, scope);
-        var bust = 't=' + Date.now();
-        var iconOnlyPx = 56;
-        var iconOnlyImgPx = 48;
+        var candidates = svgIconUrlCandidates(pinSvgId);
+        var iconOnlyPx = 30;
+        var iconOnlyImgPx = 24;
         var iconOnlyImgStyle =
             'position:absolute;left:50%;top:50%;width:' + iconOnlyImgPx + 'px;height:' + iconOnlyImgPx + 'px;' +
             'transform:translate(-50%,-50%);object-fit:contain;pointer-events:none;' +
             '-webkit-filter:drop-shadow(0 1px 2px rgba(0,0,0,0.9)) drop-shadow(0 0 6px rgba(0,0,0,0.4));' +
             'filter:drop-shadow(0 1px 2px rgba(0,0,0,0.9)) drop-shadow(0 0 6px rgba(0,0,0,0.4));';
-        fetchFirstSvgAsObjectUrl(
-            candidates,
-            0,
-            bust,
+        getOrFetchSvgObjectUrl(
+            pinSvgId,
+            scope,
             symHex,
+            candidates,
             function (objUrl) {
                 var href = escapeHtmlAttr(objUrl);
                 var core = '<div class="map-pin-icon-only-wrap" style="position:relative;width:' + iconOnlyPx + 'px;height:' + iconOnlyPx + 'px;">' +
                     '<img class="map-pin-icon-only-img" src="' + href + '" alt="" draggable="false" decoding="async" style="' + iconOnlyImgStyle + '"/>' +
                     '</div>';
-                var html = wrapDivIconZoomScale(core, 'map-pin-icon-only demo-pin-zoom-adapt', '50% 50%');
+                var html = wrapDivIconZoomScale(core, 'map-pin-icon-only', '50% 50%');
                 marker.setIcon(
                     L.divIcon({
                         html: html,
@@ -617,6 +1196,7 @@
                         iconAnchor: [Math.round(iconOnlyPx / 2), Math.round(iconOnlyPx / 2)]
                     })
                 );
+                syncMarkerImportanceVisual(marker);
             },
             function () {
                 if (isDebug) console.warn('[map.js] svg_icon fetch failed (icon_only)', pinSvgId, candidates);
@@ -714,12 +1294,21 @@
         return itemQtyStringForEntry(c);
     }
 
-    /** ホバー用: 数量が 1 のときは × を付けない（pin_site_preview.hover_qty_suffix と一致） */
+    /** 全角数字を半角に寄せてから数値化（pin_site_preview と同趣旨） */
+    function qtyNumericEqualsOne(s) {
+        if (s == null || String(s).trim() === '') return false;
+        var t = String(s).trim().replace(/[０-９]/g, function(ch) {
+            return String.fromCharCode(ch.charCodeAt(0) - 0xFF10 + 0x30);
+        });
+        var n = parseFloat(t, 10);
+        return !isNaN(n) && n === 1;
+    }
+
+    /** ホバー・クリックポップアップ: 数量が 1 のときは × なし。2 以上のみ「×数」 */
     function hoverQtySuffix(qtyStr) {
         if (qtyStr == null || String(qtyStr).trim() === '') return '';
         var s = String(qtyStr).trim();
-        var n = parseFloat(s, 10);
-        if (!isNaN(n) && n === 1) return '';
+        if (qtyNumericEqualsOne(s)) return '';
         return ' ×' + s;
     }
 
@@ -762,10 +1351,13 @@
         if (!rule || typeof rule !== 'object') return '';
         var nt = String(rule.note_type || '').trim();
         var rt = String(rule.req_type || '').trim();
-        var ntDisp = isJa ? nt : ({ '必要条件': 'Required', '推奨条件': 'Recommended', 'メモ': 'Memo' }[nt] || nt);
         var app = String(rule.applicability || 'always').trim();
+        var ntDisp = isJa ? nt : ({ '必要条件': 'Required', '推奨条件': 'Recommended', 'メモ': 'Memo' }[nt] || nt);
+        // EN の「必要条件(緩め)」は "Required (May require)" ではなく "May require" を使う
+        if (!isJa && nt === '必要条件' && app === 'lenient') ntDisp = 'May require';
         var maybeTag = app === 'sometimes' ? (isJa ? '（場合あり）' : ' (Sometimes)')
-            : (app === 'lenient' ? (isJa ? '（必要な場合がある）' : ' (May be required)') : '');
+            : (app === 'lenient' ? (isJa ? '（必要な場合がある）' : ' (May require)') : '');
+        if (!isJa && nt === '必要条件' && app === 'lenient') maybeTag = '';
         if (nt === 'メモ') {
             var mjp = String(rule.memo_jp || '').trim();
             var men = String(rule.memo_en || '').trim();
@@ -786,7 +1378,8 @@
             var iname = isJa ? (ij || ie) : (ie || ij);
             var icnt = String(rule.item_count || '').trim();
             if (!iname) return '';
-            return ntDisp + maybeTag + ': ' + (icnt ? (iname + ' ×' + icnt) : iname);
+            var body = icnt && !qtyNumericEqualsOne(icnt) ? (iname + ' ×' + icnt) : iname;
+            return ntDisp + maybeTag + ': ' + body;
         }
         if (rt === 'スキルレベル') {
             var sid2 = String(rule.skill_id || '').trim();
@@ -940,27 +1533,26 @@
         var emojiIcon = L.divIcon({
             html: iconHtml,
             className: 'emoji-icon',
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
         });
 
         var marker = L.marker(latLng, { icon: emojiIcon });
 
         if (pinSvgId && typeof wrapPinBasePlusImgIcon === 'function') {
             var scope = (pin.svg_icon_scope || '').trim();
-            var candidates = svgIconUrlCandidates(pinSvgId, scope);
-            var bust = 't=' + Date.now();
+            var candidates = svgIconUrlCandidates(pinSvgId);
             if (displayStyle === 'icon_only') {
                 attachIconOnlySvgToMarker(marker, pinSvgId, scope, symHex);
             } else {
-                fetchFirstSvgAsObjectUrl(
-                    candidates,
-                    0,
-                    bust,
+                getOrFetchSvgObjectUrl(
+                    pinSvgId,
+                    scope,
                     symHex,
+                    candidates,
                     function (objUrl) {
                         var innerHtml = wrapPinBasePlusImgIcon(pinBg, objUrl, symHex, JSON_PIN_MARKER_PX);
-                        var html = wrapDivIconZoomScale(innerHtml, 'map-pin-svg-composite demo-pin-zoom-adapt', '50% 100%');
+                        var html = wrapDivIconZoomScale(innerHtml, 'map-pin-svg-composite', '50% 100%');
                         marker.setIcon(
                             L.divIcon({
                                 html: html,
@@ -969,6 +1561,7 @@
                                 iconAnchor: JSON_PIN_ANCHOR
                             })
                         );
+                        syncMarkerImportanceVisual(marker);
                     },
                     function () {
                         if (isDebug) console.warn('[map.js] svg_icon fetch failed', pinSvgId, candidates);
@@ -1006,6 +1599,8 @@
         if (!tooltipText || String(tooltipText).trim() === '') {
             tooltipText = headline || (visualStyle && visualStyle.label) || '—';
         }
+        // サイト側CSSが nowrap でも行分割を維持するため、\n は <br> に明示変換する
+        var tooltipHtml = escapeHtmlPin(tooltipText).replace(/\n/g, '<br>');
         var tooltipOpts = showLabels ? {
             permanent: true, direction: 'top', className: 'item-tooltip-permanent',
             opacity: 0.9, offset: [0, -20]
@@ -1013,7 +1608,39 @@
             direction: 'top', sticky: true, className: 'item-tooltip',
             opacity: 0.9, offset: [0, -10]
         };
-        marker.bindTooltip(tooltipText, tooltipOpts);
+        marker.bindTooltip(tooltipHtml, tooltipOpts);
+
+        // ホバー中/ポップアップ表示中は対象ピンを視覚的に強調する
+        var isHoveringPin = false;
+        var isPopupOpenPin = false;
+        function syncMarkerActiveState() {
+            var active = isHoveringPin || isPopupOpenPin;
+            var el = marker.getElement ? marker.getElement() : marker._icon;
+            if (el && el.classList) {
+                el.classList.toggle('map-pin-active', !!active);
+            }
+            if (marker.setZIndexOffset) {
+                marker.setZIndexOffset(active ? 1200 : 0);
+            }
+        }
+        marker.on('mouseover', function () {
+            isHoveringPin = true;
+            syncMarkerActiveState();
+        });
+        marker.on('mouseout', function () {
+            isHoveringPin = false;
+            syncMarkerActiveState();
+        });
+        marker.on('popupopen', function () {
+            isPopupOpenPin = true;
+            syncMarkerActiveState();
+        });
+        marker.on('popupclose', function () {
+            isPopupOpenPin = false;
+            syncMarkerActiveState();
+        });
+
+        bindMarkerImportanceVisual(marker, pin.importance);
 
         return marker;
     }
@@ -1027,12 +1654,42 @@
             if (isNaN(x) || isNaN(y)) return;
 
             var attrRaw = (pin.obj_id || pin.attribute || '').trim();
-            var contents = pin.contents || [];
+            var contents = [];
+            if (Array.isArray(pin.contents)) {
+                contents = pin.contents;
+            } else if (Array.isArray(pin.categories)) {
+                // 旧/互換形式: pins_export に categories 配列で入っているケース
+                contents = pin.categories;
+            } else if (typeof pin.categories === 'string' && pin.categories.trim()) {
+                try {
+                    var parsedCats = JSON.parse(pin.categories);
+                    if (Array.isArray(parsedCats)) contents = parsedCats;
+                } catch (eC) { /* ignore */ }
+            }
+            // popup 詳細は createMarkerFromPin が pin.contents を参照するため正規化しておく
+            pin.contents = contents;
 
             var styleKey = resolveFilterStyleKey(attrRaw);
-            var visualStyle = styles[styleKey] || styles.other;
-            // フィルターはオブジェクト(attribute)単位のみ（カテゴリ cat_id は混ぜない）
+            var visualStyle = pickVisualStyle(styleKey);
             var myCategories = [styleKey];
+
+            var pinCategoryIds = [];
+            if (contents && contents.length) {
+                contents.forEach(function (c) {
+                    if (c && c.cat_id) {
+                        var cid = String(c.cat_id).trim();
+                        if (cid && pinCategoryIds.indexOf(cid) < 0) pinCategoryIds.push(cid);
+                    }
+                });
+            }
+            if (pinCategoryIds.length === 0 && pin.category) {
+                var cidLegacy = legacyCategoryToCatId(pin.category);
+                if (cidLegacy) pinCategoryIds.push(cidLegacy);
+            }
+            if (!subsetAllowsMarker(styleKey, pinCategoryIds, pinItemIds)) {
+                return;
+            }
+            var pinItemIds = collectPinItemIdsFromContents(contents);
 
             var headline = buildPinHeadline(pin, isJa, contents, pin.category);
             var description = buildPinDescription(pin, isJa);
@@ -1055,7 +1712,7 @@
             var marker = createMarkerFromPin(pin, visualStyle, myCategories, null, headline, description, filterTT);
             if (!marker) return;
 
-            allMarkers.push({ marker: marker, categories: myCategories, rank: 'standard' });
+            allMarkers.push({ marker: marker, categories: myCategories, pinCategoryIds: pinCategoryIds, pinItemIds: pinItemIds, rank: 'standard' });
         });
 
         addOverlayControls();
@@ -1086,38 +1743,687 @@
         return result;
     }
 
-    var veinLayerControl = null;
-    var veinOverlayEventsBound = false;
-
-    function addOverlayControls() {
-        if (veinLayerControl) {
-            map.removeControl(veinLayerControl);
-            veinLayerControl = null;
+    function veinFilterObjectIconHtml(typ) {
+        var t = String(typ || 'loot').toLowerCase();
+        var d;
+        if (t === 'landmark') {
+            d = 'M4 21V11l8-5 8 5v10M9 21v-4h6v4';
+        } else if (t === 'colony') {
+            d = 'M6 20h12M8 16h8M10 12h4M12 4v6';
+        } else {
+            d = 'M5 10h14v9H5V10zm3-3a4 4 0 118 0v3';
         }
-        var overlayMaps = {};
-        Object.keys(styles).forEach(function(key) {
-            if (key === 'trash' && !isDebug) return;
-            var lbl = styles[key].label;
-            overlayMaps[lbl] = L.layerGroup();
-            if (activeCategories.has(key)) overlayMaps[lbl].addTo(map);
+        return '<span class="vein-filter-icon-wrap"><svg class="vein-filter-icon-svg" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">' +
+            '<path fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/></svg></span>';
+    }
+
+    function veinFilterCategoryIconHtml() {
+        return '<span class="vein-filter-icon-wrap"><svg class="vein-filter-icon-svg vein-filter-icon-svg--muted" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">' +
+            '<path fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h12M4 18h16"/></svg></span>';
+    }
+
+    function orderedObjectFilterKeys() {
+        var keys = Object.keys(styles).filter(function (k) {
+            if (k === 'other') return false;
+            if (k === 'trash' && !isDebug) return false;
+            if (!isObjectAllowedBySubset(k)) return false;
+            return true;
+        });
+        if (mapObjectAttrIdsOrder && mapObjectAttrIdsOrder.length) {
+            var out = [];
+            mapObjectAttrIdsOrder.forEach(function (id) {
+                if (styles[id] && out.indexOf(id) < 0) out.push(id);
+            });
+            keys.forEach(function (k) {
+                if (out.indexOf(k) < 0) out.push(k);
+            });
+            return out;
+        }
+        return keys;
+    }
+
+    /** category_master 1件を、map_object_attr_ids 優先でどのオブジェクト配下に置くか決める */
+    function primaryObjectIdForCategory(ent, orderArr) {
+        var oids = (ent && ent.object_ids && Array.isArray(ent.object_ids)) ? ent.object_ids : [];
+        if (oids.length === 0) return null;
+        var i;
+        for (i = 0; i < orderArr.length; i++) {
+            var aid = orderArr[i];
+            var hit = oids.some(function (x) {
+                return String(x || '').trim().toUpperCase() === String(aid).toUpperCase();
+            });
+            if (hit) return aid;
+        }
+        return String(oids[0] || '').trim() || null;
+    }
+
+    /** category_list（マスタの行順）に合わせてカテゴリ行を並べ替え。無ければ表示名でソート。 */
+    function sortCategoryRowsByConfigOrder(rows) {
+        var ord = categoryListOrderGlobal;
+        if (!ord || !ord.length) {
+            rows.sort(function (a, b) {
+                return String(a.label).localeCompare(String(b.label), isJa ? 'ja' : 'en');
+            });
+            return;
+        }
+        var idx = {};
+        var oi;
+        for (oi = 0; oi < ord.length; oi++) {
+            idx[ord[oi]] = oi;
+        }
+        rows.sort(function (a, b) {
+            var ja = a.jpKey;
+            var jb = b.jpKey;
+            var ia = Object.prototype.hasOwnProperty.call(idx, ja) ? idx[ja] : 100000;
+            var ib = Object.prototype.hasOwnProperty.call(idx, jb) ? idx[jb] : 100000;
+            if (ia !== ib) return ia - ib;
+            return String(a.label).localeCompare(String(b.label), isJa ? 'ja' : 'en');
+        });
+    }
+
+    /** オブジェクト → カテゴリ行の階層データ（未紐づけは __orphan__） */
+    function collectCategoryRowsByPrimaryObject() {
+        var orderArr = orderedObjectFilterKeys();
+        var byObj = {};
+        orderArr.forEach(function (a) {
+            byObj[a] = [];
         });
 
-        if (!filterMode) {
-            veinLayerControl = L.control.layers(null, overlayMaps, { collapsed: false, position: 'topright' });
-            veinLayerControl.addTo(map);
+        var seenCatIds = {};
+        Object.keys(categoryMasterGlobal).forEach(function (jpKey) {
+            var ent = categoryMasterGlobal[jpKey];
+            if (!ent || typeof ent !== 'object') return;
+            var cid = String(ent.id || '').trim();
+            if (!cid) return;
+            if (!isCategoryAllowedBySubset(cid)) return;
+            if (seenCatIds[cid]) return;
+            seenCatIds[cid] = true;
+            var lab = isJa ? (ent.name_jp || jpKey) : (ent.name_en || ent.name_jp || jpKey);
+            var row = { id: cid, label: lab, jpKey: jpKey };
+            var primary = primaryObjectIdForCategory(ent, orderArr);
+            if (primary && byObj[primary]) {
+                byObj[primary].push(row);
+            } else {
+                if (!byObj.__orphan__) {
+                    byObj.__orphan__ = [];
+                }
+                byObj.__orphan__.push(row);
+            }
+        });
+
+        orderArr.forEach(function (k) {
+            sortCategoryRowsByConfigOrder(byObj[k]);
+        });
+        if (byObj.__orphan__) {
+            sortCategoryRowsByConfigOrder(byObj.__orphan__);
+        }
+        return { byObj: byObj, orderArr: orderArr };
+    }
+
+    function collectPinItemIdsFromContents(contentsArr) {
+        var out = [];
+        if (!contentsArr || !contentsArr.length) return out;
+        contentsArr.forEach(function (c) {
+            if (!c) return;
+            var iid = String(c.item_id || '').trim();
+            if (iid && out.indexOf(iid) < 0) out.push(iid);
+        });
+        return out;
+    }
+
+    function legacyCategoryToCatId(legacyCategory) {
+        var lc = String(legacyCategory || '').trim();
+        if (!lc) return '';
+        var catMap = {
+            '設計図': 'blueprint',
+            'LEM': 'lem',
+            '戦時債権': 'war_bonds',
+            '交換アイテム': 'trade_item',
+            'キーカード': 'keycard',
+            '植物': 'plant',
+            '武器コンテナ': 'LOOT_CONTAINER',
+            '医療品コンテナ': 'MEDICAL_CONTAINER',
+            'ツールコンテナ': 'TOOL_CONTAINER',
+            '武器': 'WEAPON',
+            'ツール': 'TOOL'
+        };
+        return catMap[lc] || lc;
+    }
+
+    /** item_master をフラット化（同一 item_id は先頭のみ） */
+    function flattenItemMasterForFilter(im) {
+        var rows = [];
+        var seen = {};
+        if (!im || typeof im !== 'object') return rows;
+        Object.keys(im).forEach(function (grp) {
+            if (isSubsetActive()) {
+                var cmEnt = categoryMasterGlobal[grp];
+                var cidGrp = cmEnt && typeof cmEnt === 'object' ? String(cmEnt.id || '').trim() : '';
+                if (!isCategoryAllowedBySubset(cidGrp)) return;
+            }
+            var grpObj = im[grp];
+            if (!grpObj || typeof grpObj !== 'object') return;
+            Object.keys(grpObj).forEach(function (iidRaw) {
+                var iid = String(iidRaw || '').trim();
+                if (!iid || seen[iid]) return;
+                if (!isItemAllowedBySubset(iid)) return;
+                seen[iid] = true;
+                var info = grpObj[iidRaw];
+                if (!info || typeof info !== 'object') return;
+                var lab = isJa
+                    ? (String(info.name_jp || iid).trim() || iid)
+                    : (String(info.name_en || info.name_jp || iid).trim() || iid);
+                rows.push({ id: iid, label: lab, group: grp });
+            });
+        });
+        return rows;
+    }
+
+    /**
+     * 指定カテゴリ行（category_master.jpKey）配下の item_master を集約。
+     * POI グループで「カテゴリではなくアイテム」で絞るために使う。
+     */
+    function collectItemRowsGroupedByCategoryRows(catRows) {
+        var out = [];
+        var seenGlobal = {};
+        (catRows || []).forEach(function (ce) {
+            var grp = String((ce && ce.jpKey) || '').trim();
+            if (!grp) return;
+            var grpObj = itemMasterGlobal[grp];
+            if (!grpObj || typeof grpObj !== 'object') return;
+            var rows = [];
+            Object.keys(grpObj).forEach(function (iidRaw) {
+                var iid = String(iidRaw || '').trim();
+                if (!iid || seenGlobal[iid]) return;
+                if (!isItemAllowedBySubset(iid)) return;
+                seenGlobal[iid] = true;
+                var info = grpObj[iidRaw];
+                if (!info || typeof info !== 'object') return;
+                var lab = isJa
+                    ? (String(info.name_jp || iid).trim() || iid)
+                    : (String(info.name_en || info.name_jp || iid).trim() || iid);
+                rows.push({ id: iid, label: lab, group: grp });
+            });
+            rows.sort(function (a, b) {
+                return String(a.label).localeCompare(String(b.label), isJa ? 'ja' : 'en');
+            });
+            if (rows.length > 0) {
+                out.push({ title: ce.label, rows: rows });
+            }
+        });
+        return out;
+    }
+
+    function veinFilterItemIconHtml() {
+        return '<span class="vein-filter-icon-wrap"><svg class="vein-filter-icon-svg vein-filter-icon-svg--muted" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">' +
+            '<path fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>' +
+            '<path fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg></span>';
+    }
+
+    var veinFilterDrawerEl = null;
+
+    function removeVeinFilterDrawer() {
+        if (veinFilterDrawerEl && veinFilterDrawerEl.parentNode) {
+            veinFilterDrawerEl.parentNode.removeChild(veinFilterDrawerEl);
+            veinFilterDrawerEl = null;
+        }
+    }
+
+    function invalidateMapSizeSoon() {
+        setTimeout(function() {
+            try { map.invalidateSize(); } catch (e1) { /* ignore */ }
+        }, 60);
+        setTimeout(function() {
+            try { map.invalidateSize(); } catch (e2) { /* ignore */ }
+        }, 280);
+    }
+
+    function addOverlayControls() {
+        removeVeinFilterDrawer();
+        var mc = mapDiv.parentElement;
+        if (mc) {
+            mc.classList.remove('vein-map-with-filter');
         }
 
-        if (!veinOverlayEventsBound) {
-            veinOverlayEventsBound = true;
-            map.on('overlayadd', function(e) {
-                var key = Object.keys(styles).find(function(k) { return styles[k].label === e.name; });
-                if (key) { activeCategories.add(key); updateVisibleMarkers(); }
-            });
-            map.on('overlayremove', function(e) {
-                var key = Object.keys(styles).find(function(k) { return styles[k].label === e.name; });
-                if (key) { activeCategories.delete(key); updateVisibleMarkers(); }
-            });
+        if (filterMode) {
+            return;
         }
+
+        if (!mc) {
+            return;
+        }
+        mc.classList.add('vein-map-with-filter');
+
+        var aside = document.createElement('aside');
+        aside.className = 'vein-filter-drawer';
+        aside.setAttribute('aria-label', isJa ? '地図の表示フィルター' : 'Map display filters');
+
+        var head = document.createElement('div');
+        head.className = 'vein-filter-drawer__head';
+
+        var title = document.createElement('div');
+        title.className = 'vein-filter-drawer__title';
+        title.textContent = isJa ? '表示' : 'Layers';
+
+        var toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = 'vein-filter-drawer__toggle';
+        toggleBtn.setAttribute('aria-expanded', 'true');
+        toggleBtn.title = isJa ? 'パネルを畳む' : 'Collapse panel';
+        toggleBtn.innerHTML = '&#8249;';
+        toggleBtn.addEventListener('click', function() {
+            var collapsed = aside.classList.toggle('vein-filter-drawer--collapsed');
+            toggleBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+            toggleBtn.innerHTML = collapsed ? '&#8250;' : '&#8249;';
+            toggleBtn.title = collapsed ? (isJa ? 'パネルを開く' : 'Expand panel') : (isJa ? 'パネルを畳む' : 'Collapse panel');
+            invalidateMapSizeSoon();
+        });
+
+        head.appendChild(title);
+        head.appendChild(toggleBtn);
+
+        var scroll = document.createElement('div');
+        scroll.className = 'vein-filter-drawer__scroll';
+
+        function appendImportanceVisualToggleRow(parent) {
+            var sec = document.createElement('div');
+            sec.className = 'vein-filter-section';
+            var cap = document.createElement('p');
+            cap.className = 'vein-filter-section__label';
+            cap.textContent = isJa ? '表示オプション' : 'Display options';
+            sec.appendChild(cap);
+
+            var row = document.createElement('label');
+            row.className = 'vein-filter-row' + (importanceVisualEnabled ? ' vein-filter-row--on' : '');
+            var inp = document.createElement('input');
+            inp.type = 'checkbox';
+            inp.checked = importanceVisualEnabled;
+            inp.setAttribute('data-vein-importance-visual', '1');
+            row.appendChild(inp);
+
+            var iconHost = document.createElement('span');
+            iconHost.innerHTML = '<span class="vein-filter-icon-wrap"><svg class="vein-filter-icon-svg vein-filter-icon-svg--muted" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M12 3l2.6 5.28 5.83.85-4.21 4.1.99 5.77L12 16.9 6.79 19l.99-5.77-4.21-4.1 5.83-.85L12 3z"/></svg></span>';
+            while (iconHost.firstChild) row.appendChild(iconHost.firstChild);
+
+            var lab = document.createElement('span');
+            lab.className = 'vein-filter-label';
+            lab.textContent = isJa ? '重要度で強調表示' : 'Highlight by importance';
+            var fakeToggle = document.createElement('span');
+            fakeToggle.className = 'vein-filter-toggle-ui';
+            fakeToggle.setAttribute('aria-hidden', 'true');
+            row.appendChild(lab);
+            row.appendChild(fakeToggle);
+            inp.addEventListener('change', function () {
+                importanceVisualEnabled = !!inp.checked;
+                if (importanceVisualEnabled) row.classList.add('vein-filter-row--on');
+                else row.classList.remove('vein-filter-row--on');
+                refreshAllMarkerImportanceVisual();
+            });
+            sec.appendChild(row);
+            parent.appendChild(sec);
+        }
+
+        function appendVeinCategoryFilterRow(parent, ce) {
+            var cid = ce.id;
+            var row = document.createElement('label');
+            row.className = 'vein-filter-row vein-filter-row--nested' + (activeCategoryFilters.has(cid) ? ' vein-filter-row--on' : '');
+            var inp = document.createElement('input');
+            inp.type = 'checkbox';
+            inp.checked = activeCategoryFilters.has(cid);
+            inp.setAttribute('data-vein-cat-id', cid);
+            row.appendChild(inp);
+            var iconHost = document.createElement('span');
+            iconHost.innerHTML = veinFilterCategoryIconHtml();
+            while (iconHost.firstChild) {
+                row.appendChild(iconHost.firstChild);
+            }
+            var lab = document.createElement('span');
+            lab.className = 'vein-filter-label';
+            lab.textContent = ce.label;
+            var fakeToggle = document.createElement('span');
+            fakeToggle.className = 'vein-filter-toggle-ui';
+            fakeToggle.setAttribute('aria-hidden', 'true');
+            row.appendChild(lab);
+            row.appendChild(fakeToggle);
+            (function (catId) {
+                function syncCat() {
+                    if (inp.checked) {
+                        activeCategoryFilters.add(catId);
+                        row.classList.add('vein-filter-row--on');
+                    } else {
+                        activeCategoryFilters.delete(catId);
+                        row.classList.remove('vein-filter-row--on');
+                    }
+                    updateVisibleMarkers();
+                }
+                inp.addEventListener('change', syncCat);
+            }(cid));
+            parent.appendChild(row);
+        }
+
+        function appendVeinPoiItemFilterRow(parent, it, extraClass) {
+            var iid = it.id;
+            var row = document.createElement('label');
+            row.className = 'vein-filter-row vein-filter-row--nested' + (extraClass ? (' ' + extraClass) : '') + (activePoiItemFilters.has(iid) ? ' vein-filter-row--on' : '');
+            var inp = document.createElement('input');
+            inp.type = 'checkbox';
+            inp.checked = activePoiItemFilters.has(iid);
+            inp.setAttribute('data-vein-poi-item-id', iid);
+            row.appendChild(inp);
+            var iconHostIt = document.createElement('span');
+            iconHostIt.innerHTML = veinFilterItemIconHtml();
+            while (iconHostIt.firstChild) {
+                row.appendChild(iconHostIt.firstChild);
+            }
+            var labIt = document.createElement('span');
+            labIt.className = 'vein-filter-label';
+            labIt.textContent = it.label;
+            var fakeToggleIt = document.createElement('span');
+            fakeToggleIt.className = 'vein-filter-toggle-ui';
+            fakeToggleIt.setAttribute('aria-hidden', 'true');
+            row.appendChild(labIt);
+            row.appendChild(fakeToggleIt);
+            (function (itemId) {
+                inp.addEventListener('change', function () {
+                    if (inp.checked) {
+                        activePoiItemFilters.add(itemId);
+                        row.classList.add('vein-filter-row--on');
+                    } else {
+                        activePoiItemFilters.delete(itemId);
+                        row.classList.remove('vein-filter-row--on');
+                    }
+                    updateVisibleMarkers();
+                });
+            }(iid));
+            parent.appendChild(row);
+        }
+
+        function appendVeinItemFilterRow(parent, it) {
+            var iid = it.id;
+            var row = document.createElement('label');
+            row.className = 'vein-filter-row vein-filter-row--nested' + (activeItemFilters.has(iid) ? ' vein-filter-row--on' : '');
+            row.setAttribute('data-vein-item-search', (it.label + ' ' + iid + ' ' + String(it.group || '')).toLowerCase());
+            var inp = document.createElement('input');
+            inp.type = 'checkbox';
+            inp.checked = activeItemFilters.has(iid);
+            inp.setAttribute('data-vein-item-id', iid);
+            row.appendChild(inp);
+            var iconHostIt = document.createElement('span');
+            iconHostIt.innerHTML = veinFilterItemIconHtml();
+            while (iconHostIt.firstChild) {
+                row.appendChild(iconHostIt.firstChild);
+            }
+            var labIt = document.createElement('span');
+            labIt.className = 'vein-filter-label';
+            labIt.textContent = it.label;
+            var fakeToggleIt = document.createElement('span');
+            fakeToggleIt.className = 'vein-filter-toggle-ui';
+            fakeToggleIt.setAttribute('aria-hidden', 'true');
+            row.appendChild(labIt);
+            row.appendChild(fakeToggleIt);
+            (function (itemId) {
+                inp.addEventListener('change', function () {
+                    if (inp.checked) {
+                        activeItemFilters.add(itemId);
+                        row.classList.add('vein-filter-row--on');
+                    } else {
+                        activeItemFilters.delete(itemId);
+                        row.classList.remove('vein-filter-row--on');
+                    }
+                    updateVisibleMarkers();
+                });
+            }(iid));
+            parent.appendChild(row);
+        }
+
+        function appendAdvancedItemFilterSection(scrollParent) {
+            var items = flattenItemMasterForFilter(itemMasterGlobal);
+            if (items.length === 0) return;
+            var details = document.createElement('details');
+            details.className = 'vein-filter-adv';
+            var sum = document.createElement('summary');
+            sum.className = 'vein-filter-adv__summary';
+            sum.textContent = isJa ? '詳細：アイテムで絞り込み' : 'Advanced: filter by item';
+            var inner = document.createElement('div');
+            inner.className = 'vein-filter-adv__inner';
+            var searchInp = document.createElement('input');
+            searchInp.type = 'search';
+            searchInp.className = 'vein-filter-adv__search';
+            searchInp.setAttribute('autocomplete', 'off');
+            searchInp.placeholder = isJa ? 'アイテムを検索...' : 'Search items...';
+            var listHost = document.createElement('div');
+            listHost.className = 'vein-filter-adv__list';
+            items.forEach(function (it) {
+                appendVeinItemFilterRow(listHost, it);
+            });
+            searchInp.addEventListener('input', function () {
+                var q = String(searchInp.value || '').trim().toLowerCase();
+                var nodes = listHost.querySelectorAll('[data-vein-item-search]');
+                var ni;
+                for (ni = 0; ni < nodes.length; ni++) {
+                    var el = nodes[ni];
+                    var hay = el.getAttribute('data-vein-item-search') || '';
+                    el.style.display = !q || hay.indexOf(q) >= 0 ? '' : 'none';
+                }
+            });
+            inner.appendChild(searchInp);
+            inner.appendChild(listHost);
+            details.appendChild(sum);
+            details.appendChild(inner);
+            scrollParent.appendChild(details);
+        }
+
+        appendImportanceVisualToggleRow(scroll);
+
+        var catMasterOn = categoryFilterMasterEnabled();
+
+        if (!catMasterOn) {
+            var objLabel = document.createElement('p');
+            objLabel.className = 'vein-filter-section__label';
+            objLabel.textContent = isJa ? 'オブジェクト' : 'Objects';
+            scroll.appendChild(objLabel);
+
+            var objSection = document.createElement('div');
+            objSection.className = 'vein-filter-section';
+
+            Object.keys(styles).forEach(function (key) {
+                if (key === 'trash' && !isDebug) return;
+                if (key === 'other') return;
+                var st = styles[key];
+                var row = document.createElement('label');
+                row.className = 'vein-filter-row' + (activeCategories.has(key) ? ' vein-filter-row--on' : '');
+
+                var inp = document.createElement('input');
+                inp.type = 'checkbox';
+                inp.checked = activeCategories.has(key);
+                inp.setAttribute('data-vein-style-key', key);
+
+                var typ = (st.objType || (attrMappingGlobal[key] && attrMappingGlobal[key].type) || 'loot');
+                row.appendChild(inp);
+                var iconHost2 = document.createElement('span');
+                iconHost2.innerHTML = veinFilterObjectIconHtml(typ);
+                while (iconHost2.firstChild) {
+                    row.appendChild(iconHost2.firstChild);
+                }
+
+                var lab2 = document.createElement('span');
+                lab2.className = 'vein-filter-label';
+                lab2.textContent = st.label || key;
+
+                var fakeToggle2 = document.createElement('span');
+                fakeToggle2.className = 'vein-filter-toggle-ui';
+                fakeToggle2.setAttribute('aria-hidden', 'true');
+
+                row.appendChild(lab2);
+                row.appendChild(fakeToggle2);
+
+                (function (styleKey) {
+                    function syncRow() {
+                        if (inp.checked) {
+                            activeCategories.add(styleKey);
+                            row.classList.add('vein-filter-row--on');
+                        } else {
+                            activeCategories.delete(styleKey);
+                            row.classList.remove('vein-filter-row--on');
+                        }
+                        updateVisibleMarkers();
+                    }
+                    inp.addEventListener('change', syncRow);
+                }(key));
+
+                objSection.appendChild(row);
+            });
+
+            scroll.appendChild(objSection);
+        } else {
+            var hier = collectCategoryRowsByPrimaryObject();
+            var byObj = hier.byObj;
+            var orderArr = hier.orderArr;
+
+            orderArr.forEach(function (key) {
+                if (key === 'trash' && !isDebug) return;
+                if (key === 'other') return;
+                var st = styles[key];
+                if (!st) return;
+                var catRows = byObj[key] || [];
+                if (catRows.length === 0 && !isPoiObjectKey(key)) return;
+
+                var group = document.createElement('div');
+                group.className = 'vein-filter-group';
+                if (isDefaultGroupCollapsed(key)) {
+                    group.classList.add('vein-filter-group--collapsed');
+                }
+
+                var gh = document.createElement('label');
+                gh.className = 'vein-filter-row vein-filter-group__head' + (activeCategories.has(key) ? ' vein-filter-row--on' : '');
+                var objInp = document.createElement('input');
+                objInp.type = 'checkbox';
+                objInp.checked = activeCategories.has(key);
+                objInp.setAttribute('data-vein-style-key', key);
+                gh.appendChild(objInp);
+                var typH = (st.objType || (attrMappingGlobal[key] && attrMappingGlobal[key].type) || 'loot');
+                var iconHead = document.createElement('span');
+                iconHead.innerHTML = veinFilterObjectIconHtml(typH);
+                while (iconHead.firstChild) {
+                    gh.appendChild(iconHead.firstChild);
+                }
+                var titleEl = document.createElement('span');
+                titleEl.className = 'vein-filter-label';
+                titleEl.textContent = st.label || key;
+                var headToggle = document.createElement('span');
+                headToggle.className = 'vein-filter-toggle-ui';
+                headToggle.setAttribute('aria-hidden', 'true');
+                gh.appendChild(titleEl);
+                gh.appendChild(headToggle);
+                var collapseBtn = document.createElement('button');
+                collapseBtn.type = 'button';
+                collapseBtn.className = 'vein-filter-group__collapse';
+                collapseBtn.setAttribute('aria-label', isJa ? '項目の開閉' : 'Toggle group');
+                var collapseArrow = document.createElement('span');
+                collapseArrow.className = 'vein-filter-group__collapse-arrow';
+                collapseArrow.textContent = '▾';
+                var collapseLabel = document.createElement('span');
+                collapseLabel.className = 'vein-filter-group__collapse-label';
+                collapseBtn.appendChild(collapseArrow);
+                collapseBtn.appendChild(collapseLabel);
+                function syncCollapseUi(collapsed) {
+                    collapseBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+                    collapseLabel.textContent = collapsed
+                        ? (isJa ? '開く' : 'Open')
+                        : (isJa ? '閉じる' : 'Close');
+                }
+                syncCollapseUi(group.classList.contains('vein-filter-group--collapsed'));
+                collapseBtn.addEventListener('click', function (ev) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    var collapsed = group.classList.toggle('vein-filter-group--collapsed');
+                    syncCollapseUi(collapsed);
+                    invalidateMapSizeSoon();
+                });
+                gh.appendChild(collapseBtn);
+                (function (styleKey) {
+                    objInp.addEventListener('change', function () {
+                        if (objInp.checked) {
+                            activeCategories.add(styleKey);
+                            gh.classList.add('vein-filter-row--on');
+                        } else {
+                            activeCategories.delete(styleKey);
+                            gh.classList.remove('vein-filter-row--on');
+                        }
+                        updateVisibleMarkers();
+                    });
+                }(key));
+                group.appendChild(gh);
+
+                var body = document.createElement('div');
+                body.className = 'vein-filter-group__body';
+                if (isPoiObjectKey(key)) {
+                    var poiGroups = collectItemRowsGroupedByCategoryRows(catRows);
+                    if (poiGroups.length > 0) {
+                        poiGroups.forEach(function (pg) {
+                            var subHead = document.createElement('div');
+                            subHead.className = 'vein-filter-subgroup-title';
+                            subHead.textContent = pg.title;
+                            body.appendChild(subHead);
+                            pg.rows.forEach(function (it) {
+                                appendVeinPoiItemFilterRow(body, it, 'vein-filter-row--nested-deep');
+                            });
+                        });
+                    } else {
+                        // item_master 未整備時は従来どおりカテゴリ行にフォールバック
+                        catRows.forEach(function (ce) {
+                            appendVeinCategoryFilterRow(body, ce);
+                        });
+                    }
+                } else {
+                    catRows.forEach(function (ce) {
+                        appendVeinCategoryFilterRow(body, ce);
+                    });
+                }
+                group.appendChild(body);
+                scroll.appendChild(group);
+            });
+
+            if (byObj.__orphan__ && byObj.__orphan__.length) {
+                var og = document.createElement('div');
+                og.className = 'vein-filter-group';
+                var ogh = document.createElement('div');
+                ogh.className = 'vein-filter-group__head';
+                var otitle = document.createElement('div');
+                otitle.className = 'vein-filter-group__title';
+                otitle.textContent = isJa ? 'その他' : 'Other';
+                ogh.appendChild(otitle);
+                og.appendChild(ogh);
+                var obody = document.createElement('div');
+                obody.className = 'vein-filter-group__body';
+                byObj.__orphan__.forEach(function (ce) {
+                    appendVeinCategoryFilterRow(obody, ce);
+                });
+                og.appendChild(obody);
+                scroll.appendChild(og);
+            }
+
+            var noneCe = {
+                id: '__none__',
+                label: isJa ? '中身なし' : 'No slot / empty'
+            };
+            var noneGroup = document.createElement('div');
+            noneGroup.className = 'vein-filter-group';
+            var noneBody = document.createElement('div');
+            noneBody.className = 'vein-filter-group__body';
+            appendVeinCategoryFilterRow(noneBody, noneCe);
+            noneGroup.appendChild(noneBody);
+            scroll.appendChild(noneGroup);
+        }
+
+        appendAdvancedItemFilterSection(scroll);
+
+        aside.appendChild(head);
+        aside.appendChild(scroll);
+
+        mc.insertBefore(aside, mapDiv);
+        veinFilterDrawerEl = aside;
+        invalidateMapSizeSoon();
     }
 
     function formatContentsSummaryForPopup(label, names) {
@@ -1139,11 +2445,12 @@
             var head = '';
             if (itemName) {
                 head = catLab ? (catLab + '：' + itemName) : itemName;
-                if (qtyStr) head += ' ×' + qtyStr;
+                // ホバーと同様: 数量が 1 のときは × を付けない
+                head += hoverQtySuffix(qtyStr);
                 head += reqSuffix;
             } else if (catLab) {
                 head = catLab;
-                if (qtyStr) head += ' ×' + qtyStr;
+                head += hoverQtySuffix(qtyStr);
                 head += reqSuffix;
             } else {
                 return;
@@ -1208,15 +2515,16 @@
             } catch (e) { /* ignore */ }
 
             if (catIds.length === 0 && category) {
-                var catMap = { '設計図': 'blueprint', 'LEM': 'lem', '戦時債権': 'war_bonds', '交換アイテム': 'trade_item', 'キーカード': 'keycard', '植物': 'plant' };
-                var cid = catMap[category] || category;
+                var cid = legacyCategoryToCatId(category);
                 if (cid) catIds.push(cid);
             }
-
+            var pinItemIdsU = collectPinItemIdsFromContents(categoriesArr);
             var attrU = (attribute || '').toUpperCase();
             var styleKey = resolveFilterStyleKey(attribute);
-            var visualStyle = styles[styleKey] || styles.other;
+            if (!subsetAllowsMarker(styleKey, catIds, pinItemIdsU)) continue;
+            var visualStyle = pickVisualStyle(styleKey);
             var myCategories = [styleKey];
+            var pinCategoryIdsU = catIds.slice();
 
             var objInfo = attrMappingGlobal[attribute] || attrMappingGlobal[attrU] || {};
             var pinLike = {
@@ -1239,12 +2547,16 @@
             var mdsCol = (mdsIx >= 0 && cols.length > mdsIx ? cols[mdsIx] : '').trim();
             var pin = { coords: [x, y], x: x, y: y };
             pin.hover_tooltip = pinLike.hover_tooltip;
+            pin.importance = (cols[ix('importance', 10)] || '').trim();
+            // popup 詳細（アイテム表示）用
+            pin.contents = categoriesArr;
+            pin.category = category;
             mergePinStyleFromConfig(pin, attribute, categoriesArr);
             if (mdsCol) pin.marker_display_style = normalizeMarkerDisplayStyle(mdsCol);
             var marker = createMarkerFromPin(pin, visualStyle, myCategories, null, headline, description, filterTT);
             if (!marker) continue;
 
-            allMarkers.push({ marker: marker, categories: myCategories, rank: 'standard' });
+            allMarkers.push({ marker: marker, categories: myCategories, pinCategoryIds: pinCategoryIdsU, pinItemIds: pinItemIdsU, rank: 'standard' });
         }
 
         addOverlayControls();
@@ -1254,6 +2566,33 @@
     /** データ JSON/CSV のブラウザキャッシュを避ける（ローカル検証でエディタ保存がすぐ反映されるように） */
     function dataCacheBust() {
         return 't=' + Date.now() + '&_=' + Math.random().toString(36).slice(2, 11);
+    }
+
+    /** 表示プリセット（view-presets.json）を読み込み適用。未指定/未取得時は built-in へフォールバック。 */
+    function loadViewPresetsJson() {
+        if (!presetMode) return Promise.resolve();
+        var fallback = builtinPresetRule(presetMode);
+        var presetUrl = (mapDiv.getAttribute('data-view-presets-url') || '').trim() || (baseUrl + 'view-presets.json');
+        var sep = presetUrl.indexOf('?') >= 0 ? '&' : '?';
+        return fetch(presetUrl + sep + dataCacheBust())
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .catch(function () { return null; })
+            .then(function (raw) {
+                var selected = null;
+                if (raw && typeof raw === 'object') {
+                    if (raw.presets && typeof raw.presets === 'object') {
+                        selected = raw.presets[presetMode] || null;
+                    } else {
+                        selected = raw[presetMode] || null;
+                    }
+                }
+                if (!selected) selected = fallback;
+                if (selected) {
+                    applyViewPresetRule(selected);
+                } else if (isDebug) {
+                    console.warn('map.js: preset not found, mode=', presetMode);
+                }
+            });
     }
 
     function loadConfigJson() {
@@ -1273,6 +2612,30 @@
                 }
                 if (cfg && cfg.attr_mapping && typeof cfg.attr_mapping === 'object') {
                     attrMappingGlobal = cfg.attr_mapping;
+                }
+                if (cfg && cfg.category_master && typeof cfg.category_master === 'object') {
+                    categoryMasterGlobal = cfg.category_master;
+                } else {
+                    categoryMasterGlobal = {};
+                }
+                if (cfg && Array.isArray(cfg.category_list) && cfg.category_list.length) {
+                    categoryListOrderGlobal = cfg.category_list.map(function (x) {
+                        return String(x || '').trim();
+                    }).filter(function (s) { return !!s; });
+                } else {
+                    categoryListOrderGlobal = [];
+                }
+                if (cfg && cfg.item_master && typeof cfg.item_master === 'object') {
+                    itemMasterGlobal = cfg.item_master;
+                } else {
+                    itemMasterGlobal = {};
+                }
+                if (cfg && Array.isArray(cfg.map_object_attr_ids) && cfg.map_object_attr_ids.length) {
+                    mapObjectAttrIdsOrder = cfg.map_object_attr_ids.map(function (x) {
+                        return String(x || '').trim();
+                    }).filter(function (s) { return !!s; });
+                } else {
+                    mapObjectAttrIdsOrder = null;
                 }
                 if (cfg && cfg.category_special_rules && typeof cfg.category_special_rules === 'object') {
                     categorySpecialRules = cfg.category_special_rules;
@@ -1294,6 +2657,8 @@
     // -------- エリア描画（areas.json） --------
     var areaLayer = null;
     var areaIconLayerGroup = null;
+    /** フィルタ同期用: 各エリアの polygon・中央アイコン・属性メタ */
+    var allAreaItems = [];
     map.createPane('areas');  // ピンより背面に配置するため専用ペインを作成
     map.getPane('areas').style.zIndex = 350;
 
@@ -1378,15 +2743,52 @@
         return { pinSvgId: sid, scope: String(pin.svg_icon_scope || '').trim(), symHex: symHex };
     }
 
-    function addAreaCenterIconMarker(a) {
-        if (!areaWantsCenterIcon(a)) return;
+    /** エリア JSON をピンと同じフィルタ判定用メタに変換 */
+    function buildAreaFilterMetaForArea(a) {
+        var attrRaw = String(a.attribute || '').trim();
+        var styleKey = resolveFilterStyleKey(attrRaw);
+        var myCategories = [styleKey];
+        var cats = areaCategoriesAsArray(a);
+        var pinCategoryIds = [];
+        if (cats && cats.length) {
+            cats.forEach(function (c) {
+                if (c && c.cat_id) {
+                    var cid = String(c.cat_id).trim();
+                    if (cid && pinCategoryIds.indexOf(cid) < 0) pinCategoryIds.push(cid);
+                }
+            });
+        }
+        if (pinCategoryIds.length === 0 && a.category) {
+            var legacy = String(a.category || '').trim();
+            if (legacy) {
+                var cmEnt = categoryMasterGlobal[legacy];
+                if (cmEnt && cmEnt.id) {
+                    var cidM = String(cmEnt.id).trim();
+                    if (cidM) pinCategoryIds.push(cidM);
+                } else {
+                    var cidL = legacyCategoryToCatId(legacy);
+                    if (cidL) pinCategoryIds.push(cidL);
+                }
+            }
+        }
+        var pinItemIds = collectPinItemIdsFromContents(cats);
+        return {
+            categories: myCategories,
+            pinCategoryIds: pinCategoryIds,
+            pinItemIds: pinItemIds
+        };
+    }
+
+    function createAreaCenterIconMarker(a) {
+        if (!areaWantsCenterIcon(a)) return null;
         var ri = resolveAreaCenterIconFromMaster(a);
-        if (!ri) return;
+        if (!ri) return null;
         var xy = areaCenterIconImageXY(a);
-        if (!xy) return;
+        if (!xy) return null;
         var latLng = map.unproject(xy, maxZoom);
         var marker = L.marker(latLng);
         attachIconOnlySvgToMarker(marker, ri.pinSvgId, ri.scope, ri.symHex);
+        bindMarkerImportanceVisual(marker, a.importance);
         bindAreaPopup(marker, a);
         var name = isJa ? (a.name_jp || a.name_en || '') : (a.name_en || a.name_jp || '');
         var tt = name || (isJa ? 'エリア' : 'Area');
@@ -1394,7 +2796,7 @@
             direction: 'top', sticky: true, className: 'item-tooltip',
             opacity: 0.9, offset: [0, -10]
         });
-        areaIconLayerGroup.addLayer(marker);
+        return marker;
     }
 
     function styleAreaPolygon(area) {
@@ -1432,12 +2834,16 @@
             map.removeLayer(areaIconLayerGroup);
             areaIconLayerGroup = null;
         }
+        allAreaItems = [];
         if (areas.length === 0) return;
         areaLayer = L.layerGroup([], { pane: 'areas' });
         areaIconLayerGroup = L.layerGroup();
 
         areas.forEach(function (a) {
             if (!a) return;
+            var meta = buildAreaFilterMetaForArea(a);
+            var primaryObj = markerPrimaryObjectKey(meta);
+            if (!subsetAllowsMarker(primaryObj, meta.pinCategoryIds, meta.pinItemIds)) return;
             var shape = a.shape || 'polygon';
             var latlngs;
             if (shape === 'circle') {
@@ -1470,12 +2876,21 @@
             if (!latlngs || latlngs.length < 3) return;
             var poly = L.polygon(latlngs, styleAreaPolygon(a));
             bindAreaPopup(poly, a);
+            var iconMarker = createAreaCenterIconMarker(a);
             areaLayer.addLayer(poly);
-            addAreaCenterIconMarker(a);
+            if (iconMarker) areaIconLayerGroup.addLayer(iconMarker);
+            allAreaItems.push({
+                poly: poly,
+                iconMarker: iconMarker,
+                categories: meta.categories,
+                pinCategoryIds: meta.pinCategoryIds,
+                pinItemIds: meta.pinItemIds
+            });
         });
 
         areaLayer.addTo(map);
         areaIconLayerGroup.addTo(map);
+        updateVisibleAreas();
     }
 
     function bindAreaPopup(layer, area) {
@@ -1542,7 +2957,7 @@
         }
     }
 
-    loadConfigJson().then(startPinLoad);
+    loadViewPresetsJson().then(loadConfigJson).then(startPinLoad);
     if (isDebug) {
         console.log('map.js (vein world map): baseUrl=', baseUrl, 'csvUrl=', csvUrl, 'pinsJsonUrl=', pinsJsonUrl, 'showAllPins=', showAllPins);
     }
