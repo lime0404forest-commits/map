@@ -1,0 +1,14 @@
+{
+  "presets": {
+    "weapons": {
+      "allowed_object_ids": ["POI", "DEPLOYABLES"],
+      "allowed_category_ids": ["LOOT_CONTAINER", "WEAPON"],
+      "allowed_item_ids": [],
+      "default_on_object_ids": ["DEPLOYABLES"],
+      "default_off_object_ids": ["POI"],
+      "default_on_category_ids": [],
+      "default_on_item_ids": [],
+      "collapsed_object_ids": ["POI"]
+    }
+  }
+}

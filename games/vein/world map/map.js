@@ -1347,16 +1347,37 @@
         return en || jp || sid;
     }
 
+    function normalizeSkillNameMaster(raw) {
+        if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+            return raw;
+        }
+        if (!Array.isArray(raw)) return {};
+        var out = {};
+        raw.forEach(function (it) {
+            if (!it || typeof it !== 'object') return;
+            var sid = String(it.id || '').trim();
+            if (!sid) return;
+            out[sid] = {
+                name_jp: String(it.name_jp || '').trim(),
+                name_en: String(it.name_en || '').trim()
+            };
+        });
+        return out;
+    }
+
     function specialRuleText(rule, isJa) {
         if (!rule || typeof rule !== 'object') return '';
         var nt = String(rule.note_type || '').trim();
         var rt = String(rule.req_type || '').trim();
         var app = String(rule.applicability || 'always').trim();
         var ntDisp = isJa ? nt : ({ '必要条件': 'Required', '推奨条件': 'Recommended', 'メモ': 'Memo' }[nt] || nt);
+        // JP の「必要条件(緩め)」は "必要条件（必要な場合がある）" ではなく "必要な場合がある" を使う
+        if (isJa && nt === '必要条件' && app === 'lenient') ntDisp = '必要な場合がある';
         // EN の「必要条件(緩め)」は "Required (May require)" ではなく "May require" を使う
         if (!isJa && nt === '必要条件' && app === 'lenient') ntDisp = 'May require';
         var maybeTag = app === 'sometimes' ? (isJa ? '（場合あり）' : ' (Sometimes)')
             : (app === 'lenient' ? (isJa ? '（必要な場合がある）' : ' (May require)') : '');
+        if (isJa && nt === '必要条件' && app === 'lenient') maybeTag = '';
         if (!isJa && nt === '必要条件' && app === 'lenient') maybeTag = '';
         if (nt === 'メモ') {
             var mjp = String(rule.memo_jp || '').trim();
@@ -2642,11 +2663,7 @@
                 } else {
                     categorySpecialRules = {};
                 }
-                if (cfg && cfg.skill_name_master && typeof cfg.skill_name_master === 'object') {
-                    skillNameMaster = cfg.skill_name_master;
-                } else {
-                    skillNameMaster = {};
-                }
+                skillNameMaster = normalizeSkillNameMaster(cfg && cfg.skill_name_master);
                 rebuildVeinFilterFromAttrMapping();
                 if (isDebug) {
                     console.log('map.js: config.json loaded, pin_marker attrs=', Object.keys(pinMarkerByAttribute).length);

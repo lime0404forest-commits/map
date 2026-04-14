@@ -473,7 +473,7 @@
             "svg_icon_id": "marker-medic",
             "svg_icon_scope": "common",
             "icon_color": "#ffffff",
-            "background_color": "#ff0000",
+            "background_color": "#ff9fff",
             "display_style": "standard"
         },
         "TOOL_CONTAINER": {

@@ -1699,7 +1699,7 @@ class SettingsWindow(ctk.CTkToplevel):
         if not messagebox.askyesno("確認", "master_data.csv からアイテム情報を抽出しますか？\n(既存リストにない項目を追加します)"):
             return
             
-        csv_path = os.path.join(self.parent.game_path, self.config["save_file"])
+        csv_path = os.path.join(self.parent.game_path, self.config.get("save_file", "master_data.csv"))
         if not os.path.exists(csv_path):
             messagebox.showerror("エラー", f"CSVファイルが見つかりません:\n{csv_path}")
             return
@@ -2467,18 +2467,41 @@ class MapEditor(ctk.CTkToplevel):
         
         self.load_config()
         
-        if "orig_w" not in self.config:
+        if "orig_w" not in self.config or "orig_h" not in self.config:
             m_path = os.path.join(self.game_path, self.config.get("map_file", "map.png"))
             if os.path.exists(m_path):
                 with Image.open(m_path) as tmp: self.config["orig_w"], self.config["orig_h"] = tmp.size
                 with open(self.config_path, "w", encoding="utf-8") as f: 
                     json.dump(self.config, f, indent=4, ensure_ascii=False)
 
-        self.orig_w, self.orig_h = self.config["orig_w"], self.config["orig_h"]
-        zooms = [int(d) for d in os.listdir(self.tile_dir) if d.isdigit()]
+        zooms = [int(d) for d in os.listdir(self.tile_dir) if d.isdigit()] if os.path.isdir(self.tile_dir) else []
         self.max_zoom = max(zooms) if zooms else 0
         self.zoom = float(self.max_zoom) - 0.5
         self.orig_max_dim = (2 ** self.max_zoom) * 256 
+
+        def _safe_pos_int(v):
+            try:
+                n = int(float(v))
+                return n if n > 0 else None
+            except Exception:
+                return None
+
+        ow = _safe_pos_int(self.config.get("orig_w"))
+        oh = _safe_pos_int(self.config.get("orig_h"))
+        if ow is None or oh is None:
+            fallback = int(self.orig_max_dim) if self.orig_max_dim > 0 else 4096
+            if ow is None:
+                ow = fallback
+                self.config["orig_w"] = ow
+            if oh is None:
+                oh = fallback
+                self.config["orig_h"] = oh
+            try:
+                with open(self.config_path, "w", encoding="utf-8") as f:
+                    json.dump(self.config, f, indent=4, ensure_ascii=False)
+            except Exception:
+                pass
+        self.orig_w, self.orig_h = ow, oh
         
         self.title(f"Editor - {game_name} ({region_name})")
         self.geometry("1780x950")
@@ -2545,6 +2568,11 @@ class MapEditor(ctk.CTkToplevel):
         if os.path.exists(self.config_path):
             with open(self.config_path, "r", encoding="utf-8") as f: self.config = json.load(f)
         else: self.config = {}
+        # 欠損時フォールバック（旧設定/壊れた設定でも起動できるように）
+        if not str(self.config.get("save_file") or "").strip():
+            self.config["save_file"] = "master_data.csv"
+        if not str(self.config.get("map_file") or "").strip():
+            self.config["map_file"] = "map.png"
         # 互換: skill_name_master は list / dict の両方を許可（builder 側で正規化）
         sm = self.config.get("skill_name_master")
         if not isinstance(sm, (list, dict)):
@@ -3006,12 +3034,12 @@ class MapEditor(ctk.CTkToplevel):
                             if s:
                                 oid_list.append(s)
                     if oid_sel:
-                        if cat_oid:
-                            if cat_oid == oid_sel:
-                                filtered_categories.append(cat_name)
-                        elif oid_list:
-                            if oid_sel in oid_list:
-                                filtered_categories.append(cat_name)
+                        # object_attr_id / object_ids のどちらか一致で候補に含める。
+                        # （移行途中データで片方が古くても候補欠落しないようにする）
+                        match_by_attr = bool(cat_oid) and (cat_oid == oid_sel)
+                        match_by_ids = bool(oid_list) and (oid_sel in oid_list)
+                        if match_by_attr or match_by_ids:
+                            filtered_categories.append(cat_name)
                         # 紐づけ無しの分類はオブジェクト選択時は出さない
                     else:
                         if cat_oid:
@@ -3069,20 +3097,21 @@ class MapEditor(ctk.CTkToplevel):
         # 1行目：カテゴリ選択と削除ボタン（場所などと同じ CTk で統一）
         f_row1 = tk.Frame(slot_frame, bg=BOX_FG)
         f_row1.pack(fill="x", padx=BOX_PADX, pady=(BOX_PADY,2))
+        f_row1.grid_columnconfigure(1, weight=1)
         
         lbl_cat = ctk.CTkLabel(f_row1, text="分類:", width=60, anchor="w", font=("Meiryo", 10))
-        lbl_cat.pack(side="left", padx=5)
+        lbl_cat.grid(row=0, column=0, padx=5, sticky="w")
         cat_list = getattr(self, 'filtered_category_list', self.category_list)
         
         cmb_cat = ctk.CTkComboBox(f_row1, values=["(なし)"] + cat_list, width=180, command=lambda v, sf=slot_frame: self.on_slot_category_changed(sf))
-        cmb_cat.pack(side="left", padx=5)
+        cmb_cat.grid(row=0, column=1, padx=5, sticky="ew")
         cmb_cat.set("(なし)")
         
         btn_delete = ctk.CTkButton(
             f_row1, text="削除", width=52, height=28, fg_color="#c0392b", hover_color="#e74c3c",
             command=lambda: self.delete_category_slot(slot_frame),
         )
-        btn_delete.pack(side="right", padx=5)
+        btn_delete.grid(row=0, column=2, padx=5, sticky="e")
         
         # アイテム行と数量行を分ける（1行に詰めるとサイドバー幅で数量が画面外に押し出される）
         f_row_item = tk.Frame(slot_frame, bg=BOX_FG)
@@ -5614,6 +5643,17 @@ class MapEditor(ctk.CTkToplevel):
                 })
                 continue
             if item_name == "(なし)":
+                # 仕様: アイテム未選択でも「カテゴリのみ入力」を許容する
+                categories_data.append({
+                    "cat_id": self._get_cat_id(category),
+                    "category": category,
+                    "cat_name_en": slot_cat_en or "",
+                    "item_id": "",
+                    "item_name_jp": "",
+                    "item_name_en": "",
+                    "qty": qty,
+                    "attributes": self._merge_special_rule_attrs_into({}, slot),
+                })
                 continue
             item_id = None
             if category in self.item_master:
@@ -5622,6 +5662,17 @@ class MapEditor(ctk.CTkToplevel):
                         item_id = i_id
                         break
             if not item_id:
+                # 互換: マスタ不一致時もカテゴリのみとして保存を許容
+                categories_data.append({
+                    "cat_id": self._get_cat_id(category),
+                    "category": category,
+                    "cat_name_en": slot_cat_en or "",
+                    "item_id": "",
+                    "item_name_jp": "",
+                    "item_name_en": "",
+                    "qty": qty,
+                    "attributes": self._merge_special_rule_attrs_into({}, slot),
+                })
                 continue
             item_attrs = {}
             for attr_key, widget_data in slot.get("attr_widgets", {}).items():
@@ -5916,10 +5967,6 @@ class MapEditor(ctk.CTkToplevel):
             obj_info = self.attr_mapping[attribute_id]
             if isinstance(obj_info, dict):
                 obj_type = obj_info.get("type", "loot")
-        if obj_type != "landmark" and not self.category_slots:
-            messagebox.showwarning("入力エラー", "少なくとも1つの中身（カテゴリ）を追加してください。")
-            return
-
         if "attr_mapping" not in self.config:
             self.config["attr_mapping"] = {}
         if "category_master" not in self.config:
@@ -6047,11 +6094,6 @@ class MapEditor(ctk.CTkToplevel):
                     if val and val != "(なし)":
                         obj_attributes[attr_key] = val
         
-        # landmarkの場合はカテゴリなしでOK
-        if not categories_data and obj_type != "landmark":
-            messagebox.showwarning("入力エラー", "有効なカテゴリとアイテムを選択してください。")
-            return
-        
         # 重要度
         importance = self.cmb_importance.get()
         if importance == "(なし)": importance = ""
@@ -6130,7 +6172,7 @@ class MapEditor(ctk.CTkToplevel):
         self.mark_dirty(); self.current_uid = None; self.clear_ui(); self.refresh_map()
 
     def write_files(self):
-        p = os.path.join(self.game_path, self.config["save_file"])
+        p = os.path.join(self.game_path, self.config.get("save_file", "master_data.csv"))
         # 新しいフィールドと後方互換性のためのフィールドを含める
         flds = ["uid", "x", "y", "name_jp", "name_en", "attribute", "obj_name_en", "obj_attributes", "category", "categories", "importance", "category_pin", "contents", "memo_jp", "memo_en", "updated_at", "link_url_jp", "link_url_en", "marker_display_style"]
         with open(p, "w", newline="", encoding="utf-8-sig") as f:
@@ -6138,7 +6180,7 @@ class MapEditor(ctk.CTkToplevel):
             writer.writeheader(); writer.writerows(self.data_list)
 
     def load_csv(self):
-        p = os.path.join(self.game_path, self.config["save_file"])
+        p = os.path.join(self.game_path, self.config.get("save_file", "master_data.csv"))
         if os.path.exists(p):
             with open(p, "r", encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f); rows = []

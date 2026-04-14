@@ -188,6 +188,9 @@ def special_rule_text(rule: Dict, is_ja: bool, skill_name_master: Dict) -> str:
     rt = _s(rule.get("req_type")).strip()
     app = _s(rule.get("applicability") or "always").strip()
     nt_disp = nt if is_ja else ({"必要条件": "Required", "推奨条件": "Recommended", "メモ": "Memo"}.get(nt, nt))
+    # JP の「必要条件(緩め)」は "必要条件（必要な場合がある）" を避ける
+    if is_ja and nt == "必要条件" and app == "lenient":
+        nt_disp = "必要な場合がある"
     # EN の「必要条件(緩め)」は "Required (May require)" を避ける
     if (not is_ja) and nt == "必要条件" and app == "lenient":
         nt_disp = "May require"
@@ -196,6 +199,8 @@ def special_rule_text(rule: Dict, is_ja: bool, skill_name_master: Dict) -> str:
     elif app == "lenient":
         maybe_tag = "（必要な場合がある）" if is_ja else " (May require)"
     else:
+        maybe_tag = ""
+    if is_ja and nt == "必要条件" and app == "lenient":
         maybe_tag = ""
     if (not is_ja) and nt == "必要条件" and app == "lenient":
         maybe_tag = ""
