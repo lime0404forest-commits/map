@@ -118,11 +118,18 @@ def _qty_numeric_equals_one(s: str) -> bool:
         return False
 
 
-def hover_qty_suffix(qty_str: str) -> str:
-    """ホバー・クリックポップアップ用: 数量が 1 のときは × を付けない。2 以上のみ「×数」の形。"""
+def _is_many_qty_token(v) -> bool:
+    s = _s(v).strip().lower()
+    return s in ("many", "多数")
+
+
+def hover_qty_suffix(qty_str: str, is_ja: bool) -> str:
+    """ホバー・クリックポップアップ用: 1は非表示、2以上は×数、多数トークンは「多数/Many」。"""
     if qty_str is None or not str(qty_str).strip():
         return ""
     s = str(qty_str).strip()
+    if _is_many_qty_token(s):
+        return " 多数" if is_ja else " (Many)"
     if _qty_numeric_equals_one(s):
         return ""
     return f" ×{s}"
@@ -148,14 +155,10 @@ def build_pin_headline(pin: Dict, is_ja: bool, contents: List[Dict], legacy_cate
     obj_part = (
         _s(pin.get("obj_jp" if is_ja else "obj_en") or pin.get("obj_en" if is_ja else "obj_jp")).strip()
     )
-    cats = category_labels_from_contents(contents, is_ja, legacy_category or "")
-    cat_part = "・".join(cats)
-    if obj_part and cat_part:
-        if obj_part == cat_part:
-            return obj_part
-        return f"{obj_part}：{cat_part}"
     if obj_part:
         return obj_part
+    cats = category_labels_from_contents(contents, is_ja, legacy_category or "")
+    cat_part = "・".join(cats)
     if cat_part:
         return cat_part
     return "（無題）" if is_ja else "(Untitled)"
@@ -165,6 +168,54 @@ def build_pin_description(pin: Dict, is_ja: bool) -> str:
     if is_ja:
         return _s(pin.get("memo_jp")).strip()
     return _s(pin.get("memo_en") or pin.get("memo_jp")).strip()
+
+
+def normalize_parent_relation_type(raw_type: Any, has_parent: bool) -> str:
+    t = _s(raw_type).strip().lower()
+    if t in ("in the area", "in-the-area", "in_the_area", "area", "inside_area", "inside-area"):
+        t = "in_area"
+    if t not in ("inside", "near", "in_area"):
+        t = "inside" if has_parent else ""
+    return t
+
+
+def parent_relation_type_label(type_value: str, is_ja: bool) -> str:
+    t = normalize_parent_relation_type(type_value, True)
+    if is_ja:
+        if t == "near":
+            return "近く"
+        if t == "in_area":
+            return "エリア内"
+        return "中"
+    if t == "near":
+        return "near"
+    if t == "in_area":
+        return "in the area"
+    return "inside"
+
+
+def child_pin_in_parent_text(pin: Dict, is_ja: bool) -> str:
+    puid = _s(pin.get("parent_uid")).strip()
+    if not puid:
+        return ""
+    p_name = _s(pin.get("parent_name_jp" if is_ja else "parent_name_en")).strip()
+    if not p_name:
+        p_name = _s(pin.get("parent_name_en" if is_ja else "parent_name_jp")).strip()
+    if not p_name:
+        p_name = _s(pin.get("parent_obj_jp" if is_ja else "parent_obj_en")).strip()
+    if not p_name:
+        p_name = _s(pin.get("parent_obj_en" if is_ja else "parent_obj_jp")).strip()
+    if not p_name:
+        return ""
+    rel = parent_relation_type_label(_s(pin.get("parent_type")).strip(), is_ja)
+    if is_ja:
+        return f"{p_name}の{rel}"
+    rel_type = normalize_parent_relation_type(_s(pin.get("parent_type")).strip(), True)
+    if rel_type == "near":
+        return f"Near {p_name}"
+    if rel_type == "in_area":
+        return f"Within {p_name}"
+    return f"Inside {p_name}"
 
 
 def skill_display_name_for_rule(skill_id: str, is_ja: bool, skill_name_master: Dict) -> str:
@@ -360,11 +411,11 @@ def format_all_contents_for_popup_html(contents_arr: List[Dict], is_ja: bool) ->
         if item_name:
             head = f"{cat_lab}：{item_name}" if cat_lab else item_name
             # ホバーと同様: 数量が 1 のときは × を付けない
-            head += hover_qty_suffix(qty_str)
+            head += hover_qty_suffix(qty_str, is_ja)
             head += req_suffix
         elif cat_lab:
             head = cat_lab
-            head += hover_qty_suffix(qty_str)
+            head += hover_qty_suffix(qty_str, is_ja)
             head += req_suffix
         else:
             continue
@@ -389,7 +440,7 @@ def build_hover_tooltip_text(
         cat = category_label_from_entry(c, is_ja)
         qty = item_qty_string_for_entry(c)
         req = lockpick_req_suffix(c, is_ja)
-        suffix = hover_qty_suffix(qty) + req
+        suffix = hover_qty_suffix(qty, is_ja) + req
         if item_name:
             rows.append(item_name + suffix)
         elif cat:
@@ -428,6 +479,7 @@ def build_popup_html(
     description = build_pin_description(pin, is_ja)
     desc_html = memo_to_safe_popup_html(description)
     detail_html = format_all_contents_for_popup_html(pin.get("contents") or [], is_ja)
+    parent_ctx = child_pin_in_parent_text(pin, is_ja)
     special_html = aggregate_special_html_for_pin(
         pin.get("contents") or [], is_ja, category_special_rules, skill_name_master
     )
@@ -439,8 +491,10 @@ def build_popup_html(
     popup_html = (
         '<div style="font-family:sans-serif;min-width:200px;line-height:1.4;">'
         f'<div style="font-size:14px;font-weight:bold;">{escape_html_pin(headline)}</div>'
-        '<div style="margin:6px 0 8px;border-top:1px solid #bbb;"></div>'
     )
+    if parent_ctx:
+        popup_html += f'<div style="font-size:12px;color:#6b6b6b;margin-top:3px;">{escape_html_pin(parent_ctx)}</div>'
+    popup_html += '<div style="margin:6px 0 8px;border-top:1px solid #bbb;"></div>'
     if mid_html:
         popup_html += mid_html
     if desc_html:
@@ -504,6 +558,12 @@ def build_preview_bundle(
         "memo_en": _s(csv_row.get("memo_en")),
         "category": _s(csv_row.get("category")),
         "contents": contents,
+        "parent_uid": _s(resolved_pin.get("parent_uid") or csv_row.get("parent_uid")).strip(),
+        "parent_type": _s(csv_row.get("parent_type")).strip(),
+        "parent_name_jp": _s(csv_row.get("parent_name_jp")).strip(),
+        "parent_name_en": _s(csv_row.get("parent_name_en")).strip(),
+        "parent_obj_jp": _s(csv_row.get("parent_obj_jp")).strip(),
+        "parent_obj_en": _s(csv_row.get("parent_obj_en")).strip(),
     }
 
     out: Dict[str, str] = {}

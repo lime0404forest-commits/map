@@ -20,21 +20,79 @@
         st.id = 'map-pin-leaflet-shell-style';
         st.textContent = [
             '.map-pin-leaflet-shell{background:transparent!important;border:none!important;}',
-            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-1 .map-pin-svg-composite,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-1 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-1.emoji-icon div{transform:scale(0.92);}',
-            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-2 .map-pin-svg-composite,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-2 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-2.emoji-icon div{transform:scale(0.97);}',
-            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-3 .map-pin-svg-composite,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-3 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-3.emoji-icon div{transform:scale(1);}',
-            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-4 .map-pin-svg-composite,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-4 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-4.emoji-icon div{transform:scale(1.08);}',
-            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-5 .map-pin-svg-composite,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-5 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-5.emoji-icon div{transform:scale(1.16);}',
+            '.leaflet-marker-icon.map-pin-importance--on .map-pin-svg-composite,.leaflet-marker-icon.map-pin-importance--on .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.emoji-icon div{transition:transform 0.16s ease,filter 0.16s ease,-webkit-filter 0.16s ease;}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-1 .map-pin-svg-composite{transform:scale(0.74);transform-origin:50% 92%;}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-1 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-1.emoji-icon div{transform:scale(0.74);transform-origin:50% 50%;}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-2 .map-pin-svg-composite{transform:scale(0.84);transform-origin:50% 92%;}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-2 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-2.emoji-icon div{transform:scale(0.84);transform-origin:50% 50%;}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-3 .map-pin-svg-composite{transform:scale(1);transform-origin:50% 92%;}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-3 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-3.emoji-icon div{transform:scale(1);transform-origin:50% 50%;}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-4 .map-pin-svg-composite{transform:scale(1.22);transform-origin:50% 92%;}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-4 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-4.emoji-icon div{transform:scale(1.22);transform-origin:50% 50%;}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-5 .map-pin-svg-composite{transform:scale(1.4);transform-origin:50% 92%;}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-5 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-imp-5.emoji-icon div{transform:scale(1.4);transform-origin:50% 50%;}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-1 .map-pin-svg-composite,.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-1 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-1.emoji-icon div{',
+            '-webkit-filter:brightness(0.82) saturate(0.82) drop-shadow(0 1px 3px rgba(0,0,0,0.55));filter:brightness(0.82) saturate(0.82) drop-shadow(0 1px 3px rgba(0,0,0,0.55));}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-2 .map-pin-svg-composite,.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-2 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-2.emoji-icon div{',
+            '-webkit-filter:brightness(0.92) saturate(0.92) drop-shadow(0 0 4px rgba(0,0,0,0.35));filter:brightness(0.92) saturate(0.92) drop-shadow(0 0 4px rgba(0,0,0,0.35));}',
+            '.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-3 .map-pin-svg-composite,.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-3 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-3.emoji-icon div{',
+            '-webkit-filter:drop-shadow(0 0 5px rgba(120,160,220,0.35));filter:drop-shadow(0 0 5px rgba(120,160,220,0.35));}',
             '.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-4 .map-pin-svg-composite,.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-4 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-4.emoji-icon div{',
-            '-webkit-filter:drop-shadow(0 0 6px rgba(255,210,120,0.45));filter:drop-shadow(0 0 6px rgba(255,210,120,0.45));}',
+            '-webkit-filter:brightness(1.06) saturate(1.1) drop-shadow(0 0 10px rgba(255,200,90,0.62)) drop-shadow(0 0 18px rgba(255,170,60,0.35));filter:brightness(1.06) saturate(1.1) drop-shadow(0 0 10px rgba(255,200,90,0.62)) drop-shadow(0 0 18px rgba(255,170,60,0.35));}',
             '.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-5 .map-pin-svg-composite,.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-5 .map-pin-icon-only,.leaflet-marker-icon.map-pin-importance--on.map-pin-importance-glow.map-pin-imp-5.emoji-icon div{',
-            '-webkit-filter:drop-shadow(0 0 9px rgba(255,220,140,0.56));filter:drop-shadow(0 0 9px rgba(255,220,140,0.56));}',
+            '-webkit-filter:brightness(1.12) saturate(1.18) drop-shadow(0 0 14px rgba(255,210,100,0.85)) drop-shadow(0 0 28px rgba(255,160,40,0.45)) drop-shadow(0 0 42px rgba(255,140,30,0.22));filter:brightness(1.12) saturate(1.18) drop-shadow(0 0 14px rgba(255,210,100,0.85)) drop-shadow(0 0 28px rgba(255,160,40,0.45)) drop-shadow(0 0 42px rgba(255,140,30,0.22));}',
             '.leaflet-marker-icon.map-pin-active{z-index:1200!important;}',
             '.leaflet-marker-icon.map-pin-active .map-pin-svg-composite,.leaflet-marker-icon.map-pin-active .map-pin-icon-only,.leaflet-marker-icon.map-pin-active.emoji-icon div{',
-            'transform:scale(1.12);transform-origin:50% 50%;',
-            '-webkit-filter:drop-shadow(0 0 10px rgba(255,220,140,0.55));',
-            'filter:drop-shadow(0 0 10px rgba(255,220,140,0.55));',
-            'transition:transform 0.12s ease,filter 0.12s ease;}'
+            '-webkit-filter:drop-shadow(0 0 12px rgba(255,220,160,0.72)) drop-shadow(0 0 22px rgba(255,190,90,0.38));',
+            'filter:drop-shadow(0 0 12px rgba(255,220,160,0.72)) drop-shadow(0 0 22px rgba(255,190,90,0.38));',
+            'transition:transform 0.16s ease,filter 0.16s ease,-webkit-filter 0.16s ease;}'
+        ].join('');
+        document.head.appendChild(st);
+    })();
+
+    /** Grouped View: 親を強調・子をやや小さく（座標は JS でクラス付与のみ） */
+    (function ensureGroupedViewMarkerStyle() {
+        if (document.getElementById('vein-grouped-view-marker-style')) return;
+        var st = document.createElement('style');
+        st.id = 'vein-grouped-view-marker-style';
+        st.textContent = [
+            '.leaflet-marker-icon.vein-grouped--parent{',
+            'filter:drop-shadow(0 0 0 2px rgba(200,220,255,0.95)) drop-shadow(0 0 6px rgba(60,120,200,0.45));',
+            '}',
+            '.leaflet-marker-icon.vein-grouped--parent .map-pin-svg-composite,',
+            '.leaflet-marker-icon.vein-grouped--parent .map-pin-icon-only,',
+            '.leaflet-marker-icon.vein-grouped--parent.emoji-icon div{',
+            'transform:scale(1.1);transform-origin:50% 100%;',
+            '}',
+            '.leaflet-marker-icon.vein-grouped--child .map-pin-svg-composite,',
+            '.leaflet-marker-icon.vein-grouped--child .map-pin-icon-only,',
+            '.leaflet-marker-icon.vein-grouped--child.emoji-icon div{',
+            'transform:scale(0.87);transform-origin:50% 50%;opacity:0.96;',
+            '}',
+            '.leaflet-marker-icon.vein-grouped--parent.map-pin-active .map-pin-svg-composite,',
+            '.leaflet-marker-icon.vein-grouped--parent.map-pin-active .map-pin-icon-only,',
+            '.leaflet-marker-icon.vein-grouped--parent.map-pin-active.emoji-icon div{',
+            'transform:scale(1.14);',
+            '}',
+            '.leaflet-marker-icon.vein-grouped--child.map-pin-active .map-pin-svg-composite,',
+            '.leaflet-marker-icon.vein-grouped--child.map-pin-active .map-pin-icon-only,',
+            '.leaflet-marker-icon.vein-grouped--child.map-pin-active.emoji-icon div{',
+            'transform:scale(0.93);',
+            '}',
+            '.leaflet-marker-icon.vein-grouped--split-chip-marker{z-index:140!important;}',
+            '.vein-grouped-split-inner{box-sizing:border-box;line-height:1;}',
+            '.leaflet-interactive.vein-grouped-hub-marker{cursor:pointer;}',
+            '.leaflet-interactive.vein-grouped-hub-marker:hover{stroke-opacity:1!important;fill-opacity:1!important;}',
+            '.leaflet-marker-icon.vein-grouped--child.vein-grouped--hub-hover-child .map-pin-svg-composite,',
+            '.leaflet-marker-icon.vein-grouped--child.vein-grouped--hub-hover-child .map-pin-icon-only,',
+            '.leaflet-marker-icon.vein-grouped--child.vein-grouped--hub-hover-child.emoji-icon div{',
+            'transform:scale(0.96);transform-origin:50% 50%;opacity:1;',
+            'filter:drop-shadow(0 0 6px rgba(130,170,235,0.65));',
+            '}',
+            '.leaflet-marker-icon.vein-grouped--split-chip-marker.vein-grouped--hub-hover-child .vein-grouped-split-inner{',
+            'transform:scale(1.08);transform-origin:center center;',
+            'box-shadow:0 0 0 2px rgba(200,220,255,0.75),0 2px 10px rgba(0,0,0,0.5);',
+            '}'
         ].join('');
         document.head.appendChild(st);
     })();
@@ -139,6 +197,12 @@
         importanceVisualVariant = 'size';
     }
     var importanceVisualEnabled = importanceVisualRaw !== 'off' && importanceVisualRaw !== 'false' && importanceVisualRaw !== '0';
+    var groupedViewParam = (new URLSearchParams(window.location.search).get('grouped_view') || '').trim().toLowerCase();
+    var familyViewParam = (new URLSearchParams(window.location.search).get('family_view') || '').trim().toLowerCase();
+    var familyViewMode = mapDiv.getAttribute('data-grouped-view') === 'true' ||
+        mapDiv.getAttribute('data-family-view') === 'true' ||
+        groupedViewParam === '1' || groupedViewParam === 'true' || groupedViewParam === 'on' ||
+        familyViewParam === '1' || familyViewParam === 'true' || familyViewParam === 'on';
     var filterMode = mapDiv.getAttribute('data-filter');
     var customCsv = mapDiv.getAttribute('data-csv');
     var customPins = mapDiv.getAttribute('data-pins');  // pins_export.json 用
@@ -621,19 +685,27 @@
         '<path d="M24 47L29.1962 38.75H18.8038L24 47Z"/>' +
         '</g>' +
         '<g id="pin-inner-bg"><circle cx="24" cy="24" r="15" fill="currentColor"/></g>';
+    /** 白枠＋内円のみ（尻尾なし）。Grouped View の子など、座標＝見た目の中心に合わせる用途 */
+    var PIN_SVG_LAYERS_NO_TAIL =
+        '<g id="pin-frame" fill="white">' +
+        '<circle cx="24" cy="24" r="17"/>' +
+        '</g>' +
+        '<g id="pin-inner-bg"><circle cx="24" cy="24" r="15" fill="currentColor"/></g>';
     var PIN_SVG_TAIL = '</svg>';
-    function buildPinStackSvg(iconInnerMarkup, symColor) {
+    function buildPinStackSvg(iconInnerMarkup, symColor, omitTail) {
         var sc = isSafeSvgIconColor(String(symColor || '').trim()) ? String(symColor).trim() : '#1e1e1e';
         var sym = iconInnerMarkup
             ? '<g id="pin-symbol-overlay" style="color:' + escapeHtmlAttr(sc) + '"' +
                 ' transform="translate(24,24) scale(0.42) translate(-24,-24)">' + iconInnerMarkup + '</g>'
             : '<g id="pin-symbol-overlay"></g>';
-        return PIN_SVG_HEAD + PIN_SVG_LAYERS + sym + PIN_SVG_TAIL;
+        var layers = omitTail ? PIN_SVG_LAYERS_NO_TAIL : PIN_SVG_LAYERS;
+        return PIN_SVG_HEAD + layers + sym + PIN_SVG_TAIL;
     }
     /** 外部SVGを HTML img で重ねる（SVG内 <image> より表示が安定） */
-    function wrapPinBasePlusImgIcon(pinBgColor, iconSrcWithBust, symColor, markerPx) {
+    function wrapPinBasePlusImgIcon(pinBgColor, iconSrcWithBust, symColor, markerPx, omitTail) {
         var mp = markerPx || 32;
-        var baseOnly = buildPinStackSvg('', symColor);
+        var normalIconPx = Math.max(10, Math.round(14 * 0.92));
+        var baseOnly = buildPinStackSvg('', symColor, !!omitTail);
         var href = escapeHtmlAttr(iconSrcWithBust);
         return '<div class="demo-pin-composite" style="position:relative;width:' + mp + 'px;height:' + mp + 'px;display:block;">' +
             '<div class="demo-svg-inner" style="' +
@@ -642,7 +714,7 @@
             'line-height:0;background:transparent;">' + baseOnly + '</div>' +
             '<img src="' + href + '" alt="" decoding="async" draggable="false" ' +
             'class="demo-pin-icon-img" ' +
-            'style="position:absolute;left:50%;top:50%;width:14px;height:14px;max-width:14px;max-height:14px;' +
+            'style="position:absolute;left:50%;top:50%;width:' + normalIconPx + 'px;height:' + normalIconPx + 'px;max-width:' + normalIconPx + 'px;max-height:' + normalIconPx + 'px;' +
             'transform:translate(-50%,-50%);object-fit:contain;box-sizing:border-box;pointer-events:none;z-index:2;"/>' +
             '</div>';
     }
@@ -659,6 +731,13 @@
     function leafletPinAnchorAtTail(markerPx) {
         var mp = markerPx || 32;
         return [Math.round(mp / 2), Math.round((47 * mp) / 48)];
+    }
+
+    /** 尻尾なし枠: viewBox 中心 (24,24) にマップ座標を合わせる */
+    function leafletPinAnchorCenter(markerPx) {
+        var mp = markerPx || 32;
+        var a = Math.round(mp / 2);
+        return [a, a];
     }
 
     function addDemoSvgIconMarker() {
@@ -765,6 +844,43 @@
     addDemoSvgIconMarker();
 
     var allMarkers = [];
+    /** Grouped View 用の接続線。座標復元は imgX/imgY のみ（元データは変更しない）。 */
+    var familyLinesLayer = null;
+    /** グループビューで親から子までの距離（画像座標 px）。固定半径・親中心の規定配置。 */
+    var GROUPED_VIEW_RADIUS_IMG = 68;
+    /** 親子をつなぐ線の長さ（半径）に掛ける係数（基準長の 90%）。 */
+    var GROUPED_VIEW_LINE_LENGTH_SCALE = 0.9;
+    /** Grouped View の接続線（親表示時は親位置〜子、親非表示時は補助中心〜子で同色） */
+    var GROUPED_VIEW_LINE_STYLE = {
+        color: 'rgba(118, 158, 212, 0.78)',
+        weight: 2.35,
+        opacity: 0.88,
+        interactive: false,
+        pane: 'overlayPane'
+    };
+    /** Grouped View: contents 複数スロット時の分解チップ（px）。アンカーは中心（従来28pxの80%）。 */
+    var GROUPED_SPLIT_MARKER_PX = Math.round(28 * 0.8);
+    /** チップ内 SVG の直径（px）。旧 mp×0.52×1.3 より大きく、白枠内に収まるよう上限クリップ。 */
+    function groupedSplitChipInnerIconDiameterPx(mp) {
+        var innerMax = Math.max(12, mp - 4);
+        var raw = Math.max(12, Math.round(mp * 0.82));
+        return Math.min(innerMax, raw);
+    }
+    /** 1行固定・はみ出し抑制（改行・重なり防止）。フォントは従来どおり 11px。escapedLab は既にエスケープ済み */
+    function groupedSplitChipFallbackSpanHtml(escapedLab, mp) {
+        var maxW = Math.max(8, mp - 6);
+        return (
+            '<span style="' +
+            'display:block;box-sizing:border-box;margin:0 auto;' +
+            'max-width:' +
+            maxW +
+            'px;white-space:nowrap;overflow:hidden;text-overflow:clip;' +
+            'line-height:1;font-size:11px;font-weight:700;color:#fff;text-align:center;' +
+            'text-shadow:0 0 2px rgba(0,0,0,0.85);">' +
+            escapedLab +
+            '</span>'
+        );
+    }
     var activeCategories = new Set();
     /** CSV 読み込み時、config.json の pin_marker_by_attribute で SVG／色を補う */
     var pinMarkerByAttribute = {};
@@ -810,6 +926,40 @@
             marker.__importanceVisualHooked = true;
         }
         syncMarkerImportanceVisual(marker);
+    }
+
+    function isWhiteHex6Color(v) {
+        return String(v || '').trim().toLowerCase() === '#ffffff';
+    }
+
+    function pickDotMarkerColor(iconHex, bgHex) {
+        var ic = String(iconHex || '').trim();
+        var bg = String(bgHex || '').trim();
+        if (!isSafeSvgIconColor(ic)) ic = '#ffffff';
+        if (!isSafeSvgIconColor(bg)) bg = '#7f8c8d';
+        if (!isWhiteHex6Color(ic)) return ic;
+        if (!isWhiteHex6Color(bg)) return bg;
+        return '#7f8c8d';
+    }
+
+    function buildImportanceOneDotIcon(dotHex) {
+        var c = String(dotHex || '#7f8c8d').trim();
+        if (!isSafeSvgIconColor(c)) c = '#7f8c8d';
+        var dp = 9;
+        var ax = Math.round(dp / 2);
+        var html =
+            '<div style="' +
+            'width:' + dp + 'px;height:' + dp + 'px;border-radius:50%;' +
+            'background:' + escapeHtmlAttr(c) + ';' +
+            'border:1px solid rgba(255,255,255,0.92);' +
+            'box-shadow:0 0 3px rgba(0,0,0,0.65),0 0 1px rgba(255,255,255,0.4) inset;' +
+            '"></div>';
+        return L.divIcon({
+            html: html,
+            className: MAP_PIN_LEAFLET_SHELL + ' map-pin-importance-dot',
+            iconSize: [dp, dp],
+            iconAnchor: [ax, ax]
+        });
     }
 
     function refreshAllMarkerImportanceVisual() {
@@ -860,6 +1010,32 @@
         return null;
     }
 
+    function pinMarkerEntryForCategoryId(catIdRaw) {
+        var cid = String(catIdRaw || '').trim();
+        if (!cid) return null;
+        var ov = pinMarkerByCategoryId[cid];
+        if (ov && typeof ov === 'object') return ov;
+        var cu = cid.toUpperCase();
+        if (cu !== cid) {
+            ov = pinMarkerByCategoryId[cu];
+            if (ov && typeof ov === 'object') return ov;
+        }
+        return null;
+    }
+
+    function pinMarkerEntryForItemId(itemIdRaw) {
+        var iid = String(itemIdRaw || '').trim();
+        if (!iid) return null;
+        var im = pinMarkerByItemId[iid];
+        if (im && typeof im === 'object') return im;
+        var iu = iid.toUpperCase();
+        if (iu !== iid) {
+            im = pinMarkerByItemId[iu];
+            if (im && typeof im === 'object') return im;
+        }
+        return null;
+    }
+
     /**
      * マーカー見た目: オブジェクト → カテゴリ → アイテムの順に apply（後勝ち）。
      * 複数スロット時: 配列順で「pinMarkerByCategoryId にある最初の cat_id」、
@@ -871,19 +1047,19 @@
         applyPinMarkerPartial(pin, pinMarkerEntryForAttribute(attr));
         if (categoriesArr && categoriesArr.length) {
             for (var ci = 0; ci < categoriesArr.length; ci++) {
-                var cid = (categoriesArr[ci].cat_id || '').trim();
+                var cid = String(categoriesArr[ci].cat_id || '').trim();
                 if (!cid) continue;
-                var ov = pinMarkerByCategoryId[cid];
-                if (ov && typeof ov === 'object') {
+                var ov = pinMarkerEntryForCategoryId(cid);
+                if (ov) {
                     applyPinMarkerPartial(pin, ov);
                     break;
                 }
             }
             for (var ii = 0; ii < categoriesArr.length; ii++) {
-                var iid = (categoriesArr[ii].item_id || '').trim();
+                var iid = String(categoriesArr[ii].item_id || '').trim();
                 if (!iid) continue;
-                var im = pinMarkerByItemId[iid];
-                if (im && typeof im === 'object') {
+                var im = pinMarkerEntryForItemId(iid);
+                if (im) {
                     applyPinMarkerPartial(pin, im);
                     break;
                 }
@@ -925,6 +1101,681 @@
         // 既定: POI は初期で閉じ、その他（コンテナ・アイテム等）は開き
         return isPoiObjectKey(key);
     }
+
+    var groupedViewHubHoverClearT = null;
+    var groupedViewHubHoverUnsubs = [];
+
+    function cancelGroupedViewHubHoverClearSchedule() {
+        if (groupedViewHubHoverClearT) {
+            clearTimeout(groupedViewHubHoverClearT);
+            groupedViewHubHoverClearT = null;
+        }
+    }
+
+    function scheduleGroupedViewHubHoverClear() {
+        cancelGroupedViewHubHoverClearSchedule();
+        groupedViewHubHoverClearT = setTimeout(function () {
+            groupedViewHubHoverClearT = null;
+            clearGroupedViewHubHoverHighlight();
+        }, 100);
+    }
+
+    function clearGroupedViewHubHoverHighlight() {
+        cancelGroupedViewHubHoverClearSchedule();
+        groupedViewHubHoverUnsubs.forEach(function (fn) {
+            try {
+                fn();
+            } catch (eH) { /* ignore */ }
+        });
+        groupedViewHubHoverUnsubs = [];
+        allMarkers.forEach(function (item) {
+            var el = item.marker && item.marker.getElement ? item.marker.getElement() : null;
+            if (el && el.classList) el.classList.remove('vein-grouped--hub-hover-child');
+            if (item._groupedSplitMarkers && item._groupedSplitMarkers.length) {
+                item._groupedSplitMarkers.forEach(function (sm) {
+                    var el2 = sm && sm.getElement ? sm.getElement() : null;
+                    if (el2 && el2.classList) el2.classList.remove('vein-grouped--hub-hover-child');
+                });
+            }
+        });
+    }
+
+    function groupedViewHubHoverAddHold(layer) {
+        if (!layer || !layer.on) return;
+        var hold = function () {
+            cancelGroupedViewHubHoverClearSchedule();
+        };
+        var release = function () {
+            scheduleGroupedViewHubHoverClear();
+        };
+        layer.on('mouseover', hold);
+        layer.on('mouseout', release);
+        groupedViewHubHoverUnsubs.push(function () {
+            layer.off('mouseover', hold);
+            layer.off('mouseout', release);
+        });
+    }
+
+    function groupedViewHubHoverApplyToLeafletIcon(layer) {
+        var el = layer && layer.getElement ? layer.getElement() : null;
+        if (el && el.classList) el.classList.add('vein-grouped--hub-hover-child');
+    }
+
+    function highlightGroupedViewChildrenForParent(parentUid) {
+        var p = String(parentUid || '').trim();
+        if (!p) return;
+        clearGroupedViewHubHoverHighlight();
+        for (var hi = 0; hi < allMarkers.length; hi++) {
+            var it = allMarkers[hi];
+            if (String(it.parentUid || '').trim() !== p) continue;
+            if (it._groupedSplitMarkers && it._groupedSplitMarkers.length) {
+                it._groupedSplitMarkers.forEach(function (sm) {
+                    if (sm && map.hasLayer(sm)) {
+                        groupedViewHubHoverApplyToLeafletIcon(sm);
+                        groupedViewHubHoverAddHold(sm);
+                    }
+                });
+            } else if (it.marker && map.hasLayer(it.marker)) {
+                groupedViewHubHoverApplyToLeafletIcon(it.marker);
+                groupedViewHubHoverAddHold(it.marker);
+            }
+        }
+    }
+
+    function highlightGroupedViewOrphanSplitChips(item) {
+        if (!item || !item._groupedSplitMarkers || !item._groupedSplitMarkers.length) return;
+        clearGroupedViewHubHoverHighlight();
+        item._groupedSplitMarkers.forEach(function (sm) {
+            if (sm && map.hasLayer(sm)) {
+                groupedViewHubHoverApplyToLeafletIcon(sm);
+                groupedViewHubHoverAddHold(sm);
+            }
+        });
+    }
+
+    /** 親非表示ハブ／親なし分割ハブの円にホバーで子を軽く強調 */
+    function wireGroupedViewHubCircle(circle, ctx) {
+        if (!circle || !circle.on) return circle;
+        circle.on('mouseover', function () {
+            if (!familyViewMode) return;
+            cancelGroupedViewHubHoverClearSchedule();
+            if (ctx && ctx.kind === 'parent') highlightGroupedViewChildrenForParent(ctx.parentUid);
+            else if (ctx && ctx.kind === 'orphan') highlightGroupedViewOrphanSplitChips(ctx.item);
+        });
+        circle.on('mouseout', function () {
+            scheduleGroupedViewHubHoverClear();
+        });
+        return circle;
+    }
+
+    function removeFamilyViewLines() {
+        clearGroupedViewHubHoverHighlight();
+        if (familyLinesLayer && map.hasLayer(familyLinesLayer)) {
+            map.removeLayer(familyLinesLayer);
+        }
+        familyLinesLayer = null;
+    }
+
+    /** フィルタ後に地図レイヤーに載っているマーカーか（Grouped View の表示連動に使用） */
+    function markerIsOnMap(item) {
+        return !!(item && item.marker && map.hasLayer(item.marker));
+    }
+
+    function clearGroupedViewMarkerClasses() {
+        allMarkers.forEach(function (item) {
+            var m = item.marker;
+            if (m && m.getElement) {
+                var el = m.getElement();
+                if (el && el.classList) {
+                    el.classList.remove('vein-grouped--parent', 'vein-grouped--child');
+                }
+                if (m.setZIndexOffset) m.setZIndexOffset(0);
+            }
+            if (item._groupedSplitMarkers && item._groupedSplitMarkers.length) {
+                item._groupedSplitMarkers.forEach(function (sm) {
+                    var el2 = sm && sm.getElement ? sm.getElement() : null;
+                    if (el2 && el2.classList) {
+                        el2.classList.remove('vein-grouped--parent', 'vein-grouped--child', 'vein-grouped--split-chip-marker');
+                    }
+                });
+            }
+        });
+    }
+
+    /** Grouped View: 親に子がいるピンを強調、子ピンをやや小さく（表示中ピンのみ）。通常モードでは呼ばない。 */
+    function applyGroupedViewMarkerClasses() {
+        if (!familyViewMode) return;
+        var hasChildByUid = {};
+        var i;
+        for (i = 0; i < allMarkers.length; i++) {
+            var row = allMarkers[i];
+            var pu = String(row.parentUid || '').trim();
+            if (!pu) continue;
+            if (markerIsOnMap(row)) {
+                hasChildByUid[pu] = true;
+            } else if (row._groupedSplitMarkers && row._groupedSplitMarkers.length) {
+                hasChildByUid[pu] = true;
+            }
+        }
+        for (i = 0; i < allMarkers.length; i++) {
+            var it = allMarkers[i];
+            if (it._groupedSplitMarkers && it._groupedSplitMarkers.length) {
+                it._groupedSplitMarkers.forEach(function (sm) {
+                    var elS = sm && sm.getElement ? sm.getElement() : null;
+                    if (!elS || !elS.classList) return;
+                    elS.classList.remove('vein-grouped--parent', 'vein-grouped--child', 'vein-grouped--split-chip-marker');
+                    elS.classList.add('vein-grouped--child', 'vein-grouped--split-chip-marker');
+                    if (sm.setZIndexOffset) sm.setZIndexOffset(140);
+                });
+            }
+            var m = it.marker;
+            if (!m || !m.getElement || !markerIsOnMap(it)) continue;
+            var el = m.getElement();
+            if (!el || !el.classList) continue;
+            el.classList.remove('vein-grouped--parent', 'vein-grouped--child');
+            var uid = String(it.pinUid || '').trim();
+            var puid = String(it.parentUid || '').trim();
+            if (hasChildByUid[uid]) {
+                el.classList.add('vein-grouped--parent');
+                if (m.setZIndexOffset) m.setZIndexOffset(520);
+            } else if (puid) {
+                el.classList.add('vein-grouped--child');
+                if (m.setZIndexOffset) m.setZIndexOffset(140);
+            }
+        }
+    }
+
+    function resetMarkersToDataImageCoords() {
+        allMarkers.forEach(function (item) {
+            if (!item.marker || typeof item.imgX !== 'number' || typeof item.imgY !== 'number') return;
+            var ll = map.unproject([item.imgX, item.imgY], maxZoom);
+            item.marker.setLatLng(ll);
+        });
+    }
+
+    function comparePinUidStable(a, b) {
+        var sa = String(a || '');
+        var sb = String(b || '');
+        if (sa < sb) return -1;
+        if (sa > sb) return 1;
+        return 0;
+    }
+
+    function groupedPinSliceStableKey(c) {
+        if (!c || typeof c !== 'object') return '';
+        return [
+            String(c.cat_id || ''),
+            String(c.item_id || ''),
+            String(c.category || ''),
+            String(c.item_name_jp || ''),
+            String(c.item_name_en || '')
+        ].join('\x1e');
+    }
+
+    /**
+     * pin.contents の複数スロットを Grouped View 用に分解するか。
+     * split: true のとき entries は安定ソート済み（2件以上）。
+     */
+    function getGroupedPinExpansionSlots(pin) {
+        if (!pin) return { split: false, entries: [] };
+        var raw = pin.contents;
+        if (typeof raw === 'string' && raw.trim()) {
+            try {
+                raw = JSON.parse(raw);
+            } catch (e0) {
+                raw = [];
+            }
+        }
+        if (!Array.isArray(raw)) raw = [];
+        var entries = [];
+        raw.forEach(function (c) {
+            if (!c || typeof c !== 'object') return;
+            var has =
+                (c.cat_id && String(c.cat_id).trim()) ||
+                (c.item_id && String(c.item_id).trim()) ||
+                (c.category && String(c.category).trim());
+            if (has) entries.push(c);
+        });
+        if (entries.length <= 1) return { split: false, entries: entries };
+        entries.sort(function (a, b) {
+            var ka = groupedPinSliceStableKey(a);
+            var kb = groupedPinSliceStableKey(b);
+            if (ka < kb) return -1;
+            if (ka > kb) return 1;
+            return 0;
+        });
+        return { split: true, entries: entries };
+    }
+
+    /** 他ピンがこの UID を parentUid にしているか（親ハブとして円中心に残す必要がある） */
+    function groupedPinUidHasChildMarkers(uid) {
+        var p = String(uid || '').trim();
+        if (!p) return false;
+        for (var hi = 0; hi < allMarkers.length; hi++) {
+            if (String(allMarkers[hi].parentUid || '').trim() === p) return true;
+        }
+        return false;
+    }
+
+    /** Grouped split チップ: スロットから cat_id（レガシー category からの変換含む） */
+    function groupedSplitEntryCategoryId(entry) {
+        if (!entry || typeof entry !== 'object') return '';
+        var cid = String(entry.cat_id || '').trim();
+        if (!cid) {
+            var leg = String(entry.category || entry.cat_jp || entry.cat_en || '').trim();
+            if (leg) cid = String(legacyCategoryToCatId(leg) || '').trim();
+        }
+        return cid;
+    }
+
+    function groupedSplitEntryItemId(entry) {
+        if (!entry || typeof entry !== 'object') return '';
+        var v = entry.item_id;
+        if (v == null || v === '') return '';
+        return String(v).trim();
+    }
+
+    /**
+     * Grouped split チップ用の 1 スロット分スタイル。
+     * 優先度は「アイテム ＞ カテゴリ ＞ オブジェクト」（同一キーは後勝ちのため、apply 順はオブジェクト→カテゴリ→アイテム）。
+     * mergePinStyleFromConfig の単一配列版とは異なり、常に「このスロット」の cat/item のみを重ねる（カテゴリだけが先に当たって svg を潰す事故を防ぐ）。
+     */
+    function resolveGroupedSplitPinStyle(pin, entry) {
+        var stylePin = {
+            svg_icon_id: '',
+            svg_icon_scope: '',
+            marker_icon_color: '',
+            marker_bg_color: '',
+            marker_display_style: 'standard'
+        };
+        var attr = pin ? String(pin.obj_id || pin.attribute || '').trim() : '';
+        applyPinMarkerPartial(stylePin, pinMarkerEntryForAttribute(attr));
+        applyPinMarkerPartial(stylePin, pinMarkerEntryForCategoryId(groupedSplitEntryCategoryId(entry)));
+        applyPinMarkerPartial(stylePin, pinMarkerEntryForItemId(groupedSplitEntryItemId(entry)));
+
+        stylePin.marker_display_style = normalizeMarkerDisplayStyle(stylePin.marker_display_style);
+        if (stylePin.marker_display_style !== 'icon_only') {
+            if (!stylePin.marker_bg_color && attr && attrMappingGlobal[attr] && typeof attrMappingGlobal[attr] === 'object') {
+                var typ = String(attrMappingGlobal[attr].type || 'other').toLowerCase();
+                stylePin.marker_bg_color = defaultMarkerBgByType[typ] || defaultMarkerBgByType.other;
+            }
+        }
+        if (!stylePin.marker_icon_color) stylePin.marker_icon_color = '#ffffff';
+
+        var exportedMds = pin ? String(pin.marker_display_style || '').trim() : '';
+        if (exportedMds) {
+            stylePin.marker_display_style = normalizeMarkerDisplayStyle(exportedMds);
+        }
+
+        if (!String(stylePin.svg_icon_id || '').trim() && pin && String(pin.svg_icon_id || '').trim()) {
+            stylePin.svg_icon_id = String(pin.svg_icon_id || '').trim();
+            var psc = String(pin.svg_icon_scope || '').trim();
+            if (psc) stylePin.svg_icon_scope = psc;
+            if (!stylePin.marker_icon_color && pin.marker_icon_color) {
+                stylePin.marker_icon_color = String(pin.marker_icon_color).trim();
+            }
+            if (!stylePin.marker_bg_color && pin.marker_bg_color) {
+                stylePin.marker_bg_color = String(pin.marker_bg_color).trim();
+            }
+        }
+        return stylePin;
+    }
+
+    function groupedSplitChipLabel(entry, pin) {
+        var t = itemNameFromEntry(entry, isJa) || categoryLabelFromEntry(entry, isJa);
+        t = String(t || '').trim();
+        if (!t && pin) {
+            t = String(pin.hover_tooltip || '').trim().split(/\n/)[0] || '';
+        }
+        if (!t) return '·';
+        var chars = Array.from(t);
+        return chars.length ? chars[0] : '·';
+    }
+
+    function buildGroupedSplitChipDivIconHtml(innerMarkup, bgHex, mp) {
+        return (
+            '<div class="vein-grouped-split-inner" style="' +
+            'width:' + mp + 'px;height:' + mp + 'px;border-radius:50%;' +
+            'background:' + escapeHtmlAttr(bgHex) + ';' +
+            'border:2px solid rgba(255,255,255,0.88);' +
+            'box-shadow:0 1px 5px rgba(0,0,0,0.45);' +
+            'display:flex;align-items:center;justify-content:center;' +
+            'pointer-events:auto;overflow:hidden;line-height:0;">' +
+            innerMarkup +
+            '</div>'
+        );
+    }
+
+    /** SVG 未取得時は空の円、解決不能時は短いテキスト */
+    function getGroupedSplitMarkerIcon(pin, entry) {
+        var st = resolveGroupedSplitPinStyle(pin, entry);
+        var pinSvgId = String(st.svg_icon_id || '').trim();
+        var pinBg = String(st.marker_bg_color || (pin && pin.marker_bg_color) || '#7f8c8d').trim();
+        if (!isSafeSvgIconColor(pinBg)) pinBg = '#7f8c8d';
+        var mp = GROUPED_SPLIT_MARKER_PX;
+        var ax = Math.round(mp / 2);
+        if (!pinSvgId) {
+            var lab = escapeHtmlPin(groupedSplitChipLabel(entry, pin));
+            var inner = groupedSplitChipFallbackSpanHtml(lab, mp);
+            return L.divIcon({
+                html: buildGroupedSplitChipDivIconHtml(inner, pinBg, mp),
+                className: MAP_PIN_LEAFLET_SHELL + ' vein-grouped-split-chip-marker',
+                iconSize: [mp, mp],
+                iconAnchor: [ax, ax]
+            });
+        }
+        return L.divIcon({
+            html: buildGroupedSplitChipDivIconHtml('', pinBg, mp),
+            className: MAP_PIN_LEAFLET_SHELL + ' vein-grouped-split-chip-marker',
+            iconSize: [mp, mp],
+            iconAnchor: [ax, ax]
+        });
+    }
+
+    /** カテゴリ／アイテム解決の SVG をチップ中央に表示（失敗時はテキストにフォールバック） */
+    function hydrateGroupedSplitMarkerIcon(marker, pin, entry) {
+        if (!marker) return;
+        var st = resolveGroupedSplitPinStyle(pin, entry);
+        var pinSvgId = String(st.svg_icon_id || '').trim();
+        var symHex = String(st.marker_icon_color || '#ffffff').trim();
+        if (!isSafeSvgIconColor(symHex)) symHex = '#ffffff';
+        var pinBg = String(st.marker_bg_color || (pin && pin.marker_bg_color) || '#7f8c8d').trim();
+        if (!isSafeSvgIconColor(pinBg)) pinBg = '#7f8c8d';
+        var mp = GROUPED_SPLIT_MARKER_PX;
+        var ax = Math.round(mp / 2);
+        var fallbackLab = escapeHtmlPin(groupedSplitChipLabel(entry, pin));
+
+        function setChipInner(innerMarkup) {
+            marker.setIcon(
+                L.divIcon({
+                    html: buildGroupedSplitChipDivIconHtml(innerMarkup, pinBg, mp),
+                    className: MAP_PIN_LEAFLET_SHELL + ' vein-grouped-split-chip-marker',
+                    iconSize: [mp, mp],
+                    iconAnchor: [ax, ax]
+                })
+            );
+            syncMarkerImportanceVisual(marker);
+        }
+
+        if (!pinSvgId) {
+            setChipInner(groupedSplitChipFallbackSpanHtml(fallbackLab, mp));
+            return;
+        }
+
+        var scope = String(st.svg_icon_scope || '').trim();
+        var candidates = svgIconUrlCandidates(pinSvgId);
+        getOrFetchSvgObjectUrl(
+            pinSvgId,
+            scope,
+            symHex,
+            candidates,
+            function (objUrl) {
+                var imgPx = groupedSplitChipInnerIconDiameterPx(mp);
+                var inner =
+                    '<img src="' +
+                    escapeHtmlAttr(objUrl) +
+                    '" alt="" draggable="false" decoding="async" ' +
+                    'style="width:' +
+                    imgPx +
+                    'px;height:' +
+                    imgPx +
+                    'px;object-fit:contain;pointer-events:none;' +
+                    'filter:drop-shadow(0 1px 1px rgba(0,0,0,0.45));"/>';
+                setChipInner(inner);
+            },
+            function () {
+                setChipInner(groupedSplitChipFallbackSpanHtml(fallbackLab, mp));
+            }
+        );
+    }
+
+    function wireGroupedSplitMarker(splitMarker, item, entry) {
+        var pin = item.pin;
+        var catLab = categoryLabelFromEntry(entry, isJa);
+        var itemName = itemNameFromEntry(entry, isJa);
+        var qtyStr = itemQtyStringForEntry(entry);
+        var reqSuffix = lockpickReqSuffix(entry, isJa);
+        var sliceLine = '';
+        if (itemName) {
+            sliceLine = catLab ? (catLab + '：' + itemName) : itemName;
+            sliceLine += hoverQtySuffix(qtyStr);
+            sliceLine += reqSuffix;
+        } else if (catLab) {
+            sliceLine = catLab;
+            sliceLine += hoverQtySuffix(qtyStr);
+            sliceLine += reqSuffix;
+        }
+        var tip = sliceLine ? sliceLine : String(pin.hover_tooltip || '').trim();
+        if (!tip) tip = '—';
+        splitMarker.bindTooltip(escapeHtmlPin(tip).replace(/\n/g, '<br>'), {
+            direction: 'top',
+            sticky: true,
+            className: 'item-tooltip',
+            opacity: 0.9,
+            offset: [0, -10]
+        });
+        var one = [entry];
+        var splitHeadline = buildPinHeadline(pin, isJa, one, '');
+        var splitDesc = buildPinDescription(pin, isJa);
+        var splitParentCtx = childPinInParentText(pin, isJa);
+        // Grouped View の分解チップ popup は特記事項を含めない
+        splitMarker.bindPopup(buildPinPopupHtml(splitHeadline, splitDesc, one, false, splitParentCtx));
+        bindMarkerImportanceVisual(splitMarker, pin.importance);
+    }
+
+    function removeGroupedViewSplitMarkers() {
+        allMarkers.forEach(function (item) {
+            if (item._groupedSplitMarkers && item._groupedSplitMarkers.length) {
+                item._groupedSplitMarkers.forEach(function (sm) {
+                    try {
+                        if (sm && map.hasLayer(sm)) map.removeLayer(sm);
+                    } catch (e2) { /* ignore */ }
+                });
+                item._groupedSplitMarkers = [];
+            }
+        });
+    }
+
+    /**
+     * Grouped View: 親の保存座標を中心に、表示中の子だけ固定半径の円上へ配置。
+     * 非表示の子は n・角度・線の対象外。親非表示かつ表示中の子があるときは保存座標に補助中心点（●）を出し、線はその点と子を結ぶ。
+     */
+    function applyFamilyViewLayout() {
+        if (!familyViewMode) return;
+        removeFamilyViewLines();
+        var byUid = {};
+        var i;
+        for (i = 0; i < allMarkers.length; i++) {
+            var it0 = allMarkers[i];
+            var u0 = String(it0.pinUid || '').trim();
+            if (u0) byUid[u0] = it0;
+        }
+
+        var childrenByParent = {};
+        for (i = 0; i < allMarkers.length; i++) {
+            var it1 = allMarkers[i];
+            var rp = String(it1.parentUid || '').trim();
+            if (!rp) continue;
+            // 既に分解チップ表示中の子は、主マーカーが地図レイヤーから外れていても対象に含める。
+            var visibleChild = markerIsOnMap(it1) || (it1._groupedSplitMarkers && it1._groupedSplitMarkers.length > 0);
+            if (!visibleChild) continue;
+            if (!childrenByParent[rp]) childrenByParent[rp] = [];
+            childrenByParent[rp].push(it1);
+        }
+        Object.keys(childrenByParent).forEach(function (pk) {
+            childrenByParent[pk].sort(function (a, b) {
+                return comparePinUidStable(a.pinUid, b.pinUid);
+            });
+        });
+        // 親なし分割: removeGroupedViewSplitMarkers の直後は主マーカーもチップも無いため、
+        // 消す前に「このフレームで再配置する」対象だけフラグを立てる（ズーム再レイアウトで消えないようにする）。
+        for (i = 0; i < allMarkers.length; i++) {
+            var loPre = allMarkers[i];
+            loPre._orphanGroupedSplitActive = false;
+            if (String(loPre.parentUid || '').trim()) continue;
+            if (groupedPinUidHasChildMarkers(loPre.pinUid)) continue;
+            var gxPre = getGroupedPinExpansionSlots(loPre.pin);
+            if (!gxPre.split || gxPre.entries.length <= 1) continue;
+            if (markerIsOnMap(loPre) || (loPre._groupedSplitMarkers && loPre._groupedSplitMarkers.length > 0)) {
+                loPre._orphanGroupedSplitActive = true;
+            }
+        }
+        // 子リスト確定後に旧分解チップを掃除（確定前に消すと可視判定で取りこぼすことがある）。
+        removeGroupedViewSplitMarkers();
+
+        var curZoom = map && map.getZoom ? map.getZoom() : null;
+        var atMaxZoom = (typeof curZoom === 'number') && curZoom >= maxZoom;
+        var R =
+            (atMaxZoom ? GROUPED_VIEW_RADIUS_IMG * 0.6 : GROUPED_VIEW_RADIUS_IMG) *
+            GROUPED_VIEW_LINE_LENGTH_SCALE;
+        var overlayParts = [];
+        Object.keys(childrenByParent).forEach(function (parentUid) {
+            var parentItem = byUid[parentUid];
+            if (!parentItem || typeof parentItem.imgX !== 'number' || typeof parentItem.imgY !== 'number') return;
+            var children = childrenByParent[parentUid];
+            var slots = [];
+            children.forEach(function (item) {
+                var g = getGroupedPinExpansionSlots(item.pin);
+                if (g.split && g.entries.length > 1) {
+                    g.entries.forEach(function (entry) {
+                        slots.push({ kind: 'split', item: item, entry: entry });
+                    });
+                } else {
+                    slots.push({ kind: 'whole', item: item });
+                }
+            });
+            var n = slots.length;
+            if (n === 0) return;
+            var cx = parentItem.imgX;
+            var cy = parentItem.imgY;
+            var parLl = map.unproject([cx, cy], maxZoom);
+            var parentOnMap = markerIsOnMap(parentItem);
+            var hiddenMainForUid = {};
+            var si;
+            for (si = 0; si < n; si++) {
+                var slot = slots[si];
+                var ang = (2 * Math.PI * si) / n - Math.PI / 2;
+                var px = cx + Math.cos(ang) * R;
+                var py = cy + Math.sin(ang) * R;
+                var newLl = map.unproject([px, py], maxZoom);
+                if (slot.kind === 'whole') {
+                    slot.item.marker.setLatLng(newLl);
+                    overlayParts.push(L.polyline([parLl, newLl], GROUPED_VIEW_LINE_STYLE));
+                } else {
+                    var uidM = String(slot.item.pinUid || '');
+                    if (!hiddenMainForUid[uidM]) {
+                        if (map.hasLayer(slot.item.marker)) map.removeLayer(slot.item.marker);
+                        hiddenMainForUid[uidM] = true;
+                    }
+                    if (!slot.item._groupedSplitMarkers) slot.item._groupedSplitMarkers = [];
+                    var sm = L.marker(newLl, { icon: getGroupedSplitMarkerIcon(slot.item.pin, slot.entry) });
+                    wireGroupedSplitMarker(sm, slot.item, slot.entry);
+                    hydrateGroupedSplitMarkerIcon(sm, slot.item.pin, slot.entry);
+                    sm.addTo(map);
+                    if (sm.setZIndexOffset) sm.setZIndexOffset(140);
+                    slot.item._groupedSplitMarkers.push(sm);
+                    overlayParts.push(L.polyline([parLl, newLl], GROUPED_VIEW_LINE_STYLE));
+                }
+            }
+            if (!parentOnMap) {
+                overlayParts.push(
+                    wireGroupedViewHubCircle(
+                        L.circleMarker(parLl, {
+                            radius: 5,
+                            stroke: true,
+                            color: GROUPED_VIEW_LINE_STYLE.color,
+                            weight: 1.5,
+                            opacity: 0.92,
+                            fill: true,
+                            fillColor: GROUPED_VIEW_LINE_STYLE.color,
+                            fillOpacity: 0.88,
+                            interactive: true,
+                            className: 'vein-grouped-hub-marker',
+                            pane: 'overlayPane'
+                        }),
+                        { kind: 'parent', parentUid: parentUid }
+                    )
+                );
+            }
+        });
+
+        // 親なし: 自分の座標を中心に、複数スロットのみ分解チップで円配置（他の子の親ハブになっているピンは除外）
+        for (i = 0; i < allMarkers.length; i++) {
+            var lone = allMarkers[i];
+            if (String(lone.parentUid || '').trim()) continue;
+            if (groupedPinUidHasChildMarkers(lone.pinUid)) continue;
+            if (!lone._orphanGroupedSplitActive && !markerIsOnMap(lone)) continue;
+            var gLone = getGroupedPinExpansionSlots(lone.pin);
+            if (!gLone.split || gLone.entries.length <= 1) continue;
+            var cxL = lone.imgX;
+            var cyL = lone.imgY;
+            if (typeof cxL !== 'number' || typeof cyL !== 'number') continue;
+            var parLlLone = map.unproject([cxL, cyL], maxZoom);
+            var hiddenMainLone = {};
+            var sj;
+            for (sj = 0; sj < gLone.entries.length; sj++) {
+                var entryL = gLone.entries[sj];
+                var angL = (2 * Math.PI * sj) / gLone.entries.length - Math.PI / 2;
+                var pxL = cxL + Math.cos(angL) * R;
+                var pyL = cyL + Math.sin(angL) * R;
+                var newLlLone = map.unproject([pxL, pyL], maxZoom);
+                var uidL = String(lone.pinUid || '');
+                if (!hiddenMainLone[uidL]) {
+                    if (map.hasLayer(lone.marker)) map.removeLayer(lone.marker);
+                    hiddenMainLone[uidL] = true;
+                }
+                if (!lone._groupedSplitMarkers) lone._groupedSplitMarkers = [];
+                var smL = L.marker(newLlLone, { icon: getGroupedSplitMarkerIcon(lone.pin, entryL) });
+                wireGroupedSplitMarker(smL, lone, entryL);
+                hydrateGroupedSplitMarkerIcon(smL, lone.pin, entryL);
+                smL.addTo(map);
+                if (smL.setZIndexOffset) smL.setZIndexOffset(140);
+                lone._groupedSplitMarkers.push(smL);
+                overlayParts.push(L.polyline([parLlLone, newLlLone], GROUPED_VIEW_LINE_STYLE));
+            }
+            overlayParts.push(
+                wireGroupedViewHubCircle(
+                    L.circleMarker(parLlLone, {
+                        radius: 5,
+                        stroke: true,
+                        color: GROUPED_VIEW_LINE_STYLE.color,
+                        weight: 1.5,
+                        opacity: 0.92,
+                        fill: true,
+                        fillColor: GROUPED_VIEW_LINE_STYLE.color,
+                        fillOpacity: 0.88,
+                        interactive: true,
+                        className: 'vein-grouped-hub-marker',
+                        pane: 'overlayPane'
+                    }),
+                    { kind: 'orphan', item: lone }
+                )
+            );
+        }
+
+        if (overlayParts.length > 0) {
+            familyLinesLayer = L.layerGroup(overlayParts);
+            familyLinesLayer.addTo(map);
+        }
+
+        applyGroupedViewMarkerClasses();
+    }
+
+    function syncFamilyViewAfterMarkers() {
+        removeFamilyViewLines();
+        removeGroupedViewSplitMarkers();
+        clearGroupedViewMarkerClasses();
+        resetMarkersToDataImageCoords();
+        syncGroupedViewChildPinIcons(function () {
+            applyFamilyViewLayout();
+        });
+    }
+
+    // Grouped View: 最大ズーム時だけ親子距離を 60% にするため、ズーム完了で再レイアウト。
+    map.on('zoomend', function () {
+        if (!familyViewMode) return;
+        applyFamilyViewLayout();
+    });
 
     function updateVisibleMarkers() {
         var catMasterOn = categoryFilterMasterEnabled();
@@ -973,6 +1824,7 @@
             }
         });
         updateVisibleAreas();
+        syncFamilyViewAfterMarkers();
     }
 
     /** エリアをピンと同じ activeCategories / category / item フィルタで表示切替 */
@@ -1239,19 +2091,77 @@
         return labels;
     }
 
-    /** 1行目: オブジェクト名：カテゴリ名（複数カテゴリは ・ で連結） */
+    /** 1行目: オブジェクト名のみ（カテゴリ名は見出しに含めない）。 */
     function buildPinHeadline(pin, isJa, contents, legacyCategory) {
         var objPart = isJa ? (pin.obj_jp || pin.obj_en || '') : (pin.obj_en || pin.obj_jp || '');
         objPart = String(objPart).trim();
+        if (objPart) return objPart;
         var cats = categoryLabelsFromContents(contents, isJa, legacyCategory);
         var catPart = cats.join('・');
-        if (objPart && catPart) {
-            if (objPart === catPart) return objPart;
-            return objPart + '：' + catPart;
-        }
-        if (objPart) return objPart;
         if (catPart) return catPart;
         return isJa ? '（無題）' : '(Untitled)';
+    }
+
+    function pinParentUid(pin) {
+        return String((pin && (pin.parent_uid || pin.parentUid)) || '').trim();
+    }
+
+    function normalizeParentRelationType(rawType, hasParent) {
+        var t = String(rawType || '').trim().toLowerCase();
+        if (t === 'in the area' || t === 'in-the-area' || t === 'in_the_area' || t === 'area' || t === 'inside_area' || t === 'inside-area') {
+            t = 'in_area';
+        }
+        if (t !== 'inside' && t !== 'near' && t !== 'in_area') {
+            t = hasParent ? 'inside' : '';
+        }
+        return t;
+    }
+
+    function parentRelationTypeLabel(typeValue, ja) {
+        var t = normalizeParentRelationType(typeValue, true);
+        if (ja) {
+            if (t === 'near') return '近く';
+            if (t === 'in_area') return 'エリア内';
+            return '中';
+        }
+        if (t === 'near') return 'near';
+        if (t === 'in_area') return 'in the area';
+        return 'inside';
+    }
+
+    function findPinByUid(uid) {
+        var u = String(uid || '').trim();
+        if (!u) return null;
+        for (var i = 0; i < allMarkers.length; i++) {
+            if (String(allMarkers[i].pinUid || '').trim() === u) {
+                return allMarkers[i].pin || null;
+            }
+        }
+        return null;
+    }
+
+    function pinDisplayNameOrObjectName(pin, ja) {
+        if (!pin) return '';
+        var namePart = ja ? (pin.name_jp || pin.name_en || '') : (pin.name_en || pin.name_jp || '');
+        namePart = String(namePart || '').trim();
+        if (namePart) return namePart;
+        var objPart = ja ? (pin.obj_jp || pin.obj_en || '') : (pin.obj_en || pin.obj_jp || '');
+        return String(objPart || '').trim();
+    }
+
+    function childPinInParentText(pin, ja) {
+        var pu = pinParentUid(pin);
+        if (!pu) return '';
+        var ppin = findPinByUid(pu);
+        if (!ppin) return '';
+        var pName = pinDisplayNameOrObjectName(ppin, ja);
+        if (!pName) return '';
+        var relType = normalizeParentRelationType((pin && (pin.parent_type || pin.parentType)) || '', true);
+        var relLabel = parentRelationTypeLabel(relType, ja);
+        if (ja) return pName + 'の' + relLabel;
+        if (relType === 'near') return 'Near ' + pName;
+        if (relType === 'in_area') return 'Within ' + pName;
+        return 'Inside ' + pName;
     }
 
     /** 説明欄: メモのみ（言語切替） */
@@ -1304,10 +2214,17 @@
         return !isNaN(n) && n === 1;
     }
 
-    /** ホバー・クリックポップアップ: 数量が 1 のときは × なし。2 以上のみ「×数」 */
-    function hoverQtySuffix(qtyStr) {
+    function isManyQtyToken(v) {
+        var s = String(v == null ? '' : v).trim().toLowerCase();
+        return s === 'many' || s === '多数';
+    }
+
+    /** ホバー・クリックポップアップ: 1 は表示しない。2 以上は ×数。多数トークンは「多数/Many」。 */
+    function hoverQtySuffix(qtyStr, ja) {
         if (qtyStr == null || String(qtyStr).trim() === '') return '';
         var s = String(qtyStr).trim();
+        var useJa = (typeof ja === 'boolean') ? ja : !!isJa;
+        if (isManyQtyToken(s)) return useJa ? ' 多数' : ' (Many)';
         if (qtyNumericEqualsOne(s)) return '';
         return ' ×' + s;
     }
@@ -1532,6 +2449,33 @@
         return isJa ? '（無題）' : '(Untitled)';
     }
 
+    function buildPinPopupHtml(headline, description, contentsArr, includeSpecialNotes, parentContextText) {
+        var descHtml = memoToSafePopupHtml(description);
+        var detailHtml = formatAllContentsForPopup(contentsArr || [], isJa);
+        var wantSpecial = (includeSpecialNotes !== false);
+        var specialHtml = wantSpecial ? aggregateSpecialHtmlForPin(contentsArr || [], isJa) : '';
+        var parentCtx = String(parentContextText || '').trim();
+        var midHtml = '';
+        if (detailHtml) {
+            midHtml += '<div style="font-size:12px;color:#333;">' + detailHtml + '</div>';
+        }
+        if (specialHtml) midHtml += specialHtml;
+        var popupHtml = '<div style="font-family:sans-serif;min-width:200px;line-height:1.4;">' +
+            '<div style="font-size:14px;font-weight:bold;">' + escapeHtmlPin(headline) + '</div>';
+        if (parentCtx) {
+            popupHtml += '<div style="font-size:12px;color:#6b6b6b;margin-top:3px;">' + escapeHtmlPin(parentCtx) + '</div>';
+        }
+        popupHtml +=
+            '<div style="margin:6px 0 8px;border-top:1px solid #bbb;"></div>';
+        if (midHtml) popupHtml += midHtml;
+        if (descHtml) {
+            popupHtml += '<div style="margin:6px 0 6px;border-top:1px solid #bbb;"></div>';
+            popupHtml += '<div style="font-size:12px;color:#333;white-space:normal;">' + descHtml + '</div>';
+        }
+        popupHtml += '</div>';
+        return popupHtml;
+    }
+
     function createMarkerFromPin(pin, visualStyle, myCategories, bpNum, headline, description, filterTooltipText) {
         var coords = pin.coords || [pin.x, pin.y];
         var x = coords[0], y = coords[1];
@@ -1544,6 +2488,8 @@
         if (!isSafeSvgIconColor(symHex)) symHex = '#ffffff';
         var pinBg = (pin.marker_bg_color || (visualStyle && visualStyle.color) || '#95a5a6').trim();
         if (!isSafeSvgIconColor(pinBg)) pinBg = '#95a5a6';
+        var importanceLv = normalizeImportanceLevel(pin.importance);
+        var useDotMarker = (importanceLv === 1);
 
         var iconHtml = '<div style="position:relative;">' + (visualStyle.emoji || '📌');
         if (bpNum) {
@@ -1558,9 +2504,13 @@
             iconAnchor: [8, 8]
         });
 
-        var marker = L.marker(latLng, { icon: emojiIcon });
+        var marker = L.marker(latLng, {
+            icon: useDotMarker
+                ? buildImportanceOneDotIcon(pickDotMarkerColor(symHex, pinBg))
+                : emojiIcon
+        });
 
-        if (pinSvgId && typeof wrapPinBasePlusImgIcon === 'function') {
+        if (!useDotMarker && pinSvgId && typeof wrapPinBasePlusImgIcon === 'function') {
             var scope = (pin.svg_icon_scope || '').trim();
             var candidates = svgIconUrlCandidates(pinSvgId);
             if (displayStyle === 'icon_only') {
@@ -1591,24 +2541,12 @@
             }
         }
 
-        var descHtml = memoToSafePopupHtml(description);
-        var detailHtml = formatAllContentsForPopup(pin.contents || [], isJa);
-        var specialHtml = aggregateSpecialHtmlForPin(pin.contents || [], isJa);
-        var midHtml = '';
-        if (detailHtml) {
-            midHtml += '<div style="font-size:12px;color:#333;">' + detailHtml + '</div>';
+        function popupHtmlForPinWithParentContext() {
+            var parentCtx = childPinInParentText(pin, isJa);
+            return buildPinPopupHtml(headline, description, pin.contents || [], true, parentCtx);
         }
-        if (specialHtml) midHtml += specialHtml;
-        var popupHtml = '<div style="font-family:sans-serif;min-width:200px;line-height:1.4;">' +
-            '<div style="font-size:14px;font-weight:bold;">' + escapeHtmlPin(headline) + '</div>' +
-            '<div style="margin:6px 0 8px;border-top:1px solid #bbb;"></div>';
-        if (midHtml) popupHtml += midHtml;
-        if (descHtml) {
-            popupHtml += '<div style="margin:6px 0 6px;border-top:1px solid #bbb;"></div>';
-            popupHtml += '<div style="font-size:12px;color:#333;white-space:normal;">' + descHtml + '</div>';
-        }
-        popupHtml += '</div>';
-        marker.bindPopup(popupHtml);
+
+        marker.bindPopup(popupHtmlForPinWithParentContext());
 
         // 通常: hover は概要のみ（詳細は popup 側）。フィルタモード時は従来ラベルを優先。
         var tooltipText;
@@ -1654,6 +2592,10 @@
         });
         marker.on('popupopen', function () {
             isPopupOpenPin = true;
+            var pp = marker.getPopup ? marker.getPopup() : null;
+            if (pp && pp.setContent) {
+                pp.setContent(popupHtmlForPinWithParentContext());
+            }
             syncMarkerActiveState();
         });
         marker.on('popupclose', function () {
@@ -1664,6 +2606,78 @@
         bindMarkerImportanceVisual(marker, pin.importance);
 
         return marker;
+    }
+
+    /**
+     * Grouped View の子ピン: 同一 SVG で枠のみ（尻尾パーツ除外）＋アンカーを円中心に。通常時は従来の尻尾先アンカーに戻す。
+     * すべての objectURL 取得完了後に done を呼ぶ（レイアウトより先に呼ぶこと）。
+     */
+    function syncGroupedViewChildPinIcons(done) {
+        var jobs = [];
+        var ji;
+        for (ji = 0; ji < allMarkers.length; ji++) {
+            var it = allMarkers[ji];
+            var p = it.pin;
+            if (!p || !it.marker) continue;
+            if (normalizeImportanceLevel(p.importance) === 1) continue;
+            var sid = (p.svg_icon_id || '').trim();
+            var ds = normalizeMarkerDisplayStyle(p.marker_display_style);
+            if (!sid || ds === 'icon_only') continue;
+            if (familyViewMode) {
+                var gx = getGroupedPinExpansionSlots(p);
+                if (gx.split && gx.entries.length > 1) {
+                    if (String(it.parentUid || '').trim()) continue;
+                    if (!groupedPinUidHasChildMarkers(it.pinUid)) continue;
+                }
+            }
+            jobs.push(it);
+        }
+        if (jobs.length === 0) {
+            if (typeof done === 'function') done();
+            return;
+        }
+        var left = jobs.length;
+        function step() {
+            left--;
+            if (left <= 0 && typeof done === 'function') done();
+        }
+        jobs.forEach(function (item) {
+            var pin = item.pin;
+            var m = item.marker;
+            var wantGroupedChild = !!(familyViewMode && String(item.parentUid || '').trim());
+            var scope = (pin.svg_icon_scope || '').trim();
+            var symHex = (pin.marker_icon_color || '#ffffff').trim();
+            if (!isSafeSvgIconColor(symHex)) symHex = '#ffffff';
+            var pinBg = (pin.marker_bg_color || '#95a5a6').trim();
+            if (!isSafeSvgIconColor(pinBg)) pinBg = '#95a5a6';
+            var candidates = svgIconUrlCandidates((pin.svg_icon_id || '').trim());
+            getOrFetchSvgObjectUrl(
+                (pin.svg_icon_id || '').trim(),
+                scope,
+                symHex,
+                candidates,
+                function (objUrl) {
+                    var innerHtml = wrapPinBasePlusImgIcon(pinBg, objUrl, symHex, JSON_PIN_MARKER_PX, wantGroupedChild);
+                    var origin = wantGroupedChild ? '50% 50%' : '50% 100%';
+                    var html = wrapDivIconZoomScale(innerHtml, 'map-pin-svg-composite', origin);
+                    var anchor = wantGroupedChild ? leafletPinAnchorCenter(JSON_PIN_MARKER_PX) : JSON_PIN_ANCHOR;
+                    m.setIcon(
+                        L.divIcon({
+                            html: html,
+                            className: MAP_PIN_LEAFLET_SHELL,
+                            iconSize: [JSON_PIN_MARKER_PX, JSON_PIN_MARKER_PX],
+                            iconAnchor: anchor
+                        })
+                    );
+                    syncMarkerImportanceVisual(m);
+                    step();
+                },
+                function () {
+                    if (isDebug) console.warn('[map.js] syncGroupedViewChildPinIcons svg fetch failed', pin.svg_icon_id);
+                    step();
+                }
+            );
+        });
     }
 
     function addMarkersFromPins(pins) {
@@ -1707,10 +2721,10 @@
                 var cidLegacy = legacyCategoryToCatId(pin.category);
                 if (cidLegacy) pinCategoryIds.push(cidLegacy);
             }
+            var pinItemIds = collectPinItemIdsFromContents(contents);
             if (!subsetAllowsMarker(styleKey, pinCategoryIds, pinItemIds)) {
                 return;
             }
-            var pinItemIds = collectPinItemIdsFromContents(contents);
 
             var headline = buildPinHeadline(pin, isJa, contents, pin.category);
             var description = buildPinDescription(pin, isJa);
@@ -1733,7 +2747,22 @@
             var marker = createMarkerFromPin(pin, visualStyle, myCategories, null, headline, description, filterTT);
             if (!marker) return;
 
-            allMarkers.push({ marker: marker, categories: myCategories, pinCategoryIds: pinCategoryIds, pinItemIds: pinItemIds, rank: 'standard' });
+            var pinUidJ = String(pin.id || pin.uid || '').trim();
+            var parentUidJ = String(pin.parent_uid || '').trim();
+            pin.parent_type = normalizeParentRelationType(pin.parent_type || pin.parentType || '', !!parentUidJ);
+            allMarkers.push({
+                marker: marker,
+                pin: pin,
+                categories: myCategories,
+                pinCategoryIds: pinCategoryIds,
+                pinItemIds: pinItemIds,
+                rank: 'standard',
+                pinUid: pinUidJ,
+                parentUid: parentUidJ,
+                parentType: pin.parent_type,
+                imgX: x,
+                imgY: y
+            });
         });
 
         addOverlayControls();
@@ -2084,6 +3113,50 @@
             parent.appendChild(sec);
         }
 
+        function appendFamilyViewToggleRow(parent) {
+            var sec = document.createElement('div');
+            sec.className = 'vein-filter-section';
+            var cap = document.createElement('p');
+            cap.className = 'vein-filter-section__label';
+            cap.textContent = isJa ? '表示モード' : 'View mode';
+            sec.appendChild(cap);
+
+            var row = document.createElement('label');
+            row.className = 'vein-filter-row' + (familyViewMode ? ' vein-filter-row--on' : '');
+            row.setAttribute(
+                'title',
+                isJa
+                    ? 'オフ＝通常表示（各ピンを保存された位置どおり）。オン＝グループビュー（親を中心に子をまとめて表示）。'
+                    : 'Off: standard map (pins at stored positions). On: grouped view (cluster by parent).'
+            );
+            var inp = document.createElement('input');
+            inp.type = 'checkbox';
+            inp.checked = familyViewMode;
+            inp.setAttribute('aria-label', isJa ? 'グループビュー' : 'Grouped view');
+            row.appendChild(inp);
+
+            var iconHost = document.createElement('span');
+            iconHost.innerHTML = '<span class="vein-filter-icon-wrap"><svg class="vein-filter-icon-svg vein-filter-icon-svg--muted" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M12 4a3 3 0 110 6 3 3 0 010-6zm-6 9a3 3 0 116 0 3 3 0 01-6 0zm12 0a3 3 0 116 0 3 3 0 01-6 0M12 13v4"/></svg></span>';
+            while (iconHost.firstChild) row.appendChild(iconHost.firstChild);
+
+            var lab = document.createElement('span');
+            lab.className = 'vein-filter-label';
+            lab.textContent = isJa ? 'グループビュー' : 'Grouped view';
+            var fakeToggle = document.createElement('span');
+            fakeToggle.className = 'vein-filter-toggle-ui';
+            fakeToggle.setAttribute('aria-hidden', 'true');
+            row.appendChild(lab);
+            row.appendChild(fakeToggle);
+            inp.addEventListener('change', function () {
+                familyViewMode = !!inp.checked;
+                if (familyViewMode) row.classList.add('vein-filter-row--on');
+                else row.classList.remove('vein-filter-row--on');
+                updateVisibleMarkers();
+            });
+            sec.appendChild(row);
+            parent.appendChild(sec);
+        }
+
         function appendVeinCategoryFilterRow(parent, ce) {
             var cid = ce.id;
             var row = document.createElement('label');
@@ -2235,6 +3308,7 @@
         }
 
         appendImportanceVisualToggleRow(scroll);
+        appendFamilyViewToggleRow(scroll);
 
         var catMasterOn = categoryFilterMasterEnabled();
 
@@ -2567,8 +3641,23 @@
             var mdsIx = ix('marker_display_style', 16);
             var mdsCol = (mdsIx >= 0 && cols.length > mdsIx ? cols[mdsIx] : '').trim();
             var pin = { coords: [x, y], x: x, y: y };
+            var uidIx = ix('uid', 0);
+            var pinUidCsv = uidIx >= 0 && cols.length > uidIx ? String(cols[uidIx] || '').trim() : '';
+            var parIx = ix('parent_uid', -1);
+            var parentUidCsv = parIx >= 0 && cols.length > parIx ? String(cols[parIx] || '').trim() : '';
+            var parTypeIx = ix('parent_type', -1);
+            var parentTypeCsvRaw = parTypeIx >= 0 && cols.length > parTypeIx ? String(cols[parTypeIx] || '').trim() : '';
+            var parentTypeCsv = normalizeParentRelationType(parentTypeCsvRaw, !!parentUidCsv);
             pin.hover_tooltip = pinLike.hover_tooltip;
+            pin.name_jp = pinLike.name_jp || '';
+            pin.name_en = pinLike.name_en || '';
+            pin.obj_jp = pinLike.obj_jp || '';
+            pin.obj_en = pinLike.obj_en || '';
             pin.importance = (cols[ix('importance', 10)] || '').trim();
+            pin.parent_uid = parentUidCsv;
+            pin.parentUid = parentUidCsv;
+            pin.parent_type = parentTypeCsv;
+            pin.parentType = parentTypeCsv;
             // popup 詳細（アイテム表示）用
             pin.contents = categoriesArr;
             pin.category = category;
@@ -2577,7 +3666,19 @@
             var marker = createMarkerFromPin(pin, visualStyle, myCategories, null, headline, description, filterTT);
             if (!marker) continue;
 
-            allMarkers.push({ marker: marker, categories: myCategories, pinCategoryIds: pinCategoryIdsU, pinItemIds: pinItemIdsU, rank: 'standard' });
+            allMarkers.push({
+                marker: marker,
+                pin: pin,
+                categories: myCategories,
+                pinCategoryIds: pinCategoryIdsU,
+                pinItemIds: pinItemIdsU,
+                rank: 'standard',
+                pinUid: pinUidCsv,
+                parentUid: parentUidCsv,
+                parentType: parentTypeCsv,
+                imgX: x,
+                imgY: y
+            });
         }
 
         addOverlayControls();
@@ -2749,7 +3850,7 @@
             svg_icon_scope: '',
             marker_icon_color: '',
             marker_bg_color: '',
-            marker_display_style: 'standard'
+            marker_display_style: 'icon_only'
         };
         var cats = areaCategoriesAsArray(area);
         mergePinStyleFromConfig(pin, String(area.attribute || '').trim(), cats);
@@ -2757,7 +3858,14 @@
         if (!sid) return null;
         var symHex = String(pin.marker_icon_color || '#ffffff').trim();
         if (!isSafeSvgIconColor(symHex)) symHex = '#ffffff';
-        return { pinSvgId: sid, scope: String(pin.svg_icon_scope || '').trim(), symHex: symHex };
+        var bgHex = String(pin.marker_bg_color || '#7f8c8d').trim();
+        if (!isSafeSvgIconColor(bgHex)) bgHex = '#7f8c8d';
+        return {
+            pinSvgId: sid,
+            scope: String(pin.svg_icon_scope || '').trim(),
+            symHex: symHex,
+            bgHex: bgHex
+        };
     }
 
     /** エリア JSON をピンと同じフィルタ判定用メタに変換 */
@@ -2804,11 +3912,14 @@
         if (!xy) return null;
         var latLng = map.unproject(xy, maxZoom);
         var marker = L.marker(latLng);
-        attachIconOnlySvgToMarker(marker, ri.pinSvgId, ri.scope, ri.symHex);
+        if (normalizeImportanceLevel(a.importance) === 1) {
+            marker.setIcon(buildImportanceOneDotIcon(pickDotMarkerColor(ri.symHex, ri.bgHex)));
+        } else {
+            attachIconOnlySvgToMarker(marker, ri.pinSvgId, ri.scope, ri.symHex);
+        }
         bindMarkerImportanceVisual(marker, a.importance);
         bindAreaPopup(marker, a);
-        var name = isJa ? (a.name_jp || a.name_en || '') : (a.name_en || a.name_jp || '');
-        var tt = name || (isJa ? 'エリア' : 'Area');
+        var tt = buildAreaDisplayTitle(a);
         marker.bindTooltip(tt, {
             direction: 'top', sticky: true, className: 'item-tooltip',
             opacity: 0.9, offset: [0, -10]
@@ -2816,14 +3927,29 @@
         return marker;
     }
 
+    function resolveAreaFillColorFromMaster(area) {
+        var pin = {
+            svg_icon_id: '',
+            svg_icon_scope: '',
+            marker_icon_color: '',
+            marker_bg_color: '',
+            marker_display_style: 'icon_only'
+        };
+        var cats = areaCategoriesAsArray(area);
+        mergePinStyleFromConfig(pin, String(area.attribute || '').trim(), cats);
+        var bgHex = String(pin.marker_bg_color || '#7f8c8d').trim();
+        if (!isSafeSvgIconColor(bgHex)) bgHex = '#7f8c8d';
+        return bgHex;
+    }
+
     function styleAreaPolygon(area) {
-        // attribute や cat_id などからスタイルを決めてもよいが、ここではひとまず固定色系
+        var fillHex = resolveAreaFillColorFromMaster(area);
         return {
             color: '#ffffff',
             weight: 2,
             opacity: 1,
-            fillColor: '#00ffff',
-            fillOpacity: 0.18,
+            fillColor: fillHex,
+            fillOpacity: 0.20,
             pane: 'areas'
         };
     }
@@ -2910,8 +4036,34 @@
         updateVisibleAreas();
     }
 
-    function bindAreaPopup(layer, area) {
+    function buildAreaDisplayTitle(area) {
         var name = isJa ? (area.name_jp || area.name_en || '') : (area.name_en || area.name_jp || '');
+        name = String(name || '').trim();
+        if (name) return name;
+
+        // エリアもピン同様: まず contents（カテゴリ/アイテム/数量）を優先して表示名を作る。
+        var cats = areaCategoriesAsArray(area);
+        if (cats && cats.length) {
+            var summary = buildHoverTooltipText({}, isJa, cats, String(area.category || '').trim());
+            summary = String(summary || '').trim();
+            if (summary) {
+                // popup 見出しは1行を使う（内容自体は rows 優先で "医療品コンテナ 多数" などになる）
+                return summary.split(/\n/)[0];
+            }
+        }
+
+        var attr = String(area.attribute || '').trim();
+        var attrU = attr.toUpperCase();
+        var objInfo = attrMappingGlobal[attr] || attrMappingGlobal[attrU] || {};
+        var objName = isJa
+            ? String((objInfo && (objInfo.name_jp || objInfo.name_en)) || '').trim()
+            : String((objInfo && (objInfo.name_en || objInfo.name_jp)) || '').trim();
+        if (objName) return objName;
+        return isJa ? 'エリア' : 'Area';
+    }
+
+    function bindAreaPopup(layer, area) {
+        var name = buildAreaDisplayTitle(area);
         var memo = isJa ? (area.memo_jp || '') : (area.memo_en || area.memo_jp || '');
         var title = name || (isJa ? 'エリア' : 'Area');
         var html = '<div style="font-family:sans-serif;min-width:180px;">' +

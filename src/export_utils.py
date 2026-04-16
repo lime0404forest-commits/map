@@ -100,7 +100,7 @@ def resolve_pin_for_display(pin, config):
                 "props": slot.get("attributes", {})
             })
 
-    return {
+    out = {
         "id": pin.get("uid", ""),
         "coords": [pin.get("x", 0), pin.get("y", 0)],
         "obj_id": obj_id,
@@ -115,6 +115,13 @@ def resolve_pin_for_display(pin, config):
         "link_url_jp": (pin.get("link_url_jp") or "").strip(),
         "link_url_en": (pin.get("link_url_en") or "").strip(),
     }
+    puid = (pin.get("parent_uid") or "").strip()
+    if puid:
+        out["parent_uid"] = puid
+    ptype = (pin.get("parent_type") or "").strip()
+    if ptype:
+        out["parent_type"] = ptype
+    return out
 
 
 def export_pins_to_json(game_path, output_filename="pins_export.json"):
