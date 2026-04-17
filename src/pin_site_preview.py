@@ -152,9 +152,14 @@ def category_labels_from_contents(contents: List[Dict], is_ja: bool, legacy_cate
 
 
 def build_pin_headline(pin: Dict, is_ja: bool, contents: List[Dict], legacy_category: str) -> str:
+    name_part = _s(
+        pin.get("name_jp" if is_ja else "name_en") or pin.get("name_en" if is_ja else "name_jp")
+    ).strip()
     obj_part = (
         _s(pin.get("obj_jp" if is_ja else "obj_en") or pin.get("obj_en" if is_ja else "obj_jp")).strip()
     )
+    if obj_part and name_part:
+        return f"{obj_part}：{name_part}"
     if obj_part:
         return obj_part
     cats = category_labels_from_contents(contents, is_ja, legacy_category or "")
@@ -429,6 +434,11 @@ def format_all_contents_for_popup_html(contents_arr: List[Dict], is_ja: bool) ->
 def build_hover_tooltip_text(
     pin: Dict, is_ja: bool, contents: List[Dict], legacy_category: str
 ) -> str:
+    place_name = _s(
+        pin.get("name_jp" if is_ja else "name_en") or pin.get("name_en" if is_ja else "name_jp")
+    ).strip()
+    if place_name:
+        return place_name
     obj_name = (
         _s(pin.get("obj_jp" if is_ja else "obj_en") or pin.get("obj_en" if is_ja else "obj_jp")).strip()
     )

@@ -682,7 +682,7 @@ class SettingsWindow(ctk.CTkToplevel):
             k2 = re.sub(r"[^a-zA-Z0-9_\u3040-\u9fff]", "_", n_jp)[:40].strip("_")
             if k2:
                 return k2
-            return self._generate_obj_id(n_jp)
+            return self.parent._generate_obj_id(n_jp)
         return ""
 
     def _normalize_bilingual_names(self, jp_raw, en_raw, fallback):
@@ -739,12 +739,15 @@ class SettingsWindow(ctk.CTkToplevel):
             pil = svg_icon_assets.svg_or_placeholder_pil_rgba(resolved["abs_path"], icon_px, ic)
             if pil is not None:
                 cti = ctk.CTkImage(light_image=pil, dark_image=pil, size=(icon_px, icon_px))
+                lbl.configure(image=cti, text="")
                 holder.clear()
                 holder.append(cti)
-                lbl.configure(image=cti, text="")
                 return
+        try:
+            lbl.configure(image=None, text=("…" if sid else "—"))
+        except tk.TclError:
+            pass
         holder.clear()
-        lbl.configure(image=None, text=("…" if sid else "—"))
 
     def _build_pin_marker_by_attribute_from_rows(self, rows, base_map=None):
         out = dict(base_map) if isinstance(base_map, dict) else {}
@@ -859,12 +862,15 @@ class SettingsWindow(ctk.CTkToplevel):
                 pil = svg_icon_assets.svg_or_placeholder_pil_rgba(path, 56, ic)
                 if pil is not None:
                     cti = ctk.CTkImage(light_image=pil, dark_image=pil, size=(56, 56))
+                    lbl_big.configure(image=cti, text="")
                     preview_img_holder.clear()
                     preview_img_holder.append(cti)
-                    lbl_big.configure(image=cti, text="")
                     return
+            try:
+                lbl_big.configure(image=None, text=("…" if sid else "—"))
+            except tk.TclError:
+                pass
             preview_img_holder.clear()
-            lbl_big.configure(image=None, text=("…" if sid else "—"))
 
         def schedule_preview(*_):
             if debounce_id[0] is not None:
@@ -1920,6 +1926,38 @@ class SettingsWindow(ctk.CTkToplevel):
             }
         return out
 
+    def _find_duplicate_category_ids_for_save(self):
+        """保存対象カテゴリ行から、重複している cat_id を列挙。"""
+        counts = {}
+        for r in self.cat_rows:
+            n_jp_raw = r["name_jp"].get().strip()
+            n_en_raw = r["name_en"].get().strip()
+            cid = (self._effective_category_id_from_row(r) or "").strip()
+            obj_lab = (r["obj_group"].get() or "").strip()
+            if not (n_jp_raw or n_en_raw or cid or obj_lab):
+                continue
+            if not cid:
+                continue
+            counts[cid] = counts.get(cid, 0) + 1
+        return sorted([k for k, c in counts.items() if c > 1], key=lambda s: s.lower())
+
+    def _find_duplicate_item_ids_for_save(self):
+        """保存対象アイテム行から、重複している item_id を列挙（全カテゴリ横断）。"""
+        counts = {}
+        for r in self.item_rows:
+            g_raw = r["grp"].get().strip()
+            i_raw = (r["id"].get().strip() if r.get("id") else "")
+            nj_raw = r["jp"].get().strip()
+            ne_raw = r["en"].get().strip()
+            attrs = r["attr_var"]["data"]
+            if not (g_raw or i_raw or nj_raw or ne_raw or attrs):
+                continue
+            iid = (self._effective_item_id_from_row(r) or "").strip()
+            if not iid:
+                continue
+            counts[iid] = counts.get(iid, 0) + 1
+        return sorted([k for k, c in counts.items() if c > 1], key=lambda s: s.lower())
+
     def save_settings(self):
         # 種類表示名→ID変換マップ
         if self._attr_split_mode:
@@ -1947,6 +1985,24 @@ class SettingsWindow(ctk.CTkToplevel):
             self.config["map_object_attr_ids"] = ordered_ids
         else:
             new_attr_mapping = self._collect_attr_rows_dict(self.attr_rows)
+
+        dup_cat_ids = self._find_duplicate_category_ids_for_save()
+        dup_item_ids = self._find_duplicate_item_ids_for_save()
+        if dup_cat_ids or dup_item_ids:
+            parts = ["ID 重複のため保存を中止しました。手動で修正してください。"]
+            if dup_cat_ids:
+                parts.append("カテゴリ ID 重複:\n- " + "\n- ".join(dup_cat_ids))
+            if dup_item_ids:
+                parts.append("アイテム ID 重複:\n- " + "\n- ".join(dup_item_ids))
+            messagebox.showerror("保存エラー", "\n\n".join(parts), parent=self)
+            try:
+                if dup_cat_ids:
+                    self.tabview.set("2. カテゴリ")
+                else:
+                    self.tabview.set("3. アイテム")
+            except Exception:
+                pass
+            return
 
         self.config["attr_mapping"] = new_attr_mapping
         # 後方互換性のためcat_mappingも設定
@@ -1994,7 +2050,7 @@ class SettingsWindow(ctk.CTkToplevel):
             if not (n_jp_raw or n_en_raw or cid or object_attr_id):
                 continue
             if not cid:
-                cid = self._generate_cat_id(n_en_raw or n_jp_raw or "cat")
+                cid = self.parent._generate_cat_id(n_en_raw or n_jp_raw or "cat")
             n_jp, n_en = self._normalize_bilingual_names(n_jp_raw, n_en_raw, cid)
             cm_key = n_jp or n_en or cid
             prev = (
@@ -2035,7 +2091,7 @@ class SettingsWindow(ctk.CTkToplevel):
             g = g_raw or "その他"
             i = self._effective_item_id_from_row(r)
             if not i:
-                i = self._generate_item_id(nj_raw or ne_raw or g)
+                i = self.parent._generate_item_id(nj_raw or ne_raw or g)
             nj, ne = self._normalize_bilingual_names(nj_raw, ne_raw, i)
             if g not in new_master:
                 new_master[g] = {}
@@ -2876,6 +2932,8 @@ class MapEditor(ctk.CTkToplevel):
 
     def _pin_passes_display_filters(self, d):
         """オブジェクト・カテゴリ・アイテム・未完成フィルタをすべて満たすか。"""
+        if self._is_draft_pin_row(d):
+            return True
         attr_key = (d.get("attribute") or d.get("category_pin") or "").strip() or "MISC_OTHER"
         ov = self.pin_filter_object_vars.get(attr_key)
         if ov is not None and not ov.get():
@@ -4235,6 +4293,7 @@ class MapEditor(ctk.CTkToplevel):
     def _start_add_pin_flow(self):
         if not self._confirm_pin_edit_discard_or_save():
             return
+        self._remove_draft_pin_row_if_any()
         if self.area_mode in ("create_polygon", "create_circle", "create_rect", "edit_polygon"):
             self.set_area_mode("idle")
         self._pin_placement_active = True
@@ -4263,6 +4322,7 @@ class MapEditor(ctk.CTkToplevel):
     def _dismiss_pin_editing(self):
         if not self._confirm_pin_edit_discard_or_save():
             return
+        self._remove_draft_pin_row_if_any()
         self._pin_placement_active = False
         self.temp_coords = None
         if self.area_mode in ("create_polygon", "create_circle", "create_rect", "edit_polygon"):
@@ -4816,7 +4876,7 @@ class MapEditor(ctk.CTkToplevel):
             )
         while len(pcache) > pmax:
             pcache.popitem(last=False)
-        # 未保存の新規ピン（temp_coords のみ）: 既存ピンと同じマーカー画像（フォーム内容に応じた見た目）
+        # 未保存の新規ピン（旧: temp_coords のみ。現行は data_list のドラフト行 + current_uid）
         if self.temp_coords and not self.current_uid:
             try:
                 tx = float(self.temp_coords[0]) * r
@@ -5133,6 +5193,8 @@ class MapEditor(ctk.CTkToplevel):
             # 親ピン選択モード: 別ピンをクリックして親を設定（座標は変更しない）
             if getattr(self, "_parent_pick_mode", False) and (getattr(self, "current_uid", None) or "").strip():
                 for d in reversed(self.data_list):
+                    if self._is_draft_pin_row(d):
+                        continue
                     if not self._pin_passes_display_filters(d):
                         continue
                     if self._pin_hit_test_canvas(d, r, mx, my):
@@ -5164,10 +5226,14 @@ class MapEditor(ctk.CTkToplevel):
             # 新規ピン設置: 「ピンを追加」後のクリックのみ
             if self._pin_placement_active:
                 self._pin_placement_active = False
-                self.current_uid = None
                 self.current_area_uid = None
-                self.temp_coords = (cx, cy)
+                self.temp_coords = None
                 self._reset_pin_form_widgets()
+                uid_new = self._gen_new_pin_uid()
+                draft = self._make_empty_pin_row(uid_new, cx, cy, draft=True)
+                self.data_list.append(draft)
+                self.current_uid = uid_new
+                self._sync_draft_pin_row_core_from_ui()
                 self._show_pin_editor_panel()
                 self.lbl_coords.configure(text=f"座標: ({int(cx)}, {int(cy)})")
                 self.refresh_map()
@@ -6489,6 +6555,12 @@ class MapEditor(ctk.CTkToplevel):
             self.save_data()
             if not getattr(self, "_pin_save_last_ok", False):
                 return False
+        else:
+            # 「いいえ」: 保存せず続行。ドラフト新規ピンは data_list に残さない。
+            self._remove_draft_pin_row_if_any()
+            self.current_uid = None
+            self.temp_coords = None
+            self._pin_edit_baseline = None
         return True
 
     # --- 保存・読込 ---
@@ -6660,7 +6732,29 @@ class MapEditor(ctk.CTkToplevel):
                     marker_display_style = (d0.get("marker_display_style") or "").strip()
                     break
         pin_x_for_save = pin_y_for_save = None
-        if not self.current_uid:
+        if self.current_uid:
+            row0 = self._get_pin_row_by_uid(self.current_uid)
+            if row0 is not None:
+                try:
+                    pin_x_for_save = float(row0.get("x", 0))
+                    pin_y_for_save = float(row0.get("y", 0))
+                except (TypeError, ValueError):
+                    pin_x_for_save = pin_y_for_save = None
+            if pin_x_for_save is None or pin_y_for_save is None:
+                tc = self.temp_coords
+                if tc is not None:
+                    try:
+                        pin_x_for_save = float(tc[0])
+                        pin_y_for_save = float(tc[1])
+                    except (TypeError, ValueError, IndexError):
+                        pin_x_for_save = pin_y_for_save = None
+            if pin_x_for_save is None or pin_y_for_save is None:
+                messagebox.showwarning(
+                    "入力エラー",
+                    "ピンの位置が無効です。地図上で再度クリックして指定してください。",
+                )
+                return
+        else:
             tc = self.temp_coords
             if tc is None:
                 messagebox.showwarning(
@@ -6712,8 +6806,13 @@ class MapEditor(ctk.CTkToplevel):
         
         if self.current_uid:
             for d in self.data_list:
-                if d['uid'] == self.current_uid: d.update({k:v for k,v in dr.items() if v is not None})
-        else: self.data_list.append(dr)
+                if d['uid'] == self.current_uid:
+                    d.update({k: v for k, v in dr.items() if v is not None})
+                    if self._is_draft_pin_row(d):
+                        d.pop("__draft__", None)
+                    break
+        else:
+            self.data_list.append(dr)
         self._pin_save_last_ok = True
         self.mark_dirty(); self.current_uid = self.temp_coords = None; self.refresh_map(); self.clear_ui()
 
@@ -6735,6 +6834,77 @@ class MapEditor(ctk.CTkToplevel):
             if (d.get("uid") or "").strip() == u:
                 return d
         return None
+
+    def _gen_new_pin_uid(self) -> str:
+        # 保存前の一時 UID（CSV 保存時はそのまま残る想定）。衝突しにくい短いプレフィックス。
+        return f"p_{int(datetime.now().timestamp())}_{id(self) & 0xFFFF:x}"
+
+    def _is_draft_pin_row(self, d) -> bool:
+        try:
+            return bool(isinstance(d, dict) and d.get("__draft__"))
+        except Exception:
+            return False
+
+    def _remove_draft_pin_row_if_any(self):
+        """未保存の新規ドラフト行を data_list から除去（編集中断・別操作開始時）。"""
+        cu = (getattr(self, "current_uid", None) or "").strip()
+        before = len(self.data_list)
+        self.data_list = [d for d in self.data_list if not self._is_draft_pin_row(d)]
+        if before != len(self.data_list) and cu:
+            # current_uid がドラフトなら掃除後は無効
+            row = self._get_pin_row_by_uid(cu)
+            if row is None:
+                self.current_uid = None
+
+    def _make_empty_pin_row(self, uid: str, x: float, y: float, draft: bool = True) -> dict:
+        return {
+            "uid": uid,
+            "x": float(x),
+            "y": float(y),
+            "name_jp": "",
+            "name_en": "",
+            "attribute": "",
+            "obj_name_en": "",
+            "obj_attributes": "",
+            "category": "",
+            "categories": "",
+            "importance": "",
+            "category_pin": "",
+            "contents": "",
+            "memo_jp": "",
+            "memo_en": "",
+            "updated_at": "",
+            "link_url_jp": "",
+            "link_url_en": "",
+            "marker_display_style": "",
+            "parent_uid": "",
+            "parent_type": "",
+            **({"__draft__": True} if draft else {}),
+        }
+
+    def _sync_draft_pin_row_core_from_ui(self):
+        """ドラフト新規ピン行に、座標以外の最小フィールドを UI から反映（マップ描画・親設定の整合用）。"""
+        uid = (getattr(self, "current_uid", None) or "").strip()
+        if not uid:
+            return
+        row = self._get_pin_row_by_uid(uid)
+        if row is None or not self._is_draft_pin_row(row):
+            return
+        rev_cat_map = {v: k for k, v in self.cat_mapping.items()}
+        attribute = (self.cmb_attribute.get() or "").strip()
+        attribute_id = rev_cat_map.get(attribute, "") if attribute and attribute != "(なし)" else ""
+        row["attribute"] = attribute_id
+        row["category_pin"] = attribute_id
+
+    def _purge_stale_draft_pins(self, keep_uid: str = ""):
+        """別ピンへ切り替えるなどで、取り残されたドラフト新規行を掃除する。"""
+        ku = (keep_uid or "").strip()
+        before = len(self.data_list)
+        self.data_list = [d for d in self.data_list if (not self._is_draft_pin_row(d)) or ((d.get("uid") or "").strip() == ku)]
+        if before != len(self.data_list):
+            cu = (getattr(self, "current_uid", None) or "").strip()
+            if cu and self._get_pin_row_by_uid(cu) is None:
+                self.current_uid = None
 
     def _normalize_parent_type(self, raw_type, has_parent: bool) -> str:
         t = str(raw_type or "").strip().lower()
@@ -6830,7 +7000,7 @@ class MapEditor(ctk.CTkToplevel):
         if not getattr(self, "lbl_parent_info", None):
             return
         if not (getattr(self, "current_uid", None) or "").strip():
-            self.lbl_parent_info.configure(text="現在: （親ピンは保存済みピンで設定できます）")
+            self.lbl_parent_info.configure(text="現在: （親ピンは地図上の既存ピンから選べます）")
             self.btn_parent_pick.configure(state="disabled")
             self.btn_parent_clear.configure(state="disabled")
             self.lbl_parent_mode.configure(text="")
@@ -7032,6 +7202,7 @@ class MapEditor(ctk.CTkToplevel):
         if self._pin_edit_has_unsaved_changes():
             if not self._confirm_pin_edit_discard_or_save():
                 return False
+        self._purge_stale_draft_pins((d.get("uid") or "").strip())
         self._suppress_special_notes_rebuild = True
         self._suppress_obj_en_auto_sync = True
         try:

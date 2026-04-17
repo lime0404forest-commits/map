@@ -128,9 +128,20 @@
             '.vein-filter-group__head{display:flex;align-items:center;gap:10px;padding:8px 10px 6px;margin-bottom:0;border-bottom:1px solid rgba(255,255,255,0.035);border-radius:6px 6px 0 0;}',
             '.vein-filter-group__head.vein-filter-row{margin-bottom:0;}',
             '.vein-filter-group__title{flex:1;font-size:11px;font-weight:500;color:#8f8b85;letter-spacing:0.06em;}',
+            '.vein-filter-group__bulk{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;}',
+            '.vein-filter-group__bulk-row{display:flex;justify-content:flex-end;gap:6px;padding:6px 10px 4px;}',
+            '.vein-filter-group__bulk-btn{height:22px;border-radius:999px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);',
+            'color:#b4b0aa;font-size:10px;letter-spacing:0.03em;padding:0 8px;cursor:pointer;line-height:1;}',
+            '.vein-filter-group__bulk-btn:hover{background:rgba(255,255,255,0.08);color:#dfdbd4;}',
             '.vein-filter-group__body{padding:2px 0 6px 0;}',
             '.vein-filter-row--nested{margin-left:10px;padding-left:10px;border-left:1px solid rgba(255,255,255,0.05);}',
             '.vein-filter-row--nested-deep{margin-left:20px;padding-left:10px;border-left:1px solid rgba(255,255,255,0.045);}',
+            '.vein-filter-subgroup{margin:2px 0 4px 0;}',
+            '.vein-filter-subgroup__head{display:flex;align-items:center;gap:8px;}',
+            '.vein-filter-subgroup__collapse{flex:0 0 auto;min-width:42px;height:20px;border-radius:999px;border:1px solid rgba(255,255,255,0.08);',
+            'background:rgba(255,255,255,0.025);color:#8f8b85;font-size:10px;cursor:pointer;line-height:1;padding:0 8px;}',
+            '.vein-filter-subgroup__collapse:hover{background:rgba(255,255,255,0.07);color:#d5d1ca;}',
+            '.vein-filter-subgroup--collapsed .vein-filter-subgroup__body{display:none;}',
             '.vein-filter-subgroup-title{margin:6px 0 2px 12px;padding:4px 8px 3px;border-left:1px solid rgba(255,255,255,0.07);font-size:10px;letter-spacing:0.05em;color:#6f6c67;}',
             '.vein-filter-group--collapsed .vein-filter-group__body{display:none;}',
             '.vein-filter-group__collapse{flex:0 0 auto;min-width:52px;height:22px;border-radius:999px;border:1px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.03);',
@@ -431,10 +442,16 @@
 
     function initActiveCategoryFilters() {
         activeCategoryFilters.clear();
-        if (!presetDefaultOnCategoryIds) return;
-        presetDefaultOnCategoryIds.forEach(function (cid) {
-            if (isCategoryAllowedBySubset(cid)) activeCategoryFilters.add(String(cid));
+        Object.keys(categoryMasterGlobal).forEach(function (jpKey) {
+            var ent = categoryMasterGlobal[jpKey];
+            if (!ent || typeof ent !== 'object') return;
+            var cid = String(ent.id || '').trim();
+            if (!cid) return;
+            if (!isCategoryAllowedBySubset(cid)) return;
+            activeCategoryFilters.add(cid);
         });
+        // 中身なしピンも通常カテゴリとして扱う
+        activeCategoryFilters.add('__none__');
     }
 
     /** config.json 読込後: オブジェクトマスタ1件 = フィルター1項目（マーカー用 emoji・色は type に応じた既定） */
@@ -470,6 +487,16 @@
 
     function initActiveItemFilters() {
         activeItemFilters.clear();
+        Object.keys(itemMasterGlobal || {}).forEach(function (grp) {
+            var grpObj = itemMasterGlobal[grp];
+            if (!grpObj || typeof grpObj !== 'object') return;
+            Object.keys(grpObj).forEach(function (iidRaw) {
+                var iid = String(iidRaw || '').trim();
+                if (!iid) return;
+                if (!isItemAllowedBySubset(iid)) return;
+                activeItemFilters.add(iid);
+            });
+        });
     }
 
     function initActivePoiItemFilters() {
@@ -850,6 +877,15 @@
     var GROUPED_VIEW_RADIUS_IMG = 68;
     /** 親子をつなぐ線の長さ（半径）に掛ける係数（基準長の 90%）。 */
     var GROUPED_VIEW_LINE_LENGTH_SCALE = 0.9;
+    /** チップ数（スロット数）がこれ以上なら、親〜チップの半径（ラインの長さ）を追加で拡大 */
+    var GROUPED_VIEW_MANY_CHIP_COUNT = 11;
+    var GROUPED_VIEW_MANY_CHIP_RADIUS_SCALE = 1.4;
+
+    function groupedViewRadiusForChipCount(baseR, chipCount) {
+        var n = typeof chipCount === 'number' && !isNaN(chipCount) ? chipCount : 0;
+        return n >= GROUPED_VIEW_MANY_CHIP_COUNT ? baseR * GROUPED_VIEW_MANY_CHIP_RADIUS_SCALE : baseR;
+    }
+
     /** Grouped View の接続線（親表示時は親位置〜子、親非表示時は補助中心〜子で同色） */
     var GROUPED_VIEW_LINE_STYLE = {
         color: 'rgba(118, 158, 212, 0.78)',
@@ -1098,12 +1134,14 @@
     function isDefaultGroupCollapsed(key) {
         var k = String(key || '').trim().toUpperCase();
         if (presetCollapsedObjectIds) return presetCollapsedObjectIds.has(k);
-        // 既定: POI は初期で閉じ、その他（コンテナ・アイテム等）は開き
-        return isPoiObjectKey(key);
+        return true;
     }
 
     var groupedViewHubHoverClearT = null;
-    var groupedViewHubHoverUnsubs = [];
+    /** 子マーカー等の hold/release のみ。強調の切り替えで毎回クリアする。 */
+    var groupedViewHubHoverTransientUnsubs = [];
+    /** 親マーカーのホバー配線など。clear では外さず、レイアウト撤去時のみ外す（強調処理が親の off を誤爆しないように）。 */
+    var groupedViewHubHoverLayoutUnsubs = [];
 
     function cancelGroupedViewHubHoverClearSchedule() {
         if (groupedViewHubHoverClearT) {
@@ -1122,12 +1160,12 @@
 
     function clearGroupedViewHubHoverHighlight() {
         cancelGroupedViewHubHoverClearSchedule();
-        groupedViewHubHoverUnsubs.forEach(function (fn) {
+        groupedViewHubHoverTransientUnsubs.forEach(function (fn) {
             try {
                 fn();
             } catch (eH) { /* ignore */ }
         });
-        groupedViewHubHoverUnsubs = [];
+        groupedViewHubHoverTransientUnsubs = [];
         allMarkers.forEach(function (item) {
             var el = item.marker && item.marker.getElement ? item.marker.getElement() : null;
             if (el && el.classList) el.classList.remove('vein-grouped--hub-hover-child');
@@ -1150,7 +1188,7 @@
         };
         layer.on('mouseover', hold);
         layer.on('mouseout', release);
-        groupedViewHubHoverUnsubs.push(function () {
+        groupedViewHubHoverTransientUnsubs.push(function () {
             layer.off('mouseover', hold);
             layer.off('mouseout', release);
         });
@@ -1208,8 +1246,42 @@
         return circle;
     }
 
+    /** 親マーカーが地図上に残っている場合も、ホバーで子（分割チップ含む）を軽く強調 */
+    function wireGroupedViewParentMarkerHover(parentItem, parentUid) {
+        if (!parentItem || !parentItem.marker || !parentItem.marker.on) return;
+        var m = parentItem.marker;
+        if (m._veinGroupedParentHoverWired) return;
+        m._veinGroupedParentHoverWired = true;
+        var onIn = function () {
+            if (!familyViewMode) return;
+            cancelGroupedViewHubHoverClearSchedule();
+            highlightGroupedViewChildrenForParent(parentUid);
+        };
+        var onOut = function () {
+            scheduleGroupedViewHubHoverClear();
+        };
+        m.on('mouseover', onIn);
+        m.on('mouseout', onOut);
+        groupedViewHubHoverLayoutUnsubs.push(function () {
+            try {
+                m.off('mouseover', onIn);
+                m.off('mouseout', onOut);
+            } catch (eP) { /* ignore */ }
+            try {
+                delete m._veinGroupedParentHoverWired;
+            } catch (eD) { /* ignore */ }
+        });
+        groupedViewHubHoverAddHold(m);
+    }
+
     function removeFamilyViewLines() {
         clearGroupedViewHubHoverHighlight();
+        groupedViewHubHoverLayoutUnsubs.forEach(function (fn) {
+            try {
+                fn();
+            } catch (eL) { /* ignore */ }
+        });
+        groupedViewHubHoverLayoutUnsubs = [];
         if (familyLinesLayer && map.hasLayer(familyLinesLayer)) {
             map.removeLayer(familyLinesLayer);
         }
@@ -1345,6 +1417,147 @@
             return 0;
         });
         return { split: true, entries: entries };
+    }
+
+    function cloneEntryForGroupedMerge(e) {
+        if (!e || typeof e !== 'object') return {};
+        var o = Object.assign({}, e);
+        if (e.attributes && typeof e.attributes === 'object') {
+            o.attributes = Object.assign({}, e.attributes);
+        }
+        return o;
+    }
+
+    /** 同一 item_id の数量を合算。いずれかが many/多数 なら many。 */
+    function mergeQuantityTokensForGroupedChip(tokens) {
+        var anyMany = false;
+        var sum = 0;
+        var anyNum = false;
+        (tokens || []).forEach(function (t) {
+            var s = String(t == null ? '' : t).trim();
+            if (!s) return;
+            if (isManyQtyToken(s)) anyMany = true;
+            else {
+                var norm = s.replace(/[０-９]/g, function (ch) {
+                    return String.fromCharCode(ch.charCodeAt(0) - 0xff10 + 0x30);
+                });
+                var n = parseFloat(norm);
+                if (!isNaN(n)) {
+                    sum += n;
+                    anyNum = true;
+                }
+            }
+        });
+        if (anyMany) return 'many';
+        if (!anyNum) return null;
+        if (sum === 1) return '1';
+        if (sum === Math.floor(sum)) return String(Math.round(sum));
+        return String(sum);
+    }
+
+    function mergeGroupedSplitEntriesForSameItem(base, add) {
+        var out = cloneEntryForGroupedMerge(base);
+        if (add.attributes && typeof add.attributes === 'object') {
+            out.attributes = Object.assign({}, out.attributes || {});
+            Object.keys(add.attributes).forEach(function (k) {
+                var v = add.attributes[k];
+                if (String(k).indexOf('req_lockpick') >= 0) {
+                    var truthy = function (x) {
+                        return x === true || String(x).toLowerCase() === 'true' || String(x) === '1';
+                    };
+                    if (truthy(v) || truthy(out.attributes[k])) out.attributes[k] = true;
+                } else if (out.attributes[k] == null && v != null) {
+                    out.attributes[k] = v;
+                }
+            });
+        }
+        var mergedQty = mergeQuantityTokensForGroupedChip([
+            itemQtyStringForEntry(base),
+            itemQtyStringForEntry(add)
+        ]);
+        if (mergedQty != null && mergedQty !== '') {
+            out.item_qty = mergedQty;
+            try {
+                delete out.qty;
+            } catch (eQ) { /* ignore */ }
+        }
+        return out;
+    }
+
+    /** 同一ピン内の複数スロットで item_id が重なる場合に 1 エントリへ統合（グループビュー円配置用） */
+    function mergeContentEntriesBySameItemId(entries) {
+        if (!entries || entries.length <= 1) return entries || [];
+        var out = [];
+        var seen = {};
+        entries.forEach(function (entry) {
+            var ik = entry && String(entry.item_id || '').trim() ? String(entry.item_id).trim().toLowerCase() : '';
+            if (!ik) {
+                out.push(entry);
+                return;
+            }
+            if (seen[ik] === undefined) {
+                seen[ik] = out.length;
+                out.push(cloneEntryForGroupedMerge(entry));
+                return;
+            }
+            var idx = seen[ik];
+            out[idx] = mergeGroupedSplitEntriesForSameItem(out[idx], entry);
+        });
+        return out;
+    }
+
+    /**
+     * 親周りスロット: 異なる子ピン間で同一 item_id のチップを 1 つにまとめ、数量を合算（many は優先）。
+     * whole 行は単一スロット時 entry を付与してマージ判定に含める。
+     */
+    function mergeGroupedLayoutSlotsBySameItem(slots) {
+        if (!slots || slots.length <= 1) return slots || [];
+        var byItem = {};
+        slots.forEach(function (slot) {
+            var e = slot.entry;
+            var ik = e && String(e.item_id || '').trim() ? String(e.item_id).trim().toLowerCase() : '';
+            if (!ik) return;
+            if (!byItem[ik]) byItem[ik] = [];
+            byItem[ik].push(slot);
+        });
+        var usedMerge = {};
+        var out = [];
+        slots.forEach(function (slot) {
+            var e = slot.entry;
+            var ik = e && String(e.item_id || '').trim() ? String(e.item_id).trim().toLowerCase() : '';
+            if (!ik) {
+                out.push(slot);
+                return;
+            }
+            var arr = byItem[ik];
+            if (!arr || arr.length <= 1) {
+                out.push(slot);
+                return;
+            }
+            if (usedMerge[ik]) return;
+            usedMerge[ik] = true;
+            var mergedEntry = cloneEntryForGroupedMerge(arr[0].entry);
+            var jm;
+            for (jm = 1; jm < arr.length; jm++) {
+                mergedEntry = mergeGroupedSplitEntriesForSameItem(mergedEntry, arr[jm].entry);
+            }
+            var chipItems = [];
+            var seenUid = {};
+            arr.forEach(function (s) {
+                var itm = s.item;
+                var u = String(itm.pinUid || '');
+                if (seenUid[u]) return;
+                seenUid[u] = true;
+                chipItems.push(itm);
+            });
+            out.push({
+                kind: 'split',
+                item: arr[0].item,
+                entry: mergedEntry,
+                _chipItems: chipItems
+            });
+        });
+        return out;
     }
 
     /** 他ピンがこの UID を parentUid にしているか（親ハブとして円中心に残す必要がある） */
@@ -1641,11 +1854,14 @@
                         slots.push({ kind: 'split', item: item, entry: entry });
                     });
                 } else {
-                    slots.push({ kind: 'whole', item: item });
+                    var sole = g.entries && g.entries.length === 1 ? g.entries[0] : null;
+                    slots.push({ kind: 'whole', item: item, entry: sole });
                 }
             });
+            slots = mergeGroupedLayoutSlotsBySameItem(slots);
             var n = slots.length;
             if (n === 0) return;
+            var Rp = groupedViewRadiusForChipCount(R, n);
             var cx = parentItem.imgX;
             var cy = parentItem.imgY;
             var parLl = map.unproject([cx, cy], maxZoom);
@@ -1655,25 +1871,31 @@
             for (si = 0; si < n; si++) {
                 var slot = slots[si];
                 var ang = (2 * Math.PI * si) / n - Math.PI / 2;
-                var px = cx + Math.cos(ang) * R;
-                var py = cy + Math.sin(ang) * R;
+                var px = cx + Math.cos(ang) * Rp;
+                var py = cy + Math.sin(ang) * Rp;
                 var newLl = map.unproject([px, py], maxZoom);
                 if (slot.kind === 'whole') {
                     slot.item.marker.setLatLng(newLl);
                     overlayParts.push(L.polyline([parLl, newLl], GROUPED_VIEW_LINE_STYLE));
                 } else {
-                    var uidM = String(slot.item.pinUid || '');
-                    if (!hiddenMainForUid[uidM]) {
-                        if (map.hasLayer(slot.item.marker)) map.removeLayer(slot.item.marker);
-                        hiddenMainForUid[uidM] = true;
+                    var chipItems = slot._chipItems && slot._chipItems.length ? slot._chipItems : [slot.item];
+                    var ci;
+                    for (ci = 0; ci < chipItems.length; ci++) {
+                        var itChip = chipItems[ci];
+                        var uidM = String(itChip.pinUid || '');
+                        if (!hiddenMainForUid[uidM]) {
+                            if (map.hasLayer(itChip.marker)) map.removeLayer(itChip.marker);
+                            hiddenMainForUid[uidM] = true;
+                        }
                     }
-                    if (!slot.item._groupedSplitMarkers) slot.item._groupedSplitMarkers = [];
-                    var sm = L.marker(newLl, { icon: getGroupedSplitMarkerIcon(slot.item.pin, slot.entry) });
-                    wireGroupedSplitMarker(sm, slot.item, slot.entry);
-                    hydrateGroupedSplitMarkerIcon(sm, slot.item.pin, slot.entry);
+                    var attachItem = slot.item;
+                    if (!attachItem._groupedSplitMarkers) attachItem._groupedSplitMarkers = [];
+                    var sm = L.marker(newLl, { icon: getGroupedSplitMarkerIcon(attachItem.pin, slot.entry) });
+                    wireGroupedSplitMarker(sm, attachItem, slot.entry);
+                    hydrateGroupedSplitMarkerIcon(sm, attachItem.pin, slot.entry);
                     sm.addTo(map);
                     if (sm.setZIndexOffset) sm.setZIndexOffset(140);
-                    slot.item._groupedSplitMarkers.push(sm);
+                    attachItem._groupedSplitMarkers.push(sm);
                     overlayParts.push(L.polyline([parLl, newLl], GROUPED_VIEW_LINE_STYLE));
                 }
             }
@@ -1696,6 +1918,8 @@
                         { kind: 'parent', parentUid: parentUid }
                     )
                 );
+            } else if (parentItem && parentItem.marker) {
+                wireGroupedViewParentMarkerHover(parentItem, parentUid);
             }
         });
 
@@ -1707,17 +1931,20 @@
             if (!lone._orphanGroupedSplitActive && !markerIsOnMap(lone)) continue;
             var gLone = getGroupedPinExpansionSlots(lone.pin);
             if (!gLone.split || gLone.entries.length <= 1) continue;
+            var entriesLone = mergeContentEntriesBySameItemId(gLone.entries);
+            var nLone = entriesLone.length;
+            var RL = groupedViewRadiusForChipCount(R, nLone);
             var cxL = lone.imgX;
             var cyL = lone.imgY;
             if (typeof cxL !== 'number' || typeof cyL !== 'number') continue;
             var parLlLone = map.unproject([cxL, cyL], maxZoom);
             var hiddenMainLone = {};
             var sj;
-            for (sj = 0; sj < gLone.entries.length; sj++) {
-                var entryL = gLone.entries[sj];
-                var angL = (2 * Math.PI * sj) / gLone.entries.length - Math.PI / 2;
-                var pxL = cxL + Math.cos(angL) * R;
-                var pyL = cyL + Math.sin(angL) * R;
+            for (sj = 0; sj < nLone; sj++) {
+                var entryL = entriesLone[sj];
+                var angL = (2 * Math.PI * sj) / nLone - Math.PI / 2;
+                var pxL = cxL + Math.cos(angL) * RL;
+                var pyL = cyL + Math.sin(angL) * RL;
                 var newLlLone = map.unproject([pxL, pyL], maxZoom);
                 var uidL = String(lone.pinUid || '');
                 if (!hiddenMainLone[uidL]) {
@@ -1780,25 +2007,11 @@
     function updateVisibleMarkers() {
         var catMasterOn = categoryFilterMasterEnabled();
         allMarkers.forEach(function (item) {
-            var objOk = item.categories.some(function (cat) {
-                return activeCategories.has(cat);
-            });
-            if (!objOk) {
-                if (map.hasLayer(item.marker)) map.removeLayer(item.marker);
-                return;
-            }
-            var primaryObj = markerPrimaryObjectKey(item);
-            var catOk = true;
-            var poiItemOk = true;
-            if (isPoiObjectKey(primaryObj)) {
-                if (activePoiItemFilters.size > 0) {
-                    var poiItemIds = item.pinItemIds || [];
-                    poiItemOk = poiItemIds.some(function (iid) {
-                        return activePoiItemFilters.has(iid);
-                    });
-                }
-            } else if (catMasterOn && activeCategoryFilters.size > 0) {
+            if (catMasterOn) {
                 var pc = item.pinCategoryIds || [];
+                var catOk = false;
+                var itemIdsCat = item.pinItemIds || [];
+                var itemOkCat = true;
                 if (pc.length === 0) {
                     catOk = activeCategoryFilters.has('__none__');
                 } else {
@@ -1806,7 +2019,30 @@
                         return activeCategoryFilters.has(cid);
                     });
                 }
+                if (itemIdsCat.length > 0) {
+                    itemOkCat = itemIdsCat.some(function (iid) {
+                        return activeItemFilters.has(iid);
+                    });
+                }
+                if (catOk && itemOkCat) {
+                    if (!map.hasLayer(item.marker)) {
+                        item.marker.addTo(map);
+                        if (showLabels && item.marker.openTooltip) item.marker.openTooltip();
+                    }
+                } else {
+                    if (map.hasLayer(item.marker)) map.removeLayer(item.marker);
+                }
+                return;
             }
+
+            var objOk = item.categories.some(function (cat) {
+                return activeCategories.has(cat);
+            });
+            if (!objOk) {
+                if (map.hasLayer(item.marker)) map.removeLayer(item.marker);
+                return;
+            }
+
             var itemOk = true;
             if (activeItemFilters.size > 0) {
                 var pItemIds = item.pinItemIds || [];
@@ -1814,7 +2050,7 @@
                     return activeItemFilters.has(pid);
                 });
             }
-            if (objOk && catOk && poiItemOk && itemOk) {
+            if (objOk && itemOk) {
                 if (!map.hasLayer(item.marker)) {
                     item.marker.addTo(map);
                     if (showLabels && item.marker.openTooltip) item.marker.openTooltip();
@@ -1835,6 +2071,33 @@
         allAreaItems.forEach(function (entry) {
             var poly = entry.poly;
             var iconMarker = entry.iconMarker;
+            if (catMasterOn) {
+                var pc = entry.pinCategoryIds || [];
+                var catOk = false;
+                var itemIdsCat = entry.pinItemIds || [];
+                var itemOkCat = true;
+                if (pc.length === 0) {
+                    catOk = activeCategoryFilters.has('__none__');
+                } else {
+                    catOk = pc.some(function (cid) {
+                        return activeCategoryFilters.has(cid);
+                    });
+                }
+                if (itemIdsCat.length > 0) {
+                    itemOkCat = itemIdsCat.some(function (iid) {
+                        return activeItemFilters.has(iid);
+                    });
+                }
+                if (catOk && itemOkCat) {
+                    if (!areaLayer.hasLayer(poly)) areaLayer.addLayer(poly);
+                    if (iconMarker && !areaIconLayerGroup.hasLayer(iconMarker)) areaIconLayerGroup.addLayer(iconMarker);
+                } else {
+                    if (areaLayer.hasLayer(poly)) areaLayer.removeLayer(poly);
+                    if (iconMarker && areaIconLayerGroup.hasLayer(iconMarker)) areaIconLayerGroup.removeLayer(iconMarker);
+                }
+                return;
+            }
+
             var objOk = entry.categories.some(function (cat) {
                 return activeCategories.has(cat);
             });
@@ -1843,26 +2106,7 @@
                 if (iconMarker && areaIconLayerGroup.hasLayer(iconMarker)) areaIconLayerGroup.removeLayer(iconMarker);
                 return;
             }
-            var primaryObj = markerPrimaryObjectKey(entry);
-            var catOk = true;
-            var poiItemOk = true;
-            if (isPoiObjectKey(primaryObj)) {
-                if (activePoiItemFilters.size > 0) {
-                    var poiItemIds = entry.pinItemIds || [];
-                    poiItemOk = poiItemIds.some(function (iid) {
-                        return activePoiItemFilters.has(iid);
-                    });
-                }
-            } else if (catMasterOn && activeCategoryFilters.size > 0) {
-                var pc = entry.pinCategoryIds || [];
-                if (pc.length === 0) {
-                    catOk = activeCategoryFilters.has('__none__');
-                } else {
-                    catOk = pc.some(function (cid) {
-                        return activeCategoryFilters.has(cid);
-                    });
-                }
-            }
+
             var itemOk = true;
             if (activeItemFilters.size > 0) {
                 var pItemIds = entry.pinItemIds || [];
@@ -1870,7 +2114,7 @@
                     return activeItemFilters.has(pid);
                 });
             }
-            var show = objOk && catOk && poiItemOk && itemOk;
+            var show = objOk && itemOk;
             if (show) {
                 if (!areaLayer.hasLayer(poly)) areaLayer.addLayer(poly);
                 if (iconMarker && !areaIconLayerGroup.hasLayer(iconMarker)) areaIconLayerGroup.addLayer(iconMarker);
@@ -2093,8 +2337,11 @@
 
     /** 1行目: オブジェクト名のみ（カテゴリ名は見出しに含めない）。 */
     function buildPinHeadline(pin, isJa, contents, legacyCategory) {
+        var namePart = isJa ? (pin.name_jp || pin.name_en || '') : (pin.name_en || pin.name_jp || '');
+        namePart = String(namePart || '').trim();
         var objPart = isJa ? (pin.obj_jp || pin.obj_en || '') : (pin.obj_en || pin.obj_jp || '');
         objPart = String(objPart).trim();
+        if (objPart && namePart) return objPart + '：' + namePart;
         if (objPart) return objPart;
         var cats = categoryLabelsFromContents(contents, isJa, legacyCategory);
         var catPart = cats.join('・');
@@ -2427,7 +2674,9 @@
      * クリック popup は従来どおり詳細（全件・全文）を維持する。
      */
     function buildHoverTooltipText(pin, isJa, contents, legacyCategory) {
-        var lines = [];
+        var placeName = isJa ? (pin.name_jp || pin.name_en || '') : (pin.name_en || pin.name_jp || '');
+        placeName = String(placeName || '').trim();
+        if (placeName) return placeName;
         var objName = isJa ? (pin.obj_jp || pin.obj_en || '') : (pin.obj_en || pin.obj_jp || '');
         objName = String(objName || '').trim();
         var rows = [];
@@ -2834,6 +3083,14 @@
 
     /** category_master 1件を、map_object_attr_ids 優先でどのオブジェクト配下に置くか決める */
     function primaryObjectIdForCategory(ent, orderArr) {
+        var direct = String((ent && ent.object_attr_id) || '').trim();
+        if (direct) {
+            var directU = direct.toUpperCase();
+            for (var di = 0; di < orderArr.length; di++) {
+                if (String(orderArr[di] || '').trim().toUpperCase() === directU) return orderArr[di];
+            }
+            return direct;
+        }
         var oids = (ent && ent.object_ids && Array.isArray(ent.object_ids)) ? ent.object_ids : [];
         if (oids.length === 0) return null;
         var i;
@@ -3012,6 +3269,30 @@
 
     var veinFilterDrawerEl = null;
 
+    /** 一括オン／オフ後にフィルターDOMだけ同期（addOverlayControls 相当の全組み直しはしない＝ツリー開閉を維持） */
+    function syncVeinCategoryFilterDomForIds(catIds, turnOn) {
+        if (!veinFilterDrawerEl || !catIds || !catIds.length) return;
+        var want = {};
+        var zi;
+        for (zi = 0; zi < catIds.length; zi++) {
+            var id0 = String(catIds[zi] || '').trim();
+            if (id0) want[id0] = true;
+        }
+        var inputs = veinFilterDrawerEl.querySelectorAll('input[data-vein-cat-id]');
+        var ni;
+        for (ni = 0; ni < inputs.length; ni++) {
+            var inp = inputs[ni];
+            var cid = String(inp.getAttribute('data-vein-cat-id') || '').trim();
+            if (!want[cid]) continue;
+            inp.checked = !!turnOn;
+            var row = inp.closest ? inp.closest('label.vein-filter-row') : null;
+            if (row && row.classList) {
+                if (turnOn) row.classList.add('vein-filter-row--on');
+                else row.classList.remove('vein-filter-row--on');
+            }
+        }
+    }
+
     function removeVeinFilterDrawer() {
         if (veinFilterDrawerEl && veinFilterDrawerEl.parentNode) {
             veinFilterDrawerEl.parentNode.removeChild(veinFilterDrawerEl);
@@ -3157,10 +3438,16 @@
             parent.appendChild(sec);
         }
 
-        function appendVeinCategoryFilterRow(parent, ce) {
+        function appendVeinCategoryFilterRow(parent, ce, opts) {
             var cid = ce.id;
+            var hasChildren = !!(opts && opts.hasChildren);
+            var wrap = document.createElement('div');
+            wrap.className = 'vein-filter-subgroup';
+            var head = document.createElement('div');
+            head.className = 'vein-filter-subgroup__head';
             var row = document.createElement('label');
             row.className = 'vein-filter-row vein-filter-row--nested' + (activeCategoryFilters.has(cid) ? ' vein-filter-row--on' : '');
+            row.setAttribute('data-vein-cat-row', cid);
             var inp = document.createElement('input');
             inp.type = 'checkbox';
             inp.checked = activeCategoryFilters.has(cid);
@@ -3192,50 +3479,35 @@
                 }
                 inp.addEventListener('change', syncCat);
             }(cid));
-            parent.appendChild(row);
-        }
+            head.appendChild(row);
 
-        function appendVeinPoiItemFilterRow(parent, it, extraClass) {
-            var iid = it.id;
-            var row = document.createElement('label');
-            row.className = 'vein-filter-row vein-filter-row--nested' + (extraClass ? (' ' + extraClass) : '') + (activePoiItemFilters.has(iid) ? ' vein-filter-row--on' : '');
-            var inp = document.createElement('input');
-            inp.type = 'checkbox';
-            inp.checked = activePoiItemFilters.has(iid);
-            inp.setAttribute('data-vein-poi-item-id', iid);
-            row.appendChild(inp);
-            var iconHostIt = document.createElement('span');
-            iconHostIt.innerHTML = veinFilterItemIconHtml();
-            while (iconHostIt.firstChild) {
-                row.appendChild(iconHostIt.firstChild);
-            }
-            var labIt = document.createElement('span');
-            labIt.className = 'vein-filter-label';
-            labIt.textContent = it.label;
-            var fakeToggleIt = document.createElement('span');
-            fakeToggleIt.className = 'vein-filter-toggle-ui';
-            fakeToggleIt.setAttribute('aria-hidden', 'true');
-            row.appendChild(labIt);
-            row.appendChild(fakeToggleIt);
-            (function (itemId) {
-                inp.addEventListener('change', function () {
-                    if (inp.checked) {
-                        activePoiItemFilters.add(itemId);
-                        row.classList.add('vein-filter-row--on');
-                    } else {
-                        activePoiItemFilters.delete(itemId);
-                        row.classList.remove('vein-filter-row--on');
-                    }
-                    updateVisibleMarkers();
+            var childBody = null;
+            if (hasChildren) {
+                wrap.classList.add('vein-filter-subgroup--collapsed');
+                var collapseBtn = document.createElement('button');
+                collapseBtn.type = 'button';
+                collapseBtn.className = 'vein-filter-subgroup__collapse';
+                collapseBtn.textContent = isJa ? '開く' : 'Open';
+                collapseBtn.addEventListener('click', function (ev) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    var collapsed = wrap.classList.toggle('vein-filter-subgroup--collapsed');
+                    collapseBtn.textContent = collapsed ? (isJa ? '開く' : 'Open') : (isJa ? '閉じる' : 'Close');
                 });
-            }(iid));
-            parent.appendChild(row);
+                head.appendChild(collapseBtn);
+                childBody = document.createElement('div');
+                childBody.className = 'vein-filter-subgroup__body';
+            }
+            wrap.appendChild(head);
+            if (childBody) wrap.appendChild(childBody);
+            parent.appendChild(wrap);
+            return { wrap: wrap, childBody: childBody };
         }
 
         function appendVeinItemFilterRow(parent, it) {
             var iid = it.id;
             var row = document.createElement('label');
-            row.className = 'vein-filter-row vein-filter-row--nested' + (activeItemFilters.has(iid) ? ' vein-filter-row--on' : '');
+            row.className = 'vein-filter-row vein-filter-row--nested vein-filter-row--nested-deep' + (activeItemFilters.has(iid) ? ' vein-filter-row--on' : '');
             row.setAttribute('data-vein-item-search', (it.label + ' ' + iid + ' ' + String(it.group || '')).toLowerCase());
             var inp = document.createElement('input');
             inp.type = 'checkbox';
@@ -3268,6 +3540,28 @@
                 });
             }(iid));
             parent.appendChild(row);
+        }
+
+        function collectItemRowsForCategory(ce) {
+            var grp = String((ce && ce.jpKey) || '').trim();
+            var grpObj = grp ? itemMasterGlobal[grp] : null;
+            var itemRows = [];
+            if (!grpObj || typeof grpObj !== 'object') return itemRows;
+            Object.keys(grpObj).forEach(function (iidRaw) {
+                var iid = String(iidRaw || '').trim();
+                if (!iid) return;
+                if (!isItemAllowedBySubset(iid)) return;
+                var info = grpObj[iidRaw];
+                if (!info || typeof info !== 'object') return;
+                var lab = isJa
+                    ? (String(info.name_jp || iid).trim() || iid)
+                    : (String(info.name_en || info.name_jp || iid).trim() || iid);
+                itemRows.push({ id: iid, label: lab, group: grp });
+            });
+            itemRows.sort(function (a, b) {
+                return String(a.label).localeCompare(String(b.label), isJa ? 'ja' : 'en');
+            });
+            return itemRows;
         }
 
         function appendAdvancedItemFilterSection(scrollParent) {
@@ -3374,6 +3668,43 @@
             var hier = collectCategoryRowsByPrimaryObject();
             var byObj = hier.byObj;
             var orderArr = hier.orderArr;
+            function setAllForRows(rows, turnOn) {
+                var touchedIds = [];
+                (rows || []).forEach(function (ce) {
+                    var cid = String((ce && ce.id) || '').trim();
+                    if (!cid) return;
+                    if (turnOn) activeCategoryFilters.add(cid);
+                    else activeCategoryFilters.delete(cid);
+                    touchedIds.push(cid);
+                });
+                updateVisibleMarkers();
+                syncVeinCategoryFilterDomForIds(touchedIds, turnOn);
+            }
+            function createGroupBulkRow(rows) {
+                var bulkWrap = document.createElement('div');
+                bulkWrap.className = 'vein-filter-group__bulk-row';
+                var allOnBtn = document.createElement('button');
+                allOnBtn.type = 'button';
+                allOnBtn.className = 'vein-filter-group__bulk-btn';
+                allOnBtn.textContent = isJa ? 'すべてオン' : 'All ON';
+                allOnBtn.addEventListener('click', function (ev) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    setAllForRows(rows || [], true);
+                });
+                var allOffBtn = document.createElement('button');
+                allOffBtn.type = 'button';
+                allOffBtn.className = 'vein-filter-group__bulk-btn';
+                allOffBtn.textContent = isJa ? 'すべてオフ' : 'All OFF';
+                allOffBtn.addEventListener('click', function (ev) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    setAllForRows(rows || [], false);
+                });
+                bulkWrap.appendChild(allOnBtn);
+                bulkWrap.appendChild(allOffBtn);
+                return bulkWrap;
+            }
 
             orderArr.forEach(function (key) {
                 if (key === 'trash' && !isDebug) return;
@@ -3389,13 +3720,8 @@
                     group.classList.add('vein-filter-group--collapsed');
                 }
 
-                var gh = document.createElement('label');
-                gh.className = 'vein-filter-row vein-filter-group__head' + (activeCategories.has(key) ? ' vein-filter-row--on' : '');
-                var objInp = document.createElement('input');
-                objInp.type = 'checkbox';
-                objInp.checked = activeCategories.has(key);
-                objInp.setAttribute('data-vein-style-key', key);
-                gh.appendChild(objInp);
+                var gh = document.createElement('div');
+                gh.className = 'vein-filter-group__head';
                 var typH = (st.objType || (attrMappingGlobal[key] && attrMappingGlobal[key].type) || 'loot');
                 var iconHead = document.createElement('span');
                 iconHead.innerHTML = veinFilterObjectIconHtml(typH);
@@ -3405,11 +3731,7 @@
                 var titleEl = document.createElement('span');
                 titleEl.className = 'vein-filter-label';
                 titleEl.textContent = st.label || key;
-                var headToggle = document.createElement('span');
-                headToggle.className = 'vein-filter-toggle-ui';
-                headToggle.setAttribute('aria-hidden', 'true');
                 gh.appendChild(titleEl);
-                gh.appendChild(headToggle);
                 var collapseBtn = document.createElement('button');
                 collapseBtn.type = 'button';
                 collapseBtn.className = 'vein-filter-group__collapse';
@@ -3436,45 +3758,20 @@
                     invalidateMapSizeSoon();
                 });
                 gh.appendChild(collapseBtn);
-                (function (styleKey) {
-                    objInp.addEventListener('change', function () {
-                        if (objInp.checked) {
-                            activeCategories.add(styleKey);
-                            gh.classList.add('vein-filter-row--on');
-                        } else {
-                            activeCategories.delete(styleKey);
-                            gh.classList.remove('vein-filter-row--on');
-                        }
-                        updateVisibleMarkers();
-                    });
-                }(key));
                 group.appendChild(gh);
 
                 var body = document.createElement('div');
                 body.className = 'vein-filter-group__body';
-                if (isPoiObjectKey(key)) {
-                    var poiGroups = collectItemRowsGroupedByCategoryRows(catRows);
-                    if (poiGroups.length > 0) {
-                        poiGroups.forEach(function (pg) {
-                            var subHead = document.createElement('div');
-                            subHead.className = 'vein-filter-subgroup-title';
-                            subHead.textContent = pg.title;
-                            body.appendChild(subHead);
-                            pg.rows.forEach(function (it) {
-                                appendVeinPoiItemFilterRow(body, it, 'vein-filter-row--nested-deep');
-                            });
-                        });
-                    } else {
-                        // item_master 未整備時は従来どおりカテゴリ行にフォールバック
-                        catRows.forEach(function (ce) {
-                            appendVeinCategoryFilterRow(body, ce);
+                body.appendChild(createGroupBulkRow(catRows));
+                catRows.forEach(function (ce) {
+                    var itemRows = collectItemRowsForCategory(ce);
+                    var catUi = appendVeinCategoryFilterRow(body, ce, { hasChildren: itemRows.length > 0 });
+                    if (catUi && catUi.childBody) {
+                        itemRows.forEach(function (it) {
+                            appendVeinItemFilterRow(catUi.childBody, it);
                         });
                     }
-                } else {
-                    catRows.forEach(function (ce) {
-                        appendVeinCategoryFilterRow(body, ce);
-                    });
-                }
+                });
                 group.appendChild(body);
                 scroll.appendChild(group);
             });
@@ -3491,6 +3788,7 @@
                 og.appendChild(ogh);
                 var obody = document.createElement('div');
                 obody.className = 'vein-filter-group__body';
+                obody.appendChild(createGroupBulkRow(byObj.__orphan__ || []));
                 byObj.__orphan__.forEach(function (ce) {
                     appendVeinCategoryFilterRow(obody, ce);
                 });
@@ -3498,20 +3796,8 @@
                 scroll.appendChild(og);
             }
 
-            var noneCe = {
-                id: '__none__',
-                label: isJa ? '中身なし' : 'No slot / empty'
-            };
-            var noneGroup = document.createElement('div');
-            noneGroup.className = 'vein-filter-group';
-            var noneBody = document.createElement('div');
-            noneBody.className = 'vein-filter-group__body';
-            appendVeinCategoryFilterRow(noneBody, noneCe);
-            noneGroup.appendChild(noneBody);
-            scroll.appendChild(noneGroup);
         }
-
-        appendAdvancedItemFilterSection(scroll);
+        if (!catMasterOn) appendAdvancedItemFilterSection(scroll);
 
         aside.appendChild(head);
         aside.appendChild(scroll);
