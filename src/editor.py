@@ -2887,7 +2887,34 @@ class MapEditor(ctk.CTkToplevel):
             )
         return out
 
-    def _guide_link_combo_label_for_page(self, pg):
+    def _guide_row_pick_url_jp(self, pg) -> str:
+        """JP 欄に入れる候補 URL（/en/ のみの URL は EN 側へ回す）。"""
+        if not isinstance(pg, dict):
+            return ""
+        uj = (pg.get("url_jp") or "").strip()
+        ue = (pg.get("url_en") or "").strip()
+        if uj and wp_rest_guide.infer_lang_code_from_permalink(uj) != "en":
+            return uj
+        if ue and wp_rest_guide.infer_lang_code_from_permalink(ue) != "en":
+            return ue
+        return ""
+
+    def _guide_row_pick_url_en(self, pg) -> str:
+        """EN 欄に入れる候補 URL（url_en が空でも、url_jp が英語パスならそちらを使う）。"""
+        if not isinstance(pg, dict):
+            return ""
+        uj = (pg.get("url_jp") or "").strip()
+        ue = (pg.get("url_en") or "").strip()
+        if ue and wp_rest_guide.infer_lang_code_from_permalink(ue) == "en":
+            return ue
+        if uj and wp_rest_guide.infer_lang_code_from_permalink(uj) == "en":
+            return uj
+        return ""
+
+    def _guide_link_combo_label_for_page(self, pg, side=None):
+        """
+        side: None=検索用に日英タイトル併記、「jp」「en」= 各コンボ用に主タイトルを一方に寄せる。
+        """
         if not isinstance(pg, dict):
             return ""
         slug = (pg.get("slug") or "").strip()
@@ -2897,7 +2924,12 @@ class MapEditor(ctk.CTkToplevel):
         if not (slug or tj or te):
             return ""
         head = f"【{tag}】"
-        body = " ｜ ".join(x for x in (tj, te) if x) or "（無題）"
+        if side == "jp":
+            body = (tj if tj else (te or "（無題）"))
+        elif side == "en":
+            body = (te if te else (tj or "（無題）"))
+        else:
+            body = " ｜ ".join(x for x in (tj, te) if x) or "（無題）"
         hint = wp_rest_guide.short_slug_for_display(slug)
         if hint:
             return f"{head} {body} · {hint}"[:260]
@@ -2916,7 +2948,7 @@ class MapEditor(ctk.CTkToplevel):
             str(pg.get("url_jp") or ""),
             str(pg.get("url_en") or ""),
         ]
-        lab = self._guide_link_combo_label_for_page(pg)
+        lab = self._guide_link_combo_label_for_page(pg, None)
         if lab:
             parts.append(lab)
         blob = " ".join(parts).lower()
@@ -2937,17 +2969,17 @@ class MapEditor(ctk.CTkToplevel):
                 q = ent.get() or ""
             except Exception:
                 q = ""
-        url_key = "url_jp" if side == "jp" else "url_en"
+        pick_url = self._guide_row_pick_url_jp if side == "jp" else self._guide_row_pick_url_en
         labels = [GUIDE_LINK_PICK_NONE]
         ordered = []
         for pg in pages:
             if not isinstance(pg, dict):
                 continue
-            if not (pg.get(url_key) or "").strip():
+            if not pick_url(pg):
                 continue
             if not self._page_matches_link_pick_filter(pg, q):
                 continue
-            lab_base = self._guide_link_combo_label_for_page(pg)
+            lab_base = self._guide_link_combo_label_for_page(pg, side)
             if not lab_base:
                 continue
             lab = lab_base
@@ -3050,14 +3082,14 @@ class MapEditor(ctk.CTkToplevel):
         if not isinstance(pg, dict):
             return
         if side == "jp":
-            u = (pg.get("url_jp") or "").strip()
+            u = self._guide_row_pick_url_jp(pg)
             if not u:
                 return
             self.ent_link_jp.delete(0, "end")
             self.ent_link_jp.insert(0, u)
             combo = getattr(self, "cmb_link_pick_jp", None)
         else:
-            u = (pg.get("url_en") or "").strip()
+            u = self._guide_row_pick_url_en(pg)
             if not u:
                 return
             self.ent_link_en.delete(0, "end")
