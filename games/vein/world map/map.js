@@ -104,9 +104,9 @@
         st.id = 'vein-filter-drawer-style';
         st.textContent = [
             '#map-container.vein-map-with-filter{display:flex!important;flex-direction:row!important;align-items:stretch!important;width:100%!important;box-sizing:border-box!important;',
-            'min-height:560px!important;height:88vh!important;max-height:100%!important;position:relative!important;overflow:hidden!important;}',
-            '#map-container.vein-map-with-filter #game-map{flex:1 1 auto!important;min-width:0!important;min-height:400px!important;',
-            'align-self:stretch!important;max-height:100%!important;overflow:hidden!important;}',
+            'min-height:0!important;height:100%!important;max-height:none!important;position:relative!important;overflow:hidden!important;}',
+            '#map-container.vein-map-with-filter #game-map{flex:1 1 auto!important;min-width:0!important;min-height:0!important;',
+            'align-self:stretch!important;max-height:none!important;overflow:hidden!important;}',
             '.vein-filter-drawer{flex:0 0 auto;width:286px;max-width:88vw;box-sizing:border-box;',
             'background:#121214;border-right:1px solid rgba(255,255,255,0.045);',
             'display:flex;flex-direction:column;z-index:700;color:#b8b5b0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;',
@@ -631,6 +631,22 @@
             map.invalidateSize();
         } catch (eR2) { /* ignore */ }
     }, 0);
+
+    /** iframe / 埋め込みで枠の高さが後から決まるとき、Leaflet の内部サイズを追従 */
+    try {
+        if (typeof ResizeObserver !== 'undefined') {
+            var roTarget = mapDiv.parentElement || mapDiv;
+            if (roTarget) {
+                var roMap = new ResizeObserver(function () {
+                    invalidateMapSizeSoon();
+                });
+                roMap.observe(roTarget);
+                if (mapDiv && mapDiv !== roTarget) {
+                    roMap.observe(mapDiv);
+                }
+            }
+        }
+    } catch (eRO) { /* ignore */ }
 
     // デモ用ピン: 内蔵レイヤー + 別ファイルのアイコン（例: frame1.svg）
     // data-demo-svg-href: 省略 / embedded / - → 内蔵ベース＋アイコン別fetch。それ以外 → 従来どおり SVG 丸ごと fetch

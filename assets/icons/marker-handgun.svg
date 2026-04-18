@@ -1,12 +1,12 @@
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M2 5H21V6H22V9H2V5Z" fill="currentColor"/>
-<rect x="3" y="8" width="19" height="2" fill="currentColor"/>
-<rect x="17" y="9" width="5" height="12" fill="currentColor"/>
-<rect x="10" y="9" width="1" height="6" fill="currentColor"/>
-<rect x="10" y="14" width="8" height="1" fill="currentColor"/>
-<rect x="15" y="10" width="1" height="2" fill="currentColor"/>
-<rect x="14" y="12" width="1" height="1" fill="currentColor"/>
-<rect x="3" y="4" width="1" height="1" fill="currentColor"/>
-<rect x="19" y="4" width="1" height="1" fill="currentColor"/>
-<rect x="16" y="20" width="1" height="1" fill="currentColor"/>
+<path d="M16.9053 6.5293L17.9365 9.80078H17.542L16.5 6.50195L16.4053 6.53125L16.3096 6.56152L17.332 9.80078H2.5V6.5H17L16.9053 6.5293ZM19.5 6.5C19.5 6.5 19.5634 8.06338 20 8.5C20.4366 8.93662 22 9 22 9V9.80078H18.1475L17.1035 6.5H19.5Z" fill="#D9D9D9"/>
+<path d="M22 10H12.5C14.5 10.5 17 16 17 20H16.5V20.5L22 20.5C23.5 17 18 12 22 10.25V10Z" fill="#D9D9D9"/>
+<path d="M13.75 10H14.75C14.75 13 13.25 13.5 13.25 13.5H12.75C12.75 13.5 13.75 13 13.75 10Z" fill="#D9D9D9"/>
+<path d="M11.5 10.5C11.5 10.5 10.243 10.9721 10.5 12C11 14 10.5 14 15 14C15.559 14 16 12.5 16 12.5L17 16C17 16 15.664 14.5 15 14.5C10 14.5 10.5 14.5 10 12C9.80388 11.0194 9 10.5 9 10.5H11.5Z" fill="#D9D9D9"/>
+<path d="M2 7H3V9H2V7Z" fill="#D9D9D9"/>
+<path d="M20.5 7H21.5L20 9L18.5 8.5L20.5 7Z" fill="#D9D9D9"/>
+<path d="M3.5 6H4V7H3.5V6Z" fill="#D9D9D9"/>
+<rect x="17.5" y="6" width="1" height="1" fill="#D9D9D9"/>
+<path d="M6 8.5H17V9H6V8.5Z" fill="#D9D9D9"/>
+<path d="M19 11H5.5C4.88715 11 4.46285 10.4362 4.22559 10H19V11ZM19 9.5V9.80078H4.12598C4.04305 9.62364 4 9.5 4 9.5H19Z" fill="#D9D9D9"/>
 </svg>

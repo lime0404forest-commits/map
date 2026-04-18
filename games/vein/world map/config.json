@@ -534,11 +534,6 @@
                 "name_en": "Lookout",
                 "attributes": {}
             },
-            "FARM": {
-                "name_jp": "農場・牧場",
-                "name_en": "Farm",
-                "attributes": {}
-            },
             "FACTORY": {
                 "name_jp": "工場",
                 "name_en": "Factory",
@@ -547,6 +542,53 @@
             "WATER_TOWER": {
                 "name_jp": "給水塔",
                 "name_en": "Water Tower",
+                "attributes": {}
+            },
+            "SERVICE_SHED": {
+                "name_jp": "作業小屋",
+                "name_en": "Service Shed",
+                "attributes": {}
+            }
+        },
+        "場所・エリア・スポット": {
+            "FARM": {
+                "name_jp": "農場・牧場",
+                "name_en": "Farm",
+                "attributes": {}
+            },
+            "SHIPWRECK": {
+                "name_jp": "沈没船",
+                "name_en": "Shipwreck",
+                "attributes": {}
+            },
+            "PARK": {
+                "name_jp": "公園",
+                "name_en": "Park",
+                "attributes": {}
+            },
+            "QUARRY": {
+                "name_jp": "採石場",
+                "name_en": "Quarry",
+                "attributes": {}
+            },
+            "LANDMARK": {
+                "name_jp": "ランドマーク",
+                "name_en": "Landmark",
+                "attributes": {}
+            },
+            "POI_MISC": {
+                "name_jp": "POI",
+                "name_en": "POI",
+                "attributes": {}
+            },
+            "MILITARY_SITE": {
+                "name_jp": "軍事施設",
+                "name_en": "Military Site",
+                "attributes": {}
+            },
+            "RESIDENTIAL": {
+                "name_jp": "住宅地",
+                "name_en": "Residential",
                 "attributes": {}
             }
         },
@@ -596,18 +638,6 @@
             "LIMESTONE_VEIN": {
                 "name_jp": "石灰岩の鉱脈",
                 "name_en": "Limestone Vein",
-                "attributes": {}
-            }
-        },
-        "場所・エリア・スポット": {
-            "SHIPWRECK": {
-                "name_jp": "沈没船",
-                "name_en": "Shipwreck",
-                "attributes": {}
-            },
-            "PARK": {
-                "name_jp": "公園",
-                "name_en": "Park",
                 "attributes": {}
             }
         },
@@ -950,8 +980,8 @@
         "FARM": {
             "svg_icon_id": "marker-farm",
             "svg_icon_scope": "common",
-            "icon_color": "#ffffff",
-            "background_color": "#2ecc71",
+            "icon_color": "#ffab57",
+            "background_color": "#95a5a6",
             "display_style": "icon_only"
         },
         "SHIPWRECK": {
@@ -1107,6 +1137,41 @@
             "icon_color": "#ffffff",
             "background_color": "#ff0000",
             "display_style": "standard"
+        },
+        "QUARRY": {
+            "svg_icon_id": "marker-ore-deposit",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#95a5a6",
+            "display_style": "standard"
+        },
+        "MILITARY_SITE": {
+            "svg_icon_id": "marker-military-base",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#16a085",
+            "display_style": "icon_only"
+        },
+        "WATER_TOWER": {
+            "svg_icon_id": "marker-water-tower",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "RESIDENTIAL": {
+            "svg_icon_id": "marker-residential",
+            "svg_icon_scope": "common",
+            "icon_color": "#2ecc71",
+            "background_color": "#95a5a6",
+            "display_style": "icon_only"
+        },
+        "SERVICE_SHED": {
+            "svg_icon_id": "marker-service-shed",
+            "svg_icon_scope": "common",
+            "icon_color": "#f1c40f",
+            "background_color": "#95a5a6",
+            "display_style": "icon_only"
         }
     },
     "category_special_rules": {
