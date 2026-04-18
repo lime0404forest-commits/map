@@ -720,11 +720,6 @@ class SettingsWindow(ctk.CTkToplevel):
 
     def _refresh_pin_marker_row_preview(self, row_rec, icon_px=20):
         pm = row_rec["pin_marker"]
-        try:
-            row_rec["pin_swatch_icon"].configure(fg_color=pm["icon_color"])
-            row_rec["pin_swatch_bg"].configure(fg_color=pm["background_color"])
-        except Exception:
-            pass
         if row_rec.get("lbl_pin_mode") is not None:
             try:
                 row_rec["lbl_pin_mode"].configure(text=self._pin_marker_mode_label_text(pm))
@@ -739,15 +734,28 @@ class SettingsWindow(ctk.CTkToplevel):
             pil = svg_icon_assets.svg_or_placeholder_pil_rgba(resolved["abs_path"], icon_px, ic)
             if pil is not None:
                 cti = ctk.CTkImage(light_image=pil, dark_image=pil, size=(icon_px, icon_px))
-                lbl.configure(image=cti, text="")
+                try:
+                    lbl.configure(image=cti, text="")
+                except tk.TclError:
+                    pass
                 holder.clear()
                 holder.append(cti)
+                try:
+                    row_rec["pin_swatch_icon"].configure(fg_color=pm["icon_color"])
+                    row_rec["pin_swatch_bg"].configure(fg_color=pm["background_color"])
+                except Exception:
+                    pass
                 return
         try:
             lbl.configure(image=None, text=("…" if sid else "—"))
         except tk.TclError:
             pass
         holder.clear()
+        try:
+            row_rec["pin_swatch_icon"].configure(fg_color=pm["icon_color"])
+            row_rec["pin_swatch_bg"].configure(fg_color=pm["background_color"])
+        except Exception:
+            pass
 
     def _build_pin_marker_by_attribute_from_rows(self, rows, base_map=None):
         out = dict(base_map) if isinstance(base_map, dict) else {}
@@ -849,7 +857,6 @@ class SettingsWindow(ctk.CTkToplevel):
         def refresh_dialog_preview():
             ic = self._hex6_or_default(ent_ic.get(), "#ffffff")
             bg = self._hex6_or_default(ent_bg.get(), "#95a5a6")
-            pin_bg_fr.configure(fg_color=bg)
             sel = selected_ref[0]
             sid = (sel["id"] if sel else "") or ""
             path = ""
@@ -862,15 +869,20 @@ class SettingsWindow(ctk.CTkToplevel):
                 pil = svg_icon_assets.svg_or_placeholder_pil_rgba(path, 56, ic)
                 if pil is not None:
                     cti = ctk.CTkImage(light_image=pil, dark_image=pil, size=(56, 56))
-                    lbl_big.configure(image=cti, text="")
+                    try:
+                        lbl_big.configure(image=cti, text="")
+                    except tk.TclError:
+                        pass
                     preview_img_holder.clear()
                     preview_img_holder.append(cti)
+                    pin_bg_fr.configure(fg_color=bg)
                     return
             try:
                 lbl_big.configure(image=None, text=("…" if sid else "—"))
             except tk.TclError:
                 pass
             preview_img_holder.clear()
+            pin_bg_fr.configure(fg_color=bg)
 
         def schedule_preview(*_):
             if debounce_id[0] is not None:

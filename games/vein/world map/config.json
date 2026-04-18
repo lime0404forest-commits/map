@@ -825,6 +825,27 @@
             "icon_color": "#ffffff",
             "background_color": "#2ecc71",
             "display_style": "standard"
+        },
+        "VEHICLE_PARTS_CONTAINER": {
+            "svg_icon_id": "marker-tire",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#7f8c8d",
+            "display_style": "standard"
+        },
+        "RESOURCE_CONTAINER": {
+            "svg_icon_id": "marker-parts-container",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "SALVAGE": {
+            "svg_icon_id": "marker-nut",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
         }
     },
     "object_type_ui_order": [
@@ -1172,6 +1193,20 @@
             "icon_color": "#f1c40f",
             "background_color": "#95a5a6",
             "display_style": "icon_only"
+        },
+        "CANNABIS_SEEDS": {
+            "svg_icon_id": "marker-leaf",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#2ecc71",
+            "display_style": "standard"
+        },
+        "CRYSTAL_METH": {
+            "svg_icon_id": "marker-syringe",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#9b59b6",
+            "display_style": "standard"
         }
     },
     "category_special_rules": {
