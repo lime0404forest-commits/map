@@ -3,6 +3,12 @@
     "orig_h": 5886,
     "map_file": "map.png",
     "save_file": "master_data.csv",
+    "wp_rest_guide_sources": [
+        {
+            "ja": "https://lost-in-games.com/wp-json/wp/v2/posts?lang=jp",
+            "en": "https://lost-in-games.com/wp-json/wp/v2/posts?lang=en"
+        }
+    ],
     "cat_mapping": {
         "POI": "POI",
         "DEPLOYABLES": "コンテナ",

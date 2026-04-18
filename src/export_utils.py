@@ -7,6 +7,18 @@ import json
 import csv
 
 
+def link_url_with_anchor_fragment(base_url: str, anchor_fragment: str) -> str:
+    """ベース URL と共通アンカー（先頭 # なし）から、サイトで開く完全 URL を組み立てる。"""
+    s = (base_url or "").strip()
+    a = (anchor_fragment or "").strip().lstrip("#")
+    if not s:
+        return ""
+    if not a:
+        return s
+    base_only = s.split("#", 1)[0].rstrip("#")
+    return f"{base_only}#{a}" if base_only else s
+
+
 def _load_config(game_path):
     path = os.path.join(game_path, "config.json")
     if not os.path.exists(path):
@@ -112,8 +124,14 @@ def resolve_pin_for_display(pin, config):
         "memo_jp": pin.get("memo_jp", ""),
         "memo_en": pin.get("memo_en", ""),
         "updated_at": pin.get("updated_at", ""),
-        "link_url_jp": (pin.get("link_url_jp") or "").strip(),
-        "link_url_en": (pin.get("link_url_en") or "").strip(),
+        "link_url_jp": link_url_with_anchor_fragment(
+            (pin.get("link_url_jp") or "").strip(),
+            (pin.get("link_anchor") or "").strip(),
+        ),
+        "link_url_en": link_url_with_anchor_fragment(
+            (pin.get("link_url_en") or "").strip(),
+            (pin.get("link_anchor") or "").strip(),
+        ),
     }
     puid = (pin.get("parent_uid") or "").strip()
     if puid:

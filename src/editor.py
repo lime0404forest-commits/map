@@ -10,7 +10,7 @@ from collections import OrderedDict
 import re  # 追加
 import threading
 from datetime import datetime
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 from PIL import Image, ImageDraw, ImageTk
 
 from .constants import GAMES_ROOT, PROJECT_ROOT
@@ -2234,11 +2234,10 @@ class WpRestGuidePickerWindow(ctk.CTkToplevel):
     def __init__(self, parent, sources, rows_prefill=None):
         super().__init__(parent)
         self.title("WordPress 記事一覧（リンク候補）")
-        self.geometry("920x580")
+        self.geometry("980x600")
         self._sources = sources or []
         self._rows = list(rows_prefill or [])
         self._filtered = []
-        self._apply_to = tk.StringVar(value="both")
 
         f_top = ctk.CTkFrame(self, fg_color="transparent")
         f_top.pack(fill="x", padx=10, pady=8)
@@ -2247,11 +2246,15 @@ class WpRestGuidePickerWindow(ctk.CTkToplevel):
         self.ent_search.pack(side="left", fill="x", expand=True, padx=6)
         self.ent_search.bind("<KeyRelease>", lambda e: self._apply_filter())
 
-        f_rad = ctk.CTkFrame(self, fg_color="transparent")
-        f_rad.pack(fill="x", padx=10, pady=4)
-        ctk.CTkRadioButton(f_rad, text="JP/EN 両方反映", variable=self._apply_to, value="both").pack(side="left", padx=6)
-        ctk.CTkRadioButton(f_rad, text="JP のみ", variable=self._apply_to, value="jp").pack(side="left", padx=6)
-        ctk.CTkRadioButton(f_rad, text="EN のみ", variable=self._apply_to, value="en").pack(side="left", padx=6)
+        ctk.CTkLabel(
+            self,
+            text="反映: JP・EN 両方の URL がある行は両方の欄に入れます。片方だけなら、その言語の欄だけ更新します（もう片方はそのまま）。",
+            font=("Meiryo", 9),
+            text_color="#bdc3c7",
+            wraplength=900,
+            anchor="w",
+            justify="left",
+        ).pack(anchor="w", padx=12, pady=(0, 4))
 
         self.lbl_status = ctk.CTkLabel(self, text="", font=("Meiryo", 10), text_color="#f39c12")
         self.lbl_status.pack(anchor="w", padx=12)
@@ -2300,14 +2303,22 @@ class WpRestGuidePickerWindow(ctk.CTkToplevel):
         self._filtered = []
         self.listbox.delete(0, tk.END)
         for r in self._rows:
-            slug = (r.get("slug") or "").lower()
-            tj = (r.get("title_jp") or "").lower()
-            te = (r.get("title_en") or "").lower()
-            if q and q not in slug and q not in tj and q not in te:
+            slug_raw = (r.get("slug") or "")
+            tj_plain = wp_rest_guide.plain_text_for_guide_title(r.get("title_jp") or "")
+            te_plain = wp_rest_guide.plain_text_for_guide_title(r.get("title_en") or "")
+            slug_l = slug_raw.lower()
+            tj_l = tj_plain.lower()
+            te_l = te_plain.lower()
+            if q and q not in slug_l and q not in tj_l and q not in te_l:
                 continue
             self._filtered.append(r)
-            line = f"{r.get('slug', '')} | {(r.get('title_jp') or '')[:48]} | {(r.get('title_en') or '')[:48]}"
-            self.listbox.insert(tk.END, line[:240])
+            tag = wp_rest_guide.link_row_availability_tag(r)
+            titles = " ｜ ".join(x for x in (tj_plain, te_plain) if x) or "（無題）"
+            hint = wp_rest_guide.short_slug_for_display(slug_raw)
+            line = f"【{tag}】 {titles}"
+            if hint:
+                line = f"{line} · {hint}"
+            self.listbox.insert(tk.END, line[:300])
 
     def _do_apply(self):
         sel = self.listbox.curselection()
@@ -2315,17 +2326,27 @@ class WpRestGuidePickerWindow(ctk.CTkToplevel):
             messagebox.showwarning("選択", "行を選んでください。", parent=self)
             return
         r = self._filtered[sel[0]]
-        mode = self._apply_to.get()
         p = self.master
-        if mode in ("both", "jp") and (r.get("url_jp") or "").strip():
+        uj = (r.get("url_jp") or "").strip()
+        ue = (r.get("url_en") or "").strip()
+        if not uj and not ue:
+            messagebox.showwarning("リンク", "この行に JP / EN の URL がありません。", parent=self)
+            return
+        if uj:
             p.ent_link_jp.delete(0, "end")
-            p.ent_link_jp.insert(0, (r.get("url_jp") or "").strip())
-        if mode in ("both", "en") and (r.get("url_en") or "").strip():
+            p.ent_link_jp.insert(0, uj)
+        if ue:
             p.ent_link_en.delete(0, "end")
-            p.ent_link_en.insert(0, (r.get("url_en") or "").strip())
+            p.ent_link_en.insert(0, ue)
         if hasattr(p, "mark_dirty"):
             p.mark_dirty()
-        messagebox.showinfo("反映", "リンク URL を入力欄に入れました。", parent=self)
+        parts = []
+        if uj:
+            parts.append("JP")
+        if ue:
+            parts.append("EN")
+        msg = "リンク URL（" + "・".join(parts) + "）を入力しました。"
+        messagebox.showinfo("反映", msg, parent=self)
 
 
 # ==========================================
@@ -2777,18 +2798,48 @@ class MapEditor(ctk.CTkToplevel):
             self.config["skill_name_master"] = []
         category_special_rules_builder.sync_category_special_rules_from_master(self.config)
 
-    def _sanitize_saved_pin_link_url(self, raw):
-        """http(s) のみ許可。戻り値: (保存用文字列, 警告メッセージ or None)"""
+    def _parse_pin_http_url_base_fragment(self, raw):
+        """
+        http(s) のみ許可。戻り値: (フラグメント除いたベース URL, # 以降のフラグメント（# なし）, 警告 or None)
+        """
         s = (raw or "").strip()
         if not s:
-            return "", None
+            return "", "", None
         try:
             p = urlparse(s)
         except Exception:
-            return "", "URL の形式が不正なため保存しませんでした。"
+            return "", "", "URL の形式が不正なため保存しませんでした。"
         if p.scheme not in ("http", "https") or not p.netloc:
-            return "", "http / https の URL のみ保存できます。"
-        return s, None
+            return "", "", "http / https の URL のみ保存できます。"
+        frag = (p.fragment or "").strip().lstrip("#")
+        base = urlunparse((p.scheme, p.netloc, p.path or "", p.params, p.query, ""))
+        return base, frag, None
+
+    def _sanitize_saved_pin_link_url(self, raw):
+        """http(s) のみ許可。フラグメントは保存用ベース URL から除く。戻り値: (ベース URL, 警告 or None)"""
+        base, _frag, err = self._parse_pin_http_url_base_fragment(raw)
+        if err:
+            return "", err
+        return base, None
+
+    def _normalize_link_anchor_input(self, raw) -> str:
+        return (raw or "").strip().lstrip("#")
+
+    def _link_triplet_from_pin_dict(self, d) -> tuple:
+        """UI 用: (jp ベース URL, en ベース URL, アンカー文字列（# なし）)。"""
+        if not isinstance(d, dict):
+            return "", "", ""
+        jp_s = (d.get("link_url_jp") or "").strip()
+        en_s = (d.get("link_url_en") or "").strip()
+        stored = self._normalize_link_anchor_input(d.get("link_anchor"))
+        bjp, fj, ej = self._parse_pin_http_url_base_fragment(jp_s)
+        if ej and jp_s:
+            bjp, fj = jp_s, ""
+        ben, fe, ee = self._parse_pin_http_url_base_fragment(en_s)
+        if ee and en_s:
+            ben, fe = en_s, ""
+        anch = stored or fj or fe or ""
+        return bjp, ben, anch
 
     def _guide_page_links_path(self):
         name = self.config.get("guide_page_links_file", GUIDE_PAGE_LINKS_DEFAULT_FILE)
@@ -2807,29 +2858,117 @@ class MapEditor(ctk.CTkToplevel):
             pass
         return {"pages": []}
 
+    def _merge_guide_link_json_pages_with_rest_rows(self, json_pages, rest_rows):
+        """guide_page_links.json の行を優先し、同じ slug は REST で置き換えない。REST は未登録 slug のみ追加。"""
+        out = []
+        seen_slugs = set()
+        for pg in json_pages or []:
+            if not isinstance(pg, dict):
+                continue
+            out.append(dict(pg))
+            s = (pg.get("slug") or "").strip()
+            if s:
+                seen_slugs.add(s)
+        for r in rest_rows or []:
+            if not isinstance(r, dict):
+                continue
+            s = (r.get("slug") or "").strip()
+            if not s or s in seen_slugs:
+                continue
+            seen_slugs.add(s)
+            out.append(
+                {
+                    "slug": s,
+                    "title_jp": (r.get("title_jp") or "").strip(),
+                    "title_en": (r.get("title_en") or "").strip(),
+                    "url_jp": (r.get("url_jp") or "").strip(),
+                    "url_en": (r.get("url_en") or "").strip(),
+                }
+            )
+        return out
+
+    def _guide_link_combo_label_for_page(self, pg):
+        if not isinstance(pg, dict):
+            return ""
+        slug = (pg.get("slug") or "").strip()
+        tj = wp_rest_guide.plain_text_for_guide_title(pg.get("title_jp") or "")
+        te = wp_rest_guide.plain_text_for_guide_title(pg.get("title_en") or "")
+        tag = wp_rest_guide.link_row_availability_tag(pg)
+        if not (slug or tj or te):
+            return ""
+        head = f"【{tag}】"
+        body = " ｜ ".join(x for x in (tj, te) if x) or "（無題）"
+        hint = wp_rest_guide.short_slug_for_display(slug)
+        if hint:
+            return f"{head} {body} · {hint}"[:260]
+        return f"{head} {body}"[:260]
+
+    def _page_matches_link_pick_filter(self, pg, q: str) -> bool:
+        if not isinstance(pg, dict):
+            return False
+        ql = (q or "").strip().lower()
+        if not ql:
+            return True
+        parts = [
+            str(pg.get("slug") or ""),
+            str(pg.get("title_jp") or ""),
+            str(pg.get("title_en") or ""),
+            str(pg.get("url_jp") or ""),
+            str(pg.get("url_en") or ""),
+        ]
+        lab = self._guide_link_combo_label_for_page(pg)
+        if lab:
+            parts.append(lab)
+        blob = " ".join(parts).lower()
+        return ql in blob
+
     def _get_wp_rest_guide_sources(self):
         src = self.config.get("wp_rest_guide_sources")
         if isinstance(src, list) and src:
             return src
         return list(wp_rest_guide.DEFAULT_WP_REST_GUIDE_SOURCES)
 
-    def _sync_link_combo_values(self):
+    def _sync_link_combo_values_for_side(self, side: str):
         pages = self._guide_page_links_cache or []
+        q = ""
+        ent = getattr(self, f"ent_link_pick_search_{side}", None)
+        if ent is not None:
+            try:
+                q = ent.get() or ""
+            except Exception:
+                q = ""
+        url_key = "url_jp" if side == "jp" else "url_en"
         labels = [GUIDE_LINK_PICK_NONE]
+        ordered = []
         for pg in pages:
             if not isinstance(pg, dict):
                 continue
-            slug = (pg.get("slug") or "").strip()
-            tj = (pg.get("title_jp") or "").strip()
-            te = (pg.get("title_en") or "").strip()
-            if slug or tj or te:
-                labels.append(f"{slug} | {tj} | {te}"[:200])
-        for combo in (getattr(self, "cmb_link_pick_jp", None), getattr(self, "cmb_link_pick_en", None)):
-            if combo is not None:
-                combo.configure(values=labels)
-                cur = combo.get()
-                if cur not in labels:
-                    combo.set(GUIDE_LINK_PICK_NONE)
+            if not (pg.get(url_key) or "").strip():
+                continue
+            if not self._page_matches_link_pick_filter(pg, q):
+                continue
+            lab_base = self._guide_link_combo_label_for_page(pg)
+            if not lab_base:
+                continue
+            lab = lab_base
+            n = 2
+            while lab in labels:
+                lab = f"{lab_base} ({n})"
+                n += 1
+            labels.append(lab)
+            ordered.append(pg)
+        setattr(self, f"_guide_link_combo_labels_{side}", labels)
+        setattr(self, f"_guide_link_combo_pages_{side}", [None] + ordered)
+        combo = self.cmb_link_pick_jp if side == "jp" else self.cmb_link_pick_en
+        if combo is not None:
+            combo.configure(values=labels)
+            cur = combo.get()
+            if cur not in labels:
+                combo.set(GUIDE_LINK_PICK_NONE)
+
+    def _sync_link_combo_values(self):
+        self._sync_link_combo_values_for_side("jp")
+        self._sync_link_combo_values_for_side("en")
 
     def _toggle_link_settings_section(self):
         self.link_settings_expanded = not self.link_settings_expanded
@@ -2841,37 +2980,95 @@ class MapEditor(ctk.CTkToplevel):
             self.lbl_link_toggle.configure(text="▶ リンク設定")
 
     def _refresh_guide_page_links_from_disk(self):
-        self._guide_page_links_cache = self._load_guide_page_links_raw().get("pages", [])
+        """JSON を読み、wp_rest_guide_sources があれば REST も取得して候補をマージ（取得は別スレッド）。"""
+        json_pages = self._load_guide_page_links_raw().get("pages", [])
+        self._guide_page_links_cache = [dict(p) for p in json_pages if isinstance(p, dict)]
         self._sync_link_combo_values()
+        sources = self._get_wp_rest_guide_sources()
+        if not sources:
+            return
 
-    def _on_link_combo_selected(self, which):
-        pick = GUIDE_LINK_PICK_NONE
-        combo = self.cmb_link_pick_jp if which == "jp" else self.cmb_link_pick_en
-        try:
-            pick = combo.get()
-        except Exception:
+        def set_btn_busy(busy: bool):
+            b = getattr(self, "_btn_guide_links_refresh", None)
+            if b is None:
+                return
+            try:
+                if busy:
+                    b.configure(state="disabled", text="取得中…")
+                else:
+                    b.configure(state="normal", text="候補を再読込")
+            except Exception:
+                pass
+
+        set_btn_busy(True)
+
+        def worker():
+            rows = []
+            try:
+                rows, _err = wp_rest_guide.collect_paired_from_sources(sources)
+            except Exception:
+                pass
+
+            def apply_merge():
+                try:
+                    base = self._load_guide_page_links_raw().get("pages", [])
+                    self._guide_page_links_cache = self._merge_guide_link_json_pages_with_rest_rows(base, rows or [])
+                    self._sync_link_combo_values()
+                finally:
+                    set_btn_busy(False)
+
+            try:
+                self.after(0, apply_merge)
+            except Exception:
+                set_btn_busy(False)
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _on_link_combo_selected_jp(self, value):
+        """JP ページ候補: url_jp のみ JP 欄へ入れる。"""
+        self._apply_guide_page_pick_to_link_field(value, "jp")
+
+    def _on_link_combo_selected_en(self, value):
+        """EN ページ候補: url_en のみ EN 欄へ入れる。"""
+        self._apply_guide_page_pick_to_link_field(value, "en")
+
+    def _apply_guide_page_pick_to_link_field(self, value, side: str):
+        pick = value if isinstance(value, str) else ""
+        if not pick or pick == GUIDE_LINK_PICK_NONE:
             return
-        if pick == GUIDE_LINK_PICK_NONE:
+        labels = getattr(self, f"_guide_link_combo_labels_{side}", None)
+        pages_order = getattr(self, f"_guide_link_combo_pages_{side}", None)
+        if not labels or not pages_order:
             return
-        slug_part = pick.split("|", 1)[0].strip()
-        for pg in self._guide_page_links_cache or []:
-            if not isinstance(pg, dict):
-                continue
-            if (pg.get("slug") or "").strip() == slug_part:
-                uj = (pg.get("url_jp") or "").strip()
-                ue = (pg.get("url_en") or "").strip()
-                if which == "jp" and uj:
-                    self.ent_link_jp.delete(0, "end")
-                    self.ent_link_jp.insert(0, uj)
-                elif which == "en" and ue:
-                    self.ent_link_en.delete(0, "end")
-                    self.ent_link_en.insert(0, ue)
-                self.mark_dirty()
-                break
         try:
-            combo.set(GUIDE_LINK_PICK_NONE)
-        except Exception:
-            pass
+            idx = labels.index(pick)
+        except ValueError:
+            return
+        if idx <= 0 or idx >= len(pages_order):
+            return
+        pg = pages_order[idx]
+        if not isinstance(pg, dict):
+            return
+        if side == "jp":
+            u = (pg.get("url_jp") or "").strip()
+            if not u:
+                return
+            self.ent_link_jp.delete(0, "end")
+            self.ent_link_jp.insert(0, u)
+            combo = getattr(self, "cmb_link_pick_jp", None)
+        else:
+            u = (pg.get("url_en") or "").strip()
+            if not u:
+                return
+            self.ent_link_en.delete(0, "end")
+            self.ent_link_en.insert(0, u)
+            combo = getattr(self, "cmb_link_pick_en", None)
+        self.mark_dirty()
+        if combo is not None:
+            try:
+                combo.set(GUIDE_LINK_PICK_NONE)
+            except Exception:
+                pass
 
     def _open_wp_rest_guide_picker(self):
         sources = self._get_wp_rest_guide_sources()
@@ -4136,28 +4333,85 @@ class MapEditor(ctk.CTkToplevel):
             self.f_link_body, text="埋め込みマップのポップアップに「詳細ガイド」リンクとして出します（http/https のみ）。",
             font=("Meiryo", 9), text_color="#bdc3c7"
         ).pack(anchor="w", padx=BOX_PADX, pady=(BOX_PADY, 4))
-        f_pick = ctk.CTkFrame(self.f_link_body, fg_color="transparent")
-        f_pick.pack(fill="x", padx=BOX_PADX, pady=2)
-        ctk.CTkLabel(f_pick, text="ページ候補", width=100, anchor="w", font=("Meiryo", 10)).pack(side="left")
-        self.cmb_link_pick_jp = ctk.CTkComboBox(f_pick, values=[GUIDE_LINK_PICK_NONE], width=200, command=lambda v: self._on_link_combo_selected("jp"))
+        f_link_refresh = ctk.CTkFrame(self.f_link_body, fg_color="transparent")
+        f_link_refresh.pack(fill="x", padx=BOX_PADX, pady=(0, 4))
+        self._btn_guide_links_refresh = ctk.CTkButton(
+            f_link_refresh,
+            text="候補を再読込",
+            width=120,
+            command=self._refresh_guide_page_links_from_disk,
+            fg_color="#34495e",
+        )
+        self._btn_guide_links_refresh.pack(side="right", padx=0)
+
+        # --- JP: 検索 → コンボ → URL ---
+        f_jp_search = ctk.CTkFrame(self.f_link_body, fg_color="transparent")
+        f_jp_search.pack(fill="x", padx=BOX_PADX, pady=(2, 0))
+        ctk.CTkLabel(f_jp_search, text="JP 候補の検索", width=120, anchor="w", font=("Meiryo", 10)).pack(side="left")
+        self.ent_link_pick_search_jp = ctk.CTkEntry(
+            f_jp_search,
+            height=28,
+            placeholder_text="タイトル・slug・URL など（部分一致）",
+        )
+        self.ent_link_pick_search_jp.pack(side="left", fill="x", expand=True, padx=(4, 0))
+        self.ent_link_pick_search_jp.bind("<KeyRelease>", lambda e: self._sync_link_combo_values_for_side("jp"))
+        f_jp_pick = ctk.CTkFrame(self.f_link_body, fg_color="transparent")
+        f_jp_pick.pack(fill="x", padx=BOX_PADX, pady=(2, 0))
+        ctk.CTkLabel(f_jp_pick, text="JP ページ候補", width=120, anchor="w", font=("Meiryo", 10)).pack(side="left", anchor="n", pady=(6, 0))
+        self.cmb_link_pick_jp = ctk.CTkComboBox(
+            f_jp_pick,
+            values=[GUIDE_LINK_PICK_NONE],
+            width=420,
+            command=lambda v: self._on_link_combo_selected_jp(v),
+        )
         self.cmb_link_pick_jp.set(GUIDE_LINK_PICK_NONE)
-        self.cmb_link_pick_jp.pack(side="left", padx=4)
-        self.cmb_link_pick_en = ctk.CTkComboBox(f_pick, values=[GUIDE_LINK_PICK_NONE], width=200, command=lambda v: self._on_link_combo_selected("en"))
-        self.cmb_link_pick_en.set(GUIDE_LINK_PICK_NONE)
-        self.cmb_link_pick_en.pack(side="left", padx=4)
-        ctk.CTkButton(f_pick, text="候補を再読込", width=100, command=self._refresh_guide_page_links_from_disk, fg_color="#34495e").pack(side="left", padx=6)
+        self.cmb_link_pick_jp.pack(side="left", fill="x", expand=True, padx=(4, 0))
         f_lj = ctk.CTkFrame(self.f_link_body, fg_color="transparent")
-        f_lj.pack(fill="x", padx=BOX_PADX, pady=2)
-        ctk.CTkLabel(f_lj, text="URL (JP)", width=72, anchor="w", font=("Meiryo", 10)).pack(side="left")
-        self.ent_link_jp = ctk.CTkEntry(f_lj, height=28, placeholder_text="https://...")
+        f_lj.pack(fill="x", padx=BOX_PADX, pady=(4, 8))
+        ctk.CTkLabel(f_lj, text="URL (JP)", width=120, anchor="w", font=("Meiryo", 10)).pack(side="left")
+        self.ent_link_jp = ctk.CTkEntry(f_lj, height=28, placeholder_text="https://...（# 以降は下のアンカー欄）")
         self.ent_link_jp.pack(side="left", fill="x", expand=True)
-        f_le = ctk.CTkFrame(self.f_link_body, fg_color="transparent")
-        f_le.pack(fill="x", padx=BOX_PADX, pady=(2, BOX_PADY))
-        ctk.CTkLabel(f_le, text="URL (EN)", width=72, anchor="w", font=("Meiryo", 10)).pack(side="left")
-        self.ent_link_en = ctk.CTkEntry(f_le, height=28, placeholder_text="https://...")
-        self.ent_link_en.pack(side="left", fill="x", expand=True)
         self.ent_link_jp.bind("<KeyRelease>", lambda e: self.mark_dirty())
+
+        # --- EN: 検索 → コンボ → URL ---
+        f_en_search = ctk.CTkFrame(self.f_link_body, fg_color="transparent")
+        f_en_search.pack(fill="x", padx=BOX_PADX, pady=(4, 0))
+        ctk.CTkLabel(f_en_search, text="EN 候補の検索", width=120, anchor="w", font=("Meiryo", 10)).pack(side="left")
+        self.ent_link_pick_search_en = ctk.CTkEntry(
+            f_en_search,
+            height=28,
+            placeholder_text="タイトル・slug・URL など（部分一致）",
+        )
+        self.ent_link_pick_search_en.pack(side="left", fill="x", expand=True, padx=(4, 0))
+        self.ent_link_pick_search_en.bind("<KeyRelease>", lambda e: self._sync_link_combo_values_for_side("en"))
+        f_en_pick = ctk.CTkFrame(self.f_link_body, fg_color="transparent")
+        f_en_pick.pack(fill="x", padx=BOX_PADX, pady=(2, 0))
+        ctk.CTkLabel(f_en_pick, text="EN ページ候補", width=120, anchor="w", font=("Meiryo", 10)).pack(side="left", anchor="n", pady=(6, 0))
+        self.cmb_link_pick_en = ctk.CTkComboBox(
+            f_en_pick,
+            values=[GUIDE_LINK_PICK_NONE],
+            width=420,
+            command=lambda v: self._on_link_combo_selected_en(v),
+        )
+        self.cmb_link_pick_en.set(GUIDE_LINK_PICK_NONE)
+        self.cmb_link_pick_en.pack(side="left", fill="x", expand=True, padx=(4, 0))
+        f_le = ctk.CTkFrame(self.f_link_body, fg_color="transparent")
+        f_le.pack(fill="x", padx=BOX_PADX, pady=(4, BOX_PADY))
+        ctk.CTkLabel(f_le, text="URL (EN)", width=120, anchor="w", font=("Meiryo", 10)).pack(side="left")
+        self.ent_link_en = ctk.CTkEntry(f_le, height=28, placeholder_text="https://...（# 以降は下のアンカー欄）")
+        self.ent_link_en.pack(side="left", fill="x", expand=True)
         self.ent_link_en.bind("<KeyRelease>", lambda e: self.mark_dirty())
+
+        f_anchor = ctk.CTkFrame(self.f_link_body, fg_color="transparent")
+        f_anchor.pack(fill="x", padx=BOX_PADX, pady=(0, BOX_PADY))
+        ctk.CTkLabel(f_anchor, text="アンカー（共通）", width=120, anchor="w", font=("Meiryo", 10)).pack(side="left")
+        self.ent_link_anchor = ctk.CTkEntry(
+            f_anchor,
+            height=28,
+            placeholder_text="見出しID など（先頭の # は不要。保存時に両方の URL へ付与）",
+        )
+        self.ent_link_anchor.pack(side="left", fill="x", expand=True)
+        self.ent_link_anchor.bind("<KeyRelease>", lambda e: self.mark_dirty())
         self._guide_page_links_cache = []
         self._refresh_guide_page_links_from_disk()
 
@@ -4356,6 +4610,15 @@ class MapEditor(ctk.CTkToplevel):
         if getattr(self, "ent_link_jp", None):
             self.ent_link_jp.delete(0, "end")
             self.ent_link_en.delete(0, "end")
+        if getattr(self, "ent_link_anchor", None):
+            self.ent_link_anchor.delete(0, "end")
+        for side in ("jp", "en"):
+            ent = getattr(self, f"ent_link_pick_search_{side}", None)
+            if ent is not None:
+                try:
+                    ent.delete(0, "end")
+                except Exception:
+                    pass
         if getattr(self, "cmb_link_pick_jp", None):
             self.cmb_link_pick_jp.set(GUIDE_LINK_PICK_NONE)
             self.cmb_link_pick_en.set(GUIDE_LINK_PICK_NONE)
@@ -6500,6 +6763,13 @@ class MapEditor(ctk.CTkToplevel):
         raw_le = (self.ent_link_en.get() or "").strip() if getattr(self, "ent_link_en", None) else ""
         link_jp, _ = self._sanitize_saved_pin_link_url(raw_lj)
         link_en, _ = self._sanitize_saved_pin_link_url(raw_le)
+        link_anchor = self._normalize_link_anchor_input(
+            (self.ent_link_anchor.get() or "") if getattr(self, "ent_link_anchor", None) else ""
+        )
+        if not link_anchor:
+            _bj, fj, _ = self._parse_pin_http_url_base_fragment(raw_lj)
+            _be, fe, _ = self._parse_pin_http_url_base_fragment(raw_le)
+            link_anchor = (fj or fe or "").strip().lstrip("#")
         memo_jp = self.txt_memo_jp.get("1.0", "end-1c").replace("\n", "<br>")
         memo_en = self.txt_memo_en.get("1.0", "end-1c").replace("\n", "<br>")
 
@@ -6531,6 +6801,7 @@ class MapEditor(ctk.CTkToplevel):
             "memo_en": memo_en,
             "link_url_jp": link_jp,
             "link_url_en": link_en,
+            "link_anchor": link_anchor,
             "marker_display_style": marker_display_style,
             "parent_uid": parent_uid_snap,
             "parent_type": parent_type_snap,
@@ -6737,6 +7008,13 @@ class MapEditor(ctk.CTkToplevel):
         link_en, we = self._sanitize_saved_pin_link_url(raw_le)
         if wj or we:
             messagebox.showwarning("リンクURL", "\n".join(x for x in (wj, we) if x))
+        link_anchor = self._normalize_link_anchor_input(
+            (self.ent_link_anchor.get() or "") if getattr(self, "ent_link_anchor", None) else ""
+        )
+        if not link_anchor:
+            _bj, fj, _ = self._parse_pin_http_url_base_fragment(raw_lj)
+            _be, fe, _ = self._parse_pin_http_url_base_fragment(raw_le)
+            link_anchor = (fj or fe or "").strip().lstrip("#")
         marker_display_style = ""
         if self.current_uid:
             for d0 in self.data_list:
@@ -6800,6 +7078,7 @@ class MapEditor(ctk.CTkToplevel):
             'updated_at': datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
             'link_url_jp': link_jp,
             'link_url_en': link_en,
+            'link_anchor': link_anchor,
             'marker_display_style': marker_display_style,
         }
         parent_uid_val = ""
@@ -6888,6 +7167,7 @@ class MapEditor(ctk.CTkToplevel):
             "updated_at": "",
             "link_url_jp": "",
             "link_url_en": "",
+            "link_anchor": "",
             "marker_display_style": "",
             "parent_uid": "",
             "parent_type": "",
@@ -7127,7 +7407,7 @@ class MapEditor(ctk.CTkToplevel):
     def write_files(self):
         p = os.path.join(self.game_path, self.config.get("save_file", "master_data.csv"))
         # 新しいフィールドと後方互換性のためのフィールドを含める
-        flds = ["uid", "x", "y", "name_jp", "name_en", "attribute", "obj_name_en", "obj_attributes", "category", "categories", "importance", "category_pin", "contents", "memo_jp", "memo_en", "updated_at", "link_url_jp", "link_url_en", "marker_display_style", "parent_uid", "parent_type"]
+        flds = ["uid", "x", "y", "name_jp", "name_en", "attribute", "obj_name_en", "obj_attributes", "category", "categories", "importance", "category_pin", "contents", "memo_jp", "memo_en", "updated_at", "link_url_jp", "link_url_en", "link_anchor", "marker_display_style", "parent_uid", "parent_type"]
         with open(p, "w", newline="", encoding="utf-8-sig") as f:
             writer = csv.DictWriter(f, fieldnames=flds, extrasaction='ignore')
             writer.writeheader(); writer.writerows(self.data_list)
@@ -7155,6 +7435,7 @@ class MapEditor(ctk.CTkToplevel):
                     if 'updated_at' not in row: d['updated_at'] = ""
                     if 'link_url_jp' not in row: d.setdefault('link_url_jp', '')
                     if 'link_url_en' not in row: d.setdefault('link_url_en', '')
+                    if 'link_anchor' not in row: d.setdefault('link_anchor', '')
                     if 'marker_display_style' not in row: d.setdefault('marker_display_style', '')
                     if 'parent_uid' not in row: d.setdefault('parent_uid', '')
                     if 'parent_type' not in row: d.setdefault('parent_type', '')
@@ -7394,10 +7675,14 @@ class MapEditor(ctk.CTkToplevel):
                 self.ent_obj_en.delete(0, "end")
                 self.ent_obj_en.insert(0, d.get('obj_name_en', '') or '')
             if getattr(self, "ent_link_jp", None):
+                bjp, ben, anch = self._link_triplet_from_pin_dict(d)
                 self.ent_link_jp.delete(0, "end")
-                self.ent_link_jp.insert(0, d.get('link_url_jp', '') or '')
+                self.ent_link_jp.insert(0, bjp)
                 self.ent_link_en.delete(0, "end")
-                self.ent_link_en.insert(0, d.get('link_url_en', '') or '')
+                self.ent_link_en.insert(0, ben)
+                if getattr(self, "ent_link_anchor", None):
+                    self.ent_link_anchor.delete(0, "end")
+                    self.ent_link_anchor.insert(0, anch)
                 self._sync_link_combo_values()
 
         finally:
@@ -7462,6 +7747,9 @@ class MapEditor(ctk.CTkToplevel):
             "importance": self.cmb_importance.get() if self.cmb_importance.get() != "(なし)" else "",
             "link_url_jp": (self.ent_link_jp.get() or "").strip() if getattr(self, "ent_link_jp", None) else "",
             "link_url_en": (self.ent_link_en.get() or "").strip() if getattr(self, "ent_link_en", None) else "",
+            "link_anchor": self._normalize_link_anchor_input(
+                (self.ent_link_anchor.get() or "") if getattr(self, "ent_link_anchor", None) else ""
+            ),
         }
 
     def _apply_template(self, tpl):
@@ -7476,6 +7764,7 @@ class MapEditor(ctk.CTkToplevel):
             "memo_en": "",
             "link_url_jp": tpl.get("link_url_jp", ""),
             "link_url_en": tpl.get("link_url_en", ""),
+            "link_anchor": tpl.get("link_anchor", ""),
         }
         if not self._confirm_pin_edit_discard_or_save():
             return
