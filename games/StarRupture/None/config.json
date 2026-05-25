@@ -1,7 +1,7 @@
 {
     "orig_w": 6253,
     "orig_h": 7104,
-    "map_file": "map.png",
+    "map_file": "_source/map.png",
     "save_file": "master_data.csv",
     "object_types": {
         "loot": {

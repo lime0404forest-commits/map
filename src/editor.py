@@ -156,8 +156,9 @@ class SettingsWindow(ctk.CTkToplevel):
         f.grid_columnconfigure(4, weight=1, minsize=m(118))
         f.grid_columnconfigure(5, weight=0, minsize=m(108))
         f.grid_columnconfigure(6, weight=0, minsize=m(46))
-        f.grid_columnconfigure(7, weight=0, minsize=m(228))
-        f.grid_columnconfigure(8, weight=0, minsize=m(42))
+        f.grid_columnconfigure(7, weight=0, minsize=m(96))
+        f.grid_columnconfigure(8, weight=0, minsize=m(228))
+        f.grid_columnconfigure(9, weight=0, minsize=m(42))
 
     def _configure_item_table_columns(self, f):
         m = self._mcol
@@ -241,7 +242,7 @@ class SettingsWindow(ctk.CTkToplevel):
         # オブジェクト種類リスト（JSON の type 値／「種類(type)」タブと対応）
         self.object_types = ["loot", "landmark", "colony", "other"]
         self.object_type_names = {
-            "loot": "アイテムルート源",
+            "loot": "アイテム",
             "landmark": "ランドマーク",
             "colony": "群生地",
             "other": "その他"
@@ -315,11 +316,12 @@ class SettingsWindow(ctk.CTkToplevel):
         ctk.CTkLabel(f_head, text="ID", anchor="w", font=("Meiryo", 11, "bold"), text_color="#888888").grid(row=hr, column=4, sticky="w", padx=4, pady=2)
         ctk.CTkLabel(f_head, text="入力形式", anchor="w", font=("Meiryo", 11, "bold")).grid(row=hr, column=5, sticky="w", padx=4, pady=2)
         ctk.CTkLabel(f_head, text="数量", anchor="w", font=("Meiryo", 11, "bold")).grid(row=hr, column=6, sticky="w", padx=4, pady=2)
+        ctk.CTkLabel(f_head, text="属性", anchor="w", font=("Meiryo", 11, "bold")).grid(row=hr, column=7, sticky="w", padx=4, pady=2)
         f_h_pin = ctk.CTkFrame(f_head, fg_color="transparent")
-        f_h_pin.grid(row=hr, column=7, sticky="w", padx=4, pady=2)
+        f_h_pin.grid(row=hr, column=8, sticky="w", padx=4, pady=2)
         ctk.CTkLabel(f_h_pin, text="アイコン", anchor="w", font=("Meiryo", 11, "bold")).pack(side="left", padx=(0, 10))
         ctk.CTkLabel(f_h_pin, text="マーカー", anchor="w", font=("Meiryo", 11, "bold")).pack(side="left")
-        ctk.CTkLabel(f_head, text="削除", anchor="w", font=("Meiryo", 10, "bold"), text_color="#888888").grid(row=hr, column=8, sticky="e", padx=4, pady=2)
+        ctk.CTkLabel(f_head, text="削除", anchor="w", font=("Meiryo", 10, "bold"), text_color="#888888").grid(row=hr, column=9, sticky="e", padx=4, pady=2)
         self._configure_cat_table_columns(f_head)
         self.scroll_cat = ctk.CTkScrollableFrame(self.tab_cat, fg_color="#2b2b2b")
         self.scroll_cat.pack(expand=True, fill="both", padx=5, pady=5)
@@ -465,6 +467,9 @@ class SettingsWindow(ctk.CTkToplevel):
             messagebox.showerror("保存エラー", str(e))
 
     def load_current_settings(self):
+        self._suspend_master_combo_refresh = True
+        self._category_obj_combo_values_sig = None
+        self._item_group_combo_values_sig = None
         for w in self.scroll_attr.winfo_children():
             w.destroy()
         self.attr_rows = []
@@ -473,23 +478,40 @@ class SettingsWindow(ctk.CTkToplevel):
                 w.destroy()
             self.route_attr_rows = []
 
-        # オブジェクト設定（JP/EN + type + attributes対応）
-        attr_mapping = self.config.get("attr_mapping", {})
-        # 後方互換性：旧cat_mappingから変換
-        if not attr_mapping:
-            old_mapping = self.config.get("cat_mapping", {})
-            if old_mapping:
-                attr_mapping = {}
-                for k, v in old_mapping.items():
-                    attr_mapping[k] = {"name_jp": v, "name_en": k, "type": "loot", "attributes": {}}
+        try:
+            # オブジェクト設定（JP/EN + type + attributes対応）
+            attr_mapping = self.config.get("attr_mapping", {})
+            # 後方互換性：旧cat_mappingから変換
+            if not attr_mapping:
+                old_mapping = self.config.get("cat_mapping", {})
+                if old_mapping:
+                    attr_mapping = {}
+                    for k, v in old_mapping.items():
+                        attr_mapping[k] = {"name_jp": v, "name_en": k, "type": "loot", "attributes": {}}
 
-        mo_ids = self.config.get("map_object_attr_ids")
-        if mo_ids is not None:
-            seen = set()
-            for kid in mo_ids:
-                seen.add(kid)
-                if kid in attr_mapping:
-                    v = attr_mapping[kid]
+            mo_ids = self.config.get("map_object_attr_ids")
+            if mo_ids is not None:
+                seen = set()
+                for kid in mo_ids:
+                    seen.add(kid)
+                    if kid in attr_mapping:
+                        v = attr_mapping[kid]
+                        if isinstance(v, dict):
+                            self.add_attr_row(
+                                v.get("name_jp", ""),
+                                v.get("name_en", ""),
+                                v.get("type", "loot"),
+                                v.get("attributes", {}),
+                                v.get("use_category_slots", True),
+                                kid,
+                            )
+                        else:
+                            self.add_attr_row(v, kid, "loot", {}, True, kid)
+                    else:
+                        self.add_attr_row("", "", "loot", {}, True, kid)
+                for k, v in attr_mapping.items():
+                    if k in seen:
+                        continue
                     if isinstance(v, dict):
                         self.add_attr_row(
                             v.get("name_jp", ""),
@@ -497,83 +519,75 @@ class SettingsWindow(ctk.CTkToplevel):
                             v.get("type", "loot"),
                             v.get("attributes", {}),
                             v.get("use_category_slots", True),
-                            kid,
+                            k,
+                            scroll_parent=self.scroll_route,
+                            rows_list=self.route_attr_rows,
                         )
                     else:
-                        self.add_attr_row(v, kid, "loot", {}, True, kid)
-                else:
-                    self.add_attr_row("", "", "loot", {}, True, kid)
-            for k, v in attr_mapping.items():
-                if k in seen:
-                    continue
-                if isinstance(v, dict):
-                    self.add_attr_row(
-                        v.get("name_jp", ""),
-                        v.get("name_en", ""),
-                        v.get("type", "loot"),
-                        v.get("attributes", {}),
-                        v.get("use_category_slots", True),
-                        k,
-                        scroll_parent=self.scroll_route,
-                        rows_list=self.route_attr_rows,
-                    )
-                else:
-                    self.add_attr_row(
-                        v, k, "loot", {}, True, k,
-                        scroll_parent=self.scroll_route,
-                        rows_list=self.route_attr_rows,
-                    )
-            if not self.attr_rows and not self.route_attr_rows:
-                self.add_attr_row("", "", "loot", {}, True, None)
-        else:
-            if not attr_mapping:
-                self.add_attr_row("", "", "loot", {}, True, None)
-            for k, v in attr_mapping.items():
-                if isinstance(v, dict):
-                    self.add_attr_row(
-                        v.get("name_jp", ""),
-                        v.get("name_en", ""),
-                        v.get("type", "loot"),
-                        v.get("attributes", {}),
-                        v.get("use_category_slots", True),
-                        k,
-                    )
-                else:
-                    self.add_attr_row(v, k, "loot", {}, True, k)
-
-        # カテゴリマスタ（JP/EN + type + input_type + show_qty）
-        category_master = self.config.get("category_master", {})
-        # 後方互換性：旧category_listから変換
-        if not category_master:
-            old_list = self.config.get("category_list", [])
-            if old_list:
-                category_master = {}
-                for cat in old_list:
-                    if cat:
-                        category_master[cat] = {"name_jp": cat, "name_en": "", "type": "loot", "input_type": "item_select", "show_qty": True}
-        
-        if not category_master: self.add_cat_row("", "", "", "item_select", True, "")
-        for cat_key, cat_info in category_master.items():
-            if isinstance(cat_info, dict):
-                self.add_cat_row(
-                    cat_info.get("name_jp", cat_key),
-                    cat_info.get("name_en", ""),
-                    self._infer_object_attr_id_from_cat_info(cat_info),
-                    cat_info.get("input_type", "item_select"),
-                    cat_info.get("show_qty", True),
-                    cat_info.get("id", "")
-                )
+                        self.add_attr_row(
+                            v, k, "loot", {}, True, k,
+                            scroll_parent=self.scroll_route,
+                            rows_list=self.route_attr_rows,
+                        )
+                if not self.attr_rows and not self.route_attr_rows:
+                    self.add_attr_row("", "", "loot", {}, True, None)
             else:
-                self.add_cat_row(cat_info, "", "", "item_select", True, "")
+                if not attr_mapping:
+                    self.add_attr_row("", "", "loot", {}, True, None)
+                for k, v in attr_mapping.items():
+                    if isinstance(v, dict):
+                        self.add_attr_row(
+                            v.get("name_jp", ""),
+                            v.get("name_en", ""),
+                            v.get("type", "loot"),
+                            v.get("attributes", {}),
+                            v.get("use_category_slots", True),
+                            k,
+                        )
+                    else:
+                        self.add_attr_row(v, k, "loot", {}, True, k)
 
-        # アイテムマスタ
-        item_master = self.config.get("item_master", {})
-        if not item_master: self.add_item_row("", "", "", "", {})
-        
-        for grp, items in item_master.items():
-            for i_id, info in items.items():
-                attrs = info.get("attributes", {})
-                self.add_item_row(grp, i_id, info.get("name_jp",""), info.get("name_en",""), attrs)
+            # カテゴリマスタ（JP/EN + type + input_type + show_qty）
+            category_master = self.config.get("category_master", {})
+            # 後方互換性：旧category_listから変換
+            if not category_master:
+                old_list = self.config.get("category_list", [])
+                if old_list:
+                    category_master = {}
+                    for cat in old_list:
+                        if cat:
+                            category_master[cat] = {"name_jp": cat, "name_en": "", "type": "loot", "input_type": "item_select", "show_qty": True}
+            
+            if not category_master:
+                self.add_cat_row("", "", "", "item_select", True, "", {})
+            for cat_key, cat_info in category_master.items():
+                if isinstance(cat_info, dict):
+                    self.add_cat_row(
+                        cat_info.get("name_jp", cat_key),
+                        cat_info.get("name_en", ""),
+                        self._infer_object_attr_id_from_cat_info(cat_info),
+                        cat_info.get("input_type", "item_select"),
+                        cat_info.get("show_qty", True),
+                        cat_info.get("id", ""),
+                        cat_info.get("attributes", {}) or {},
+                    )
+                else:
+                    self.add_cat_row(cat_info, "", "", "item_select", True, "", {})
+
+            # アイテムマスタ
+            item_master = self.config.get("item_master", {})
+            if not item_master: self.add_item_row("", "", "", "", {})
+            
+            for grp, items in item_master.items():
+                for i_id, info in items.items():
+                    attrs = info.get("attributes", {})
+                    self.add_item_row(grp, i_id, info.get("name_jp",""), info.get("name_en",""), attrs)
+        finally:
+            self._suspend_master_combo_refresh = False
+            self._category_obj_combo_values_sig = None
+            self._item_group_combo_values_sig = None
+            self._refresh_category_object_combo_values()
+            self._refresh_item_group_combo_values()
 
     def generate_id_from_en(self, en_name):
         """英語名からIDを自動生成"""
@@ -1285,9 +1299,9 @@ class SettingsWindow(ctk.CTkToplevel):
         def on_en_change(*args):
             if not (obj_key or "").strip():
                 lbl_id.configure(text=self.generate_id_from_en(e_name_en.get()))
-            self._refresh_category_object_combo_values()
+            self._schedule_category_object_combo_refresh()
         e_name_en.bind("<KeyRelease>", on_en_change)
-        e_name_jp.bind("<KeyRelease>", lambda e: self._refresh_category_object_combo_values())
+        e_name_jp.bind("<KeyRelease>", lambda e: self._schedule_category_object_combo_refresh())
 
         pin_marker = self._load_pin_marker_for_key((obj_key or "").strip())
         f_pin = ctk.CTkFrame(f, fg_color="transparent")
@@ -1355,8 +1369,10 @@ class SettingsWindow(ctk.CTkToplevel):
         def on_type_change(row_data, type_val):
             if type_val == "select":
                 row_data["options_frame"].pack(side="left", padx=2)
+                row_data["position_wrap"].pack(side="left", padx=(8, 2))
             else:
                 row_data["options_frame"].pack_forget()
+                row_data["position_wrap"].pack_forget()
 
         def add_row(k="", attr_data=None):
             if attr_data is None:
@@ -1367,6 +1383,10 @@ class SettingsWindow(ctk.CTkToplevel):
             
             attr_type = attr_data.get("type", "select")
             options = attr_data.get("options", [])
+            options_en = attr_data.get("options_en", [])
+            affix_pos = str(attr_data.get("affix_position", "prefix") or "prefix").strip().lower()
+            if affix_pos not in ("prefix", "suffix"):
+                affix_pos = "prefix"
             
             rf = ctk.CTkFrame(scroll, fg_color="#2b2b2b", corner_radius=5)
             rf.pack(fill="x", pady=5, padx=5)
@@ -1392,8 +1412,26 @@ class SettingsWindow(ctk.CTkToplevel):
             ev = ctk.CTkEntry(options_frame, width=350, placeholder_text="カンマ区切り 例: 地上,洞窟内")
             ev.insert(0, ",".join(options) if options else "")
             ev.pack(side="left", padx=2)
+            ctk.CTkLabel(options_frame, text="EN:", width=28, anchor="w").pack(side="left", padx=(8, 2))
+            ev_en = ctk.CTkEntry(options_frame, width=260, placeholder_text="英語選択肢（同順）例: Ground,Cave")
+            ev_en.insert(0, ",".join(options_en) if options_en else "")
+            ev_en.pack(side="left", padx=2)
+            position_wrap = ctk.CTkFrame(options_frame, fg_color="transparent")
+            ctk.CTkLabel(position_wrap, text="付与位置:", width=62, anchor="w").pack(side="left", padx=(0, 2))
+            pos_var = tk.StringVar(value="前" if affix_pos == "prefix" else "後")
+            cmb_pos = ctk.CTkComboBox(position_wrap, values=["前", "後"], width=70, variable=pos_var)
+            cmb_pos.pack(side="left", padx=2)
             
-            row_data = {"frame": rf, "key": ek, "type_var": type_var, "options_entry": ev, "options_frame": options_frame}
+            row_data = {
+                "frame": rf,
+                "key": ek,
+                "type_var": type_var,
+                "options_entry": ev,
+                "options_en_entry": ev_en,
+                "options_frame": options_frame,
+                "position_wrap": position_wrap,
+                "position_var": pos_var,
+            }
             
             cmb_type.configure(command=lambda v: on_type_change(row_data, v))
             
@@ -1403,6 +1441,9 @@ class SettingsWindow(ctk.CTkToplevel):
             edit_rows.append(row_data)
 
         for k, v in current_data.items():
+            if str(k).strip() == "語位置":
+                # 旧仕様の残骸は独立属性として扱わない
+                continue
             add_row(k, v)
         
         btn_frame = ctk.CTkFrame(win, fg_color="transparent")
@@ -1414,6 +1455,9 @@ class SettingsWindow(ctk.CTkToplevel):
             for r in edit_rows:
                 try:
                     k = r["key"].get().strip()
+                    if k == "語位置":
+                        # 独立属性としての「語位置」は保存しない
+                        continue
                     attr_type = r["type_var"].get()
                     if k:
                         if attr_type == "number":
@@ -1421,7 +1465,11 @@ class SettingsWindow(ctk.CTkToplevel):
                         else:
                             options_str = r["options_entry"].get().strip()
                             options = [x.strip() for x in options_str.split(",") if x.strip()]
-                            new_attrs[k] = {"type": "select", "options": options}
+                            options_en_str = r["options_en_entry"].get().strip() if r.get("options_en_entry") else ""
+                            options_en = [x.strip() for x in options_en_str.split(",") if x.strip()]
+                            pos_raw = (r.get("position_var").get().strip() if r.get("position_var") else "前")
+                            pos = "suffix" if pos_raw == "後" else "prefix"
+                            new_attrs[k] = {"type": "select", "options": options, "options_en": options_en, "affix_position": pos}
                 except: pass
             attr_var["data"] = new_attrs
             btn.configure(text=f"属性({len(new_attrs)})")
@@ -1430,27 +1478,43 @@ class SettingsWindow(ctk.CTkToplevel):
         ctk.CTkButton(btn_frame, text="✔ 完了", command=apply, fg_color="#27ae60").pack(side="right", padx=10)
 
     def add_cat_row_empty(self):
-        self.add_cat_row("", "", "", "item_select", True, "")
+        self.add_cat_row("", "", "", "item_select", True, "", {})
         self.after(10, lambda: self.scroll_cat._parent_canvas.yview_moveto(1.0))
 
     def _master_object_options(self):
-        labels = ["(なし)"]
-        l2i = {"(なし)": ""}
-        seen = set()
         rows = list(self.attr_rows)
         if self._attr_split_mode:
             rows.extend(self.route_attr_rows)
+        sig_rows = []
         for r in rows:
-            nj = (r.get("name_jp") and r["name_jp"].get() or "").strip()
-            ne = (r.get("name_en") and r["name_en"].get() or "").strip()
-            oid = (r.get("obj_key") or "").strip() or self.generate_id_from_en(ne)
+            sig_rows.append((
+                (r.get("obj_key") or "").strip(),
+                ((r.get("name_jp") and r["name_jp"].get()) or "").strip(),
+                ((r.get("name_en") and r["name_en"].get()) or "").strip(),
+            ))
+        sig = (bool(self._attr_split_mode), tuple(sig_rows))
+        if getattr(self, "_master_object_options_sig", None) == sig:
+            cached = getattr(self, "_master_object_options_cache", None)
+            if cached:
+                return cached
+
+        labels = ["(なし)"]
+        l2i = {"(なし)": ""}
+        seen = set()
+        for obj_key, nj, ne in sig_rows:
+            oid = obj_key or self.generate_id_from_en(ne)
+            if oid.upper() == "LOOT_SOURCE":
+                continue
             if not oid or oid in seen:
                 continue
             seen.add(oid)
             lab = f"{(nj or oid)} ({oid})"
             labels.append(lab)
             l2i[lab] = oid
-        return labels, l2i
+        out = (labels, l2i)
+        self._master_object_options_sig = sig
+        self._master_object_options_cache = out
+        return out
 
     def _infer_object_attr_id_from_cat_info(self, cat_info):
         if not isinstance(cat_info, dict):
@@ -1473,6 +1537,10 @@ class SettingsWindow(ctk.CTkToplevel):
 
     def _refresh_category_object_combo_values(self):
         labels, l2i = self._master_object_options()
+        sig = tuple(labels)
+        if getattr(self, "_category_obj_combo_values_sig", None) == sig:
+            return
+        self._category_obj_combo_values_sig = sig
         for r in self.cat_rows:
             cmb = r.get("obj_group")
             if not cmb:
@@ -1490,7 +1558,22 @@ class SettingsWindow(ctk.CTkToplevel):
             else:
                 cmb.set("(なし)")
 
-    def add_cat_row(self, name_jp, name_en, object_attr_id="", input_type="item_select", show_qty=True, cat_id=""):
+    def _schedule_category_object_combo_refresh(self, delay_ms=90):
+        tid = getattr(self, "_category_obj_combo_after", None)
+        if tid:
+            try:
+                self.after_cancel(tid)
+            except Exception:
+                pass
+        self._category_obj_combo_after = self.after(delay_ms, self._run_category_object_combo_refresh)
+
+    def _run_category_object_combo_refresh(self):
+        self._category_obj_combo_after = None
+        self._refresh_category_object_combo_values()
+
+    def add_cat_row(self, name_jp, name_en, object_attr_id="", input_type="item_select", show_qty=True, cat_id="", attrs=None):
+        if attrs is None:
+            attrs = {}
         f = ctk.CTkFrame(self.scroll_cat, fg_color="transparent")
         f.pack(fill="x", pady=2)
         rw = 0
@@ -1537,10 +1620,19 @@ class SettingsWindow(ctk.CTkToplevel):
         show_qty_var = tk.BooleanVar(value=show_qty)
         chk_qty = ctk.CTkCheckBox(f, text="", variable=show_qty_var, width=30)
         chk_qty.grid(row=rw, column=6, sticky="w", padx=4, pady=2)
+        attr_var = {"data": dict(attrs) if isinstance(attrs, dict) else {}}
+        btn_attr = ctk.CTkButton(
+            f,
+            text=f"属性 ({len(attr_var['data'])})",
+            width=88,
+            fg_color="#8e44ad",
+            command=lambda: self.edit_obj_attributes(attr_var, btn_attr),
+        )
+        btn_attr.grid(row=rw, column=7, sticky="w", padx=4, pady=2)
         eff_cid = (cat_id or "").strip()
         pin_marker = self._load_pin_marker_for_category_id(eff_cid)
         f_pin = ctk.CTkFrame(f, fg_color="transparent")
-        f_pin.grid(row=rw, column=7, sticky="w", padx=4, pady=2)
+        f_pin.grid(row=rw, column=8, sticky="w", padx=4, pady=2)
         lbl_pin_preview = ctk.CTkLabel(
             f_pin, text="—", width=22, height=22, fg_color="transparent", corner_radius=0, text_color="#bdc3c7"
         )
@@ -1567,6 +1659,7 @@ class SettingsWindow(ctk.CTkToplevel):
             "pin_swatch_bg": pin_swatch_bg,
             "lbl_pin_mode": lbl_pin_mode,
             "_obj_label_to_id": obj_l2i,
+            "attr_var": attr_var,
             "_pin_preview_holder": [],
         }
         ctk.CTkButton(
@@ -1576,39 +1669,53 @@ class SettingsWindow(ctk.CTkToplevel):
             ),
         ).pack(side="left", padx=4)
         ctk.CTkButton(f, text="🗑️", width=30, fg_color="#c0392b", command=lambda: self.delete_row(f, self.cat_rows)).grid(
-            row=rw, column=8, sticky="e", padx=4, pady=2
+            row=rw, column=9, sticky="e", padx=4, pady=2
         )
         self._configure_cat_table_columns(f)
         self.cat_rows.append(row_rec)
         self._refresh_pin_marker_row_preview(row_rec)
-        self._refresh_item_group_combo_values()
-        e_name_jp.bind("<KeyRelease>", lambda e: self._refresh_item_group_combo_values())
-        e_id.bind("<KeyRelease>", lambda e: self._refresh_item_group_combo_values())
+        if not getattr(self, "_suspend_master_combo_refresh", False):
+            self._refresh_item_group_combo_values()
+        e_name_jp.bind("<KeyRelease>", lambda e: self._schedule_item_group_combo_refresh())
+        e_id.bind("<KeyRelease>", lambda e: self._schedule_item_group_combo_refresh())
 
     def add_item_row_empty(self):
         self.add_item_row("", "", "", "", {})
         self.after(10, lambda: self.scroll_item._parent_canvas.yview_moveto(1.0))
 
     def _master_item_group_values(self):
+        sig_rows = tuple(((r.get("name_jp") and r["name_jp"].get()) or "").strip() for r in self.cat_rows)
+        cfg_keys = tuple(str(nm or "").strip() for nm in (self.config.get("category_master") or {}).keys())
+        sig = (sig_rows, cfg_keys)
+        if getattr(self, "_master_item_group_values_sig", None) == sig:
+            cached = getattr(self, "_master_item_group_values_cache", None)
+            if cached:
+                return list(cached)
+
         vals = []
         seen = set()
         # 仕様: アイテムの対応カテゴリはカテゴリ（JP名）一覧
-        for r in self.cat_rows:
-            jp = (r.get("name_jp") and r["name_jp"].get() or "").strip()
+        for jp in sig_rows:
             if jp and jp not in seen:
                 seen.add(jp)
                 vals.append(jp)
         # カテゴリタブ未初期化や空時の保険
         if not vals:
-            for nm in (self.config.get("category_master") or {}).keys():
-                s = str(nm or "").strip()
+            for s in cfg_keys:
                 if s and s not in seen:
                     seen.add(s)
                     vals.append(s)
-        return vals or ["(なし)"]
+        out = vals or ["(なし)"]
+        self._master_item_group_values_sig = sig
+        self._master_item_group_values_cache = tuple(out)
+        return out
 
     def _refresh_item_group_combo_values(self):
         vals = self._master_item_group_values()
+        sig = tuple(vals)
+        if getattr(self, "_item_group_combo_values_sig", None) == sig:
+            return
+        self._item_group_combo_values_sig = sig
         for r in self.item_rows:
             cmb = r.get("grp")
             if not cmb:
@@ -1619,6 +1726,19 @@ class SettingsWindow(ctk.CTkToplevel):
                 cmb.set(cur)
             elif vals:
                 cmb.set(vals[0])
+
+    def _schedule_item_group_combo_refresh(self, delay_ms=90):
+        tid = getattr(self, "_item_group_combo_after", None)
+        if tid:
+            try:
+                self.after_cancel(tid)
+            except Exception:
+                pass
+        self._item_group_combo_after = self.after(delay_ms, self._run_item_group_combo_refresh)
+
+    def _run_item_group_combo_refresh(self):
+        self._item_group_combo_after = None
+        self._refresh_item_group_combo_values()
 
     def _inherit_marker_from_category_to_item(self, row_rec, group_name):
         cm = self.config.get("category_master", {}) or {}
@@ -1737,7 +1857,8 @@ class SettingsWindow(ctk.CTkToplevel):
         self._configure_item_table_columns(f)
         self.item_rows.append(row_rec)
         self._refresh_pin_marker_row_preview(row_rec)
-        self._refresh_item_group_combo_values()
+        if not getattr(self, "_suspend_master_combo_refresh", False):
+            self._refresh_item_group_combo_values()
 
         def on_group_changed(v, rr=row_rec):
             new_grp = (v or "").strip()
@@ -1764,7 +1885,7 @@ class SettingsWindow(ctk.CTkToplevel):
         scroll = ctk.CTkScrollableFrame(win)
         scroll.pack(fill="both", expand=True, padx=10, pady=10)
 
-        def add_row(k="", attr_type="number", val_str="", options_str=""):
+        def add_row(k="", attr_type="number", val_str="", options_str="", options_en_str="", affix_position="prefix"):
             rf = ctk.CTkFrame(scroll, fg_color="transparent")
             rf.pack(fill="x", pady=4)
             ek = ctk.CTkEntry(rf, width=100, placeholder_text="属性名(例: ポイント)")
@@ -1779,18 +1900,47 @@ class SettingsWindow(ctk.CTkToplevel):
             else:
                 ev.insert(0, options_str)
             ev.pack(side="left", padx=2)
+            ev_en = ctk.CTkEntry(rf, width=140, placeholder_text="EN選択肢(同順)")
+            ev_en.insert(0, options_en_str if options_en_str else "")
+            ev_en.pack(side="left", padx=2)
+            pos_var = tk.StringVar(value="前" if str(affix_position or "prefix").lower() != "suffix" else "後")
+            cmb_pos = ctk.CTkComboBox(rf, values=["前", "後"], variable=pos_var, width=55)
+            cmb_pos.pack(side="left", padx=(2, 0))
+            if attr_type == "number":
+                ev_en.pack_forget()
+                cmb_pos.pack_forget()
             ctk.CTkButton(rf, text="x", width=30, fg_color="#c0392b", command=lambda: rf.destroy()).pack(side="left")
-            edit_rows.append({"frame": rf, "key": ek, "type_var": type_var, "val": ev})
+            row = {"frame": rf, "key": ek, "type_var": type_var, "val": ev, "val_en": ev_en, "pos_var": pos_var, "pos_cmb": cmb_pos}
+            def _on_type_change(_=None, row_data=row):
+                is_num = row_data["type_var"].get().strip() == "数値"
+                if is_num:
+                    row_data["val_en"].pack_forget()
+                    row_data["pos_cmb"].pack_forget()
+                else:
+                    row_data["val_en"].pack(side="left", padx=2)
+                    row_data["pos_cmb"].pack(side="left", padx=(2, 0))
+            cmb_type.configure(command=lambda _v, row_data=row: _on_type_change(None, row_data))
+            edit_rows.append(row)
 
         # 既存データを新形式で解釈して行を追加（fixed=マスタ登録値も数値として表示）
         for k, v in current_data.items():
+            if str(k).strip() == "語位置":
+                # 旧仕様の残骸は独立属性として扱わない
+                continue
             if isinstance(v, dict) and "type" in v:
                 t = v.get("type", "number")
                 if t in ("number", "fixed"):
                     add_row(k=k, attr_type="number", val_str=v.get("value", ""), options_str="")
                 else:
                     opts = v.get("options", [])
-                    add_row(k=k, attr_type="select", val_str="", options_str=",".join(opts) if isinstance(opts, list) else str(opts))
+                    add_row(
+                        k=k,
+                        attr_type="select",
+                        val_str="",
+                        options_str=",".join(opts) if isinstance(opts, list) else str(opts),
+                        options_en_str=",".join(v.get("options_en", [])) if isinstance(v.get("options_en", []), list) else "",
+                        affix_position=v.get("affix_position", "prefix"),
+                    )
             elif isinstance(v, list):
                 add_row(k=k, attr_type="select", val_str="", options_str=",".join(str(x) for x in v))
             else:
@@ -1802,6 +1952,9 @@ class SettingsWindow(ctk.CTkToplevel):
             for r in edit_rows:
                 try:
                     k = r["key"].get().strip()
+                    if k == "語位置":
+                        # 独立属性としての「語位置」は保存しない
+                        continue
                     if not k:
                         continue
                     is_number = r["type_var"].get().strip() == "数値"
@@ -1811,7 +1964,11 @@ class SettingsWindow(ctk.CTkToplevel):
                         new_attrs[k] = {"type": "fixed", "value": v_str if v_str else ""}
                     else:
                         opts = [x.strip() for x in v_str.split(",") if x.strip()]
-                        new_attrs[k] = {"type": "select", "options": opts}
+                        v_en_str = r["val_en"].get().strip() if r.get("val_en") else ""
+                        opts_en = [x.strip() for x in v_en_str.split(",") if x.strip()]
+                        pos_raw = (r.get("pos_var").get().strip() if r.get("pos_var") else "前")
+                        pos = "suffix" if pos_raw == "後" else "prefix"
+                        new_attrs[k] = {"type": "select", "options": opts, "options_en": opts_en, "affix_position": pos}
                 except Exception:
                     pass
             attr_var["data"] = new_attrs
@@ -2059,6 +2216,7 @@ class SettingsWindow(ctk.CTkToplevel):
             input_display = r["input_type"].get()
             input_type = input_type_name_to_id.get(input_display, "item_select")
             show_qty = r["show_qty"].get()
+            attrs = dict((r.get("attr_var", {}) or {}).get("data", {}) or {})
             if not (n_jp_raw or n_en_raw or cid or object_attr_id):
                 continue
             if not cid:
@@ -2083,6 +2241,7 @@ class SettingsWindow(ctk.CTkToplevel):
                 "object_attr_id": object_attr_id,
                 "input_type": input_type,
                 "show_qty": show_qty,
+                "attributes": attrs,
             })
             new_category_master[cm_key] = prev
         self.config["category_master"] = new_category_master
@@ -2430,6 +2589,7 @@ class ViewPresetWindow(ctk.CTkToplevel):
             self.obj_source.append({"id": oid, "label": f"{jp} ({en})"})
 
         cm = cfg.get("category_master") or {}
+        self.cat_id_by_jp = {}
         self.cat_source = []
         if isinstance(cm, dict):
             for cat_jp, info in cm.items():
@@ -2438,6 +2598,7 @@ class ViewPresetWindow(ctk.CTkToplevel):
                 cid = (info.get("id") or "").strip()
                 if not cid:
                     continue
+                self.cat_id_by_jp[str(cat_jp or "").strip()] = cid
                 nj = (info.get("name_jp") or cat_jp or cid).strip() or cid
                 ne = (info.get("name_en") or nj).strip() or nj
                 self.cat_source.append({"id": cid, "label": f"{nj} ({ne})"})
@@ -2449,6 +2610,8 @@ class ViewPresetWindow(ctk.CTkToplevel):
             for grp, items in im.items():
                 if not isinstance(items, dict):
                     continue
+                grp_key = str(grp or "").strip()
+                category_id = self.cat_id_by_jp.get(grp_key, "")
                 for iid, info in items.items():
                     sid = str(iid or "").strip()
                     if not sid:
@@ -2459,7 +2622,11 @@ class ViewPresetWindow(ctk.CTkToplevel):
                     else:
                         nj = sid
                         ne = sid
-                    self.item_source.append({"id": sid, "label": f"{grp} / {nj} ({ne})"})
+                    self.item_source.append({
+                        "id": sid,
+                        "label": f"{grp} / {nj} ({ne})",
+                        "category_id": category_id,
+                    })
         self.item_source.sort(key=lambda x: (x.get("label") or ""))
 
     def _make_section(self, parent, title):
@@ -2471,7 +2638,14 @@ class ViewPresetWindow(ctk.CTkToplevel):
         body.pack(fill="both", expand=True, padx=6, pady=(0, 8))
         return box, head, body
 
-    def _add_rows(self, body, rows_out, source):
+    def _add_rows(self, body, rows_out, source, row_kind=None):
+        # チェックボックス列の意味を明示
+        header = ctk.CTkFrame(body, fg_color="transparent")
+        header.pack(fill="x", padx=4, pady=(0, 2))
+        ctk.CTkLabel(header, text="表示", width=24, anchor="center", text_color="#95a5a6", font=("Meiryo", 10, "bold")).pack(side="left", padx=(2, 6))
+        ctk.CTkLabel(header, text="初期ON", width=24, anchor="center", text_color="#95a5a6", font=("Meiryo", 10, "bold")).pack(side="left", padx=(2, 6))
+        ctk.CTkLabel(header, text="項目", anchor="w", text_color="#95a5a6", font=("Meiryo", 10, "bold")).pack(side="left", fill="x", expand=True, padx=4)
+
         for ent in source:
             rid = str(ent.get("id") or "").strip()
             if not rid:
@@ -2495,7 +2669,34 @@ class ViewPresetWindow(ctk.CTkToplevel):
             cb_show.configure(command=_sync)
             _sync()
 
-            rows_out.append({"id": rid, "show": v_show, "default_on": v_def})
+            row_rec = {"id": rid, "show": v_show, "default_on": v_def}
+            category_id = str(ent.get("category_id") or "").strip()
+            if category_id:
+                row_rec["category_id"] = category_id
+            rows_out.append(row_rec)
+
+            if row_kind == "cat":
+                def _on_cat_default_on_changed(*_args, cat_id=rid, var=v_def):
+                    if self._loading:
+                        return
+                    self._sync_items_for_category_default(cat_id, bool(var.get()))
+                v_def.trace_add("write", _on_cat_default_on_changed)
+
+    def _item_rows_for_category(self, category_id):
+        cat_u = str(category_id or "").strip().upper()
+        if not cat_u:
+            return []
+        return [
+            r for r in self.row_items
+            if str(r.get("category_id") or "").strip().upper() == cat_u
+        ]
+
+    def _sync_items_for_category_default(self, category_id, turn_on):
+        for row in self._item_rows_for_category(category_id):
+            if not row["show"].get():
+                row["default_on"].set(False)
+                continue
+            row["default_on"].set(bool(turn_on))
 
     def _set_all(self, rows, show=None, default_on=None):
         for r in rows:
@@ -2550,7 +2751,7 @@ class ViewPresetWindow(ctk.CTkToplevel):
             ctk.CTkButton(head, text="初期ON解除", width=86, command=lambda rr=rows_ref: self._set_all(rr, default_on=False)).pack(side="left", padx=2)
 
         self._add_rows(body_obj, self.row_objs, self.obj_source)
-        self._add_rows(body_cat, self.row_cats, self.cat_source)
+        self._add_rows(body_cat, self.row_cats, self.cat_source, row_kind="cat")
         self._add_rows(body_item, self.row_items, self.item_source)
 
         fbtn = ctk.CTkFrame(self, fg_color="transparent")
@@ -2615,9 +2816,29 @@ class ViewPresetWindow(ctk.CTkToplevel):
             # 互換: default_off しかない旧形式
             off = set(str(x).strip().upper() for x in (rule.get("default_off_object_ids") or []))
             on_obj = [x for x in allowed_obj if str(x).strip().upper() not in off]
-        self._load_ids_to_rows(self.row_objs, allowed_obj, on_obj)
-        self._load_ids_to_rows(self.row_cats, rule.get("allowed_category_ids") or [], rule.get("default_on_category_ids") or [])
-        self._load_ids_to_rows(self.row_items, rule.get("allowed_item_ids") or [], rule.get("default_on_item_ids") or [])
+        self._loading = True
+        try:
+            self._load_ids_to_rows(self.row_objs, allowed_obj, on_obj)
+            self._load_ids_to_rows(self.row_cats, rule.get("allowed_category_ids") or [], rule.get("default_on_category_ids") or [])
+            self._load_ids_to_rows(self.row_items, rule.get("allowed_item_ids") or [], rule.get("default_on_item_ids") or [])
+            self._repair_category_default_on_items(rule)
+        finally:
+            self._loading = False
+
+    def _repair_category_default_on_items(self, rule):
+        if not isinstance(rule, dict):
+            return
+        on_item_u = {str(x).strip().upper() for x in (rule.get("default_on_item_ids") or []) if str(x).strip()}
+        for cat_row in self.row_cats:
+            if not (cat_row["show"].get() and cat_row["default_on"].get()):
+                continue
+            children = [r for r in self._item_rows_for_category(cat_row["id"]) if r["show"].get()]
+            if not children:
+                continue
+            if any(str(r["id"]).strip().upper() in on_item_u for r in children):
+                continue
+            for child in children:
+                child["default_on"].set(True)
 
     def _collect_ids(self, rows):
         allowed = []
@@ -3277,6 +3498,17 @@ class MapEditor(ctk.CTkToplevel):
             return str(v)
         return str(attr_key)
 
+    def _object_attr_id_from_pin_combo(self, display: str) -> str:
+        """オブジェクトコンボの表示名から attr_mapping のキー（内部ID）へ。表示=内部IDの列外ケースにフォールバック。"""
+        s = (display or "").strip()
+        if not s or s == "(なし)":
+            return ""
+        rev = {v: k for k, v in self.cat_mapping.items()}
+        aid = rev.get(s, "")
+        if not aid and s in self.attr_mapping:
+            aid = s
+        return aid
+
     def _ensure_master_updated(self):
         """config 変更後にメモリ上のマスタ参照を更新（オブジェクト・カテゴリ・アイテム・フィルタ）"""
         self.attr_mapping = self.config.get("attr_mapping", {})
@@ -3293,8 +3525,7 @@ class MapEditor(ctk.CTkToplevel):
         self.item_master = self.config.get("item_master", {})
         self._sync_pin_filter_vars_from_masters()
         # フィルタリストとスロットのコンボボックスを更新
-        rev = {v: k for k, v in self.cat_mapping.items()}
-        attr_id = rev.get(self.cmb_attribute.get(), "")
+        attr_id = self._object_attr_id_from_pin_combo(self.cmb_attribute.get() if hasattr(self, "cmb_attribute") else "")
         obj_type = "loot"
         if attr_id and attr_id in self.attr_mapping:
             o = self.attr_mapping[attr_id]
@@ -3328,8 +3559,7 @@ class MapEditor(ctk.CTkToplevel):
         self._sync_pin_filter_vars_from_masters()
 
         # オブジェクト選択に応じた分類リスト（マスタの object_attr_id と連動）
-        rev = {v: k for k, v in self.cat_mapping.items()}
-        attr_id = rev.get(self.cmb_attribute.get(), "") if hasattr(self, "cmb_attribute") else ""
+        attr_id = self._object_attr_id_from_pin_combo(self.cmb_attribute.get() if hasattr(self, "cmb_attribute") else "")
         obj_type = "loot"
         if attr_id and attr_id in self.attr_mapping:
             o = self.attr_mapping[attr_id]
@@ -3358,8 +3588,7 @@ class MapEditor(ctk.CTkToplevel):
         attribute = (self.cmb_attribute.get() or "").strip()
         
         # 選択されたオブジェクトの情報を取得（表示名→ID）
-        rev_cat_map = {v: k for k, v in self.cat_mapping.items()}
-        attr_id = rev_cat_map.get(attribute, "")
+        attr_id = self._object_attr_id_from_pin_combo(attribute)
         
         # オブジェクトのtypeを取得
         obj_type = "loot"  # デフォルト
@@ -3470,10 +3699,10 @@ class MapEditor(ctk.CTkToplevel):
                         if cat_oid:
                             match = (cat_oid == oid_sel)
                         else:
-                            match = bool(oid_list) and (oid_sel in oid_list)
+                            # 紐づけ無しカテゴリは「全オブジェクト共通カテゴリ」として扱う。
+                            match = (not oid_list) or (oid_sel in oid_list)
                         if match:
                             filtered_categories.append(cat_name)
-                        # 紐づけ無しの分類はオブジェクト選択時は出さない
                     else:
                         if cat_oid:
                             continue
@@ -3590,6 +3819,23 @@ class MapEditor(ctk.CTkToplevel):
                 except Exception:
                     pass
 
+    def _schedule_special_notes_rebuild(self, delay_ms=80):
+        if getattr(self, "_suppress_special_notes_rebuild", False):
+            return
+        tid = getattr(self, "_special_notes_rebuild_after", None)
+        if tid:
+            try:
+                self.after_cancel(tid)
+            except Exception:
+                pass
+        self._special_notes_rebuild_after = self.after(delay_ms, self._run_special_notes_rebuild)
+
+    def _run_special_notes_rebuild(self):
+        self._special_notes_rebuild_after = None
+        if getattr(self, "_suppress_special_notes_rebuild", False):
+            return
+        self._rebuild_pin_special_notes_ui()
+
     def move_category_slot(self, slot_frame, delta):
         """カテゴリスロットの表示順を入れ替える（delta: -1=上, +1=下）。"""
         idx = None
@@ -3608,8 +3854,7 @@ class MapEditor(ctk.CTkToplevel):
         for s in self.category_slots:
             s["frame"].pack(fill="x", padx=5, pady=5)
         self._refresh_category_slot_nav_buttons()
-        if not getattr(self, "_suppress_special_notes_rebuild", False):
-            self._rebuild_pin_special_notes_ui()
+        self._schedule_special_notes_rebuild()
         self._schedule_pin_preview_refresh()
 
     def _repack_category_slot_actions_bottom(self, slot):
@@ -3771,8 +4016,7 @@ class MapEditor(ctk.CTkToplevel):
         }
         self.category_slots.append(slot_data)
         self._refresh_category_slot_nav_buttons()
-        if not getattr(self, "_suppress_special_notes_rebuild", False):
-            self._rebuild_pin_special_notes_ui()
+        self._schedule_special_notes_rebuild()
         self._schedule_pin_preview_refresh()
         return slot_data
 
@@ -3783,8 +4027,7 @@ class MapEditor(ctk.CTkToplevel):
                 del self.category_slots[i]
                 break
         self._refresh_category_slot_nav_buttons()
-        if not getattr(self, "_suppress_special_notes_rebuild", False):
-            self._rebuild_pin_special_notes_ui()
+        self._schedule_special_notes_rebuild()
         self._schedule_pin_preview_refresh()
 
     def on_slot_category_changed(self, slot_frame):
@@ -3838,8 +4081,7 @@ class MapEditor(ctk.CTkToplevel):
             if slot.get("row_frame_item_en"):
                 slot["row_frame_item_en"].pack(fill="x", padx=BOX_PADX, pady=(2, BOX_PADY))
             self._repack_category_slot_actions_bottom(slot)
-            if not getattr(self, "_suppress_special_notes_rebuild", False):
-                self._rebuild_pin_special_notes_ui()
+            self._schedule_special_notes_rebuild()
             self._schedule_pin_preview_refresh()
             return
         
@@ -3866,14 +4108,38 @@ class MapEditor(ctk.CTkToplevel):
             slot["row_frame_item"].pack(fill="x", padx=BOX_PADX, pady=(2, 2))
             slot["lbl_item"].pack(side="left", padx=5)
             slot["item"].pack(side="left", fill="x", expand=True, padx=5)
+            prev_item = (slot["item"].get() or "").strip()
+            loaded_item_id = (slot.get("_loaded_item_id", "") or "").strip()
             if category in self.item_master:
                 items = self.item_master[category]
                 item_names = ["(なし)"] + [info["name_jp"] for info in items.values()]
                 slot["item"].configure(values=item_names)
-                slot["item"].set("(なし)")
+                preferred_item = ""
+                if loaded_item_id:
+                    if loaded_item_id in items:
+                        preferred_item = (items[loaded_item_id].get("name_jp", "") or "").strip()
+                    else:
+                        iid_l = loaded_item_id.lower()
+                        for mk, mv in items.items():
+                            if str(mk).strip().lower() == iid_l:
+                                preferred_item = (mv.get("name_jp", "") or "").strip()
+                                break
+                    if preferred_item and preferred_item not in item_names:
+                        slot["item"].configure(values=item_names + [preferred_item])
+                if preferred_item:
+                    slot["item"].set(preferred_item)
+                    slot.pop("_loaded_item_id", None)
+                elif prev_item and prev_item in item_names:
+                    slot["item"].set(prev_item)
+                else:
+                    slot["item"].set("(なし)")
             else:
                 slot["item"].configure(values=["(なし)"])
-                slot["item"].set("(なし)")
+                if prev_item and prev_item != "(なし)":
+                    slot["item"].configure(values=["(なし)", prev_item])
+                    slot["item"].set(prev_item)
+                else:
+                    slot["item"].set("(なし)")
             slot["row_frame_qty"].pack(fill="x", padx=BOX_PADX, pady=(0, BOX_PADY))
             slot["lbl_qty"].pack(side="left", padx=5)
             slot["qty"].pack(side="left", padx=5)
@@ -3911,18 +4177,25 @@ class MapEditor(ctk.CTkToplevel):
             if isinstance(cat_info, dict) and cat_info.get("attributes"):
                 attrs = cat_info["attributes"]
                 if attrs:
-                    slot["attr_frame"].pack(
-                        fill="x",
-                        padx=BOX_PADX,
-                        pady=(0, BOX_PADY),
-                        before=slot["row_frame_actions"],
-                    )
+                    pack_kwargs = {"fill": "x", "padx": BOX_PADX, "pady": (0, BOX_PADY)}
+                    actions_row = slot.get("row_frame_actions")
+                    try:
+                        if actions_row and actions_row.winfo_manager() == "pack":
+                            slot["attr_frame"].pack(before=actions_row, **pack_kwargs)
+                        else:
+                            slot["attr_frame"].pack(**pack_kwargs)
+                    except tk.TclError:
+                        slot["attr_frame"].pack(**pack_kwargs)
                     attr_row = tk.Frame(slot["attr_frame"], bg=BOX_FG)
                     attr_row.pack(fill="x", padx=BOX_PADX, pady=5)
                     for attr_key, attr_data in attrs.items():
                         attr_item_frame = ctk.CTkFrame(attr_row, fg_color="transparent")
                         attr_item_frame.pack(side="left", padx=10)
                         ctk.CTkLabel(attr_item_frame, text=f"{attr_key}:", font=("Meiryo", 10)).pack(side="left", padx=2)
+                        if isinstance(attr_data, str):
+                            # 互換: 旧/簡易入力（"下級,中級,上級" など）を選択肢へ変換
+                            raw = [x.strip() for x in re.split(r"[,/|、]", attr_data) if x.strip()]
+                            attr_data = {"type": "select", "options": raw} if raw else {"type": "select", "options": []}
                         if isinstance(attr_data, list):
                             attr_data = {"type": "select", "options": attr_data}
                         attr_type = attr_data.get("type", "select") if isinstance(attr_data, dict) else "select"
@@ -3948,8 +4221,7 @@ class MapEditor(ctk.CTkToplevel):
                             slot["attr_widgets"][attr_key] = {"type": "select", "widget": cmb}
 
         self._repack_category_slot_actions_bottom(slot)
-        if not getattr(self, "_suppress_special_notes_rebuild", False):
-            self._rebuild_pin_special_notes_ui()
+        self._schedule_special_notes_rebuild()
         self._schedule_pin_preview_refresh()
 
     def on_slot_item_changed(self, slot_frame):
@@ -4668,12 +4940,12 @@ class MapEditor(ctk.CTkToplevel):
         for w in self.obj_attr_frame.winfo_children():
             w.destroy()
         self.obj_attr_widgets = {}
+        self._loaded_obj_attrs_extra = {}
         if getattr(self, "f_pin_special_notes", None):
             for w in self.f_pin_special_notes.winfo_children():
                 w.destroy()
         self._sync_pin_special_notes_pack_order()
-        rev = {v: k for k, v in self.cat_mapping.items()}
-        attr_id = rev.get(self.cmb_attribute.get(), "")
+        attr_id = self._object_attr_id_from_pin_combo(self.cmb_attribute.get())
         obj_type = "loot"
         if attr_id and attr_id in self.attr_mapping:
             o = self.attr_mapping[attr_id]
@@ -4996,6 +5268,13 @@ class MapEditor(ctk.CTkToplevel):
         self.refresh_map()
 
     def refresh_map(self):
+        # 連続イベントでの過剰再描画を抑えるため、短時間でリクエストをまとめる。
+        if getattr(self, "_refresh_map_request_after", None) is not None:
+            return
+        self._refresh_map_request_after = self.after(16, self._refresh_map_request_run)
+
+    def _refresh_map_request_run(self):
+        self._refresh_map_request_after = None
         self._refresh_map_do()
 
     @staticmethod
@@ -6084,8 +6363,7 @@ class MapEditor(ctk.CTkToplevel):
         """現在のUI内容と形状情報からエリアレコードを新規作成"""
         # attribute などはピンと同じUIから取得
         attribute = (self.cmb_attribute.get() or "").strip()
-        rev_cat_map = {v: k for k, v in self.cat_mapping.items()}
-        attribute_id = rev_cat_map.get(attribute, "")
+        attribute_id = self._object_attr_id_from_pin_combo(attribute)
         name_jp = self.ent_name_jp.get().strip()
         name_en = self.ent_name_en.get().strip()
         memo_jp = self.txt_memo_jp.get("1.0", "end-1c").replace("\n", "<br>")
@@ -6240,8 +6518,7 @@ class MapEditor(ctk.CTkToplevel):
             messagebox.showwarning("エリア保存", "エリアが見つかりません。")
             return
         attribute = (self.cmb_attribute.get() or "").strip()
-        rev_cat_map = {v: k for k, v in self.cat_mapping.items()}
-        attribute_id = rev_cat_map.get(attribute, "")
+        attribute_id = self._object_attr_id_from_pin_combo(attribute)
         area["attribute"] = attribute_id
         area["name_jp"] = self.ent_name_jp.get().strip()
         area["name_en"] = self.ent_name_en.get().strip()
@@ -6325,8 +6602,7 @@ class MapEditor(ctk.CTkToplevel):
         if f is None or fh is None or cfs is None:
             return
         attribute = (getattr(self, "cmb_attribute", None) and self.cmb_attribute.get() or "").strip()
-        rev_cat_map = {v: k for k, v in self.cat_mapping.items()}
-        attr_id = rev_cat_map.get(attribute, "")
+        attr_id = self._object_attr_id_from_pin_combo(attribute)
         obj_type = "loot"
         if attr_id and attr_id in self.attr_mapping:
             oi = self.attr_mapping[attr_id]
@@ -6600,9 +6876,8 @@ class MapEditor(ctk.CTkToplevel):
             self._set_pin_preview_text(w, message)
 
     def _preview_csv_row_from_ui(self):
-        rev_cat_map = {v: k for k, v in self.cat_mapping.items()}
         attribute = (self.cmb_attribute.get() or "").strip()
-        attribute_id = rev_cat_map.get(attribute, "")
+        attribute_id = self._object_attr_id_from_pin_combo(attribute)
         categories_data = self._collect_pin_categories_data()
         obj_attributes = {}
         for attr_key, widget_data in self.obj_attr_widgets.items():
@@ -6763,11 +7038,10 @@ class MapEditor(ctk.CTkToplevel):
         if not self._pin_edit_session_active():
             return None
         attribute = (self.cmb_attribute.get() or "").strip()
-        rev_cat_map = {v: k for k, v in self.cat_mapping.items()}
         if not attribute or attribute == "(なし)":
             attribute_id = ""
         else:
-            attribute_id = rev_cat_map.get(attribute, "")
+            attribute_id = self._object_attr_id_from_pin_combo(attribute)
 
         obj_attributes = {}
         for attr_key, widget_data in self.obj_attr_widgets.items():
@@ -6777,6 +7051,9 @@ class MapEditor(ctk.CTkToplevel):
                     val = widget.get()
                     if val and val != "(なし)":
                         obj_attributes[attr_key] = val
+        for k, v in (getattr(self, "_loaded_obj_attrs_extra", {}) or {}).items():
+            if k not in obj_attributes:
+                obj_attributes[k] = v
 
         categories_data = self._collect_pin_categories_data()
         importance = self.cmb_importance.get()
@@ -6886,8 +7163,7 @@ class MapEditor(ctk.CTkToplevel):
             messagebox.showwarning("入力エラー", "オブジェクトは必須です。")
             return
 
-        rev_cat_map = {v: k for k, v in self.cat_mapping.items()}
-        attribute_id = rev_cat_map.get(attribute, "")
+        attribute_id = self._object_attr_id_from_pin_combo(attribute)
         obj_type = "loot"
         if attribute_id and attribute_id in self.attr_mapping:
             obj_info = self.attr_mapping[attribute_id]
@@ -6902,7 +7178,7 @@ class MapEditor(ctk.CTkToplevel):
         if not isinstance(self.config.get("skill_name_master"), list):
             self.config["skill_name_master"] = []
         am, cm, im = self.config["attr_mapping"], self.config["category_master"], self.config["item_master"]
-        new_objects = [attribute] if (attribute and attribute != "(なし)" and attribute not in rev_cat_map) else []
+        new_objects = [attribute] if (attribute and not attribute_id) else []
         new_categories = []
         new_items = []
         for slot in self.category_slots:
@@ -6960,8 +7236,7 @@ class MapEditor(ctk.CTkToplevel):
             except Exception:
                 pass
             # 新規追加したので attribute_id と obj_type を再取得
-            rev_cat_map = {v: k for k, v in self.cat_mapping.items()}
-            attribute_id = rev_cat_map.get(attribute, "")
+            attribute_id = self._object_attr_id_from_pin_combo(attribute)
             if attribute_id and attribute_id in self.attr_mapping:
                 o = self.attr_mapping[attribute_id]
                 if isinstance(o, dict):
@@ -7019,6 +7294,9 @@ class MapEditor(ctk.CTkToplevel):
                     val = widget.get()
                     if val and val != "(なし)":
                         obj_attributes[attr_key] = val
+        for k, v in (getattr(self, "_loaded_obj_attrs_extra", {}) or {}).items():
+            if k not in obj_attributes:
+                obj_attributes[k] = v
         
         # 重要度
         importance = self.cmb_importance.get()
@@ -7214,9 +7492,8 @@ class MapEditor(ctk.CTkToplevel):
         row = self._get_pin_row_by_uid(uid)
         if row is None or not self._is_draft_pin_row(row):
             return
-        rev_cat_map = {v: k for k, v in self.cat_mapping.items()}
         attribute = (self.cmb_attribute.get() or "").strip()
-        attribute_id = rev_cat_map.get(attribute, "") if attribute and attribute != "(なし)" else ""
+        attribute_id = self._object_attr_id_from_pin_combo(attribute) if attribute and attribute != "(なし)" else ""
         row["attribute"] = attribute_id
         row["category_pin"] = attribute_id
 
@@ -7558,6 +7835,7 @@ class MapEditor(ctk.CTkToplevel):
             if obj_attrs_json:
                 try:
                     obj_attrs = json.loads(obj_attrs_json)
+                    extras = {}
                     for attr_key, attr_val in obj_attrs.items():
                         if attr_key in self.obj_attr_widgets:
                             widget_data = self.obj_attr_widgets[attr_key]
@@ -7569,6 +7847,9 @@ class MapEditor(ctk.CTkToplevel):
                                         widget.insert(0, str(attr_val))
                                     else:
                                         widget.set(attr_val)
+                        else:
+                            extras[attr_key] = attr_val
+                    self._loaded_obj_attrs_extra = extras
                 except:
                     pass
         
@@ -7579,23 +7860,38 @@ class MapEditor(ctk.CTkToplevel):
         
             # カテゴリデータを読み込み（新形式）。cat_id があればマスタから表示名を解決
             category_id_to_name = {}
+            category_name_ci = {}
+            category_id_ci = {}
             for name, info in self.category_master.items():
-                if isinstance(info, dict) and info.get("id"):
-                    category_id_to_name[info["id"]] = name
+                if not isinstance(info, dict):
+                    continue
+                n = (name or "").strip()
+                if n:
+                    category_name_ci[n.lower()] = n
+                cid = (info.get("id") or "").strip()
+                if cid:
+                    category_id_to_name[cid] = n
+                    category_id_ci[cid.lower()] = n
             categories_json = d.get('categories', '')
             if categories_json:
                 try:
                     categories_data = json.loads(categories_json)
                     for cat_data in categories_data:
                         slot = self.add_category_slot()
-                        cat_id = cat_data.get('cat_id', '')
-                        category = category_id_to_name.get(cat_id) if cat_id else cat_data.get('category', '')
+                        cat_id = (cat_data.get('cat_id', '') or '').strip()
+                        raw_category = (cat_data.get('category', '') or '').strip()
+                        category = ""
+                        if cat_id:
+                            category = category_id_to_name.get(cat_id) or category_id_ci.get(cat_id.lower(), "")
+                        if not category and raw_category:
+                            category = category_name_ci.get(raw_category.lower(), raw_category)
                         if not category:
                             category = cat_id or cat_data.get('category', '')
                         item_id = cat_data.get('item_id', '')
                         qty = cat_data.get('qty', '1')
                         attrs = cat_data.get("attributes", {}) or {}
                         slot["_loaded_attributes"] = dict(attrs) if isinstance(attrs, dict) else {}
+                        slot["_loaded_item_id"] = (item_id or "").strip()
                     
                         if category:
                             if category not in self.category_list:
@@ -7610,34 +7906,79 @@ class MapEditor(ctk.CTkToplevel):
                             self._set_slot_many_mode(slot, self._is_many_qty_token(qty))
                             # 分類(EN)・アイテム(EN)はマスタ表示のみ（on_slot_category_changed / on_slot_item_changed で更新）
                         
-                            # アイテム選択ありの場合
-                            if item_id and category in self.item_master and item_id in self.item_master[category]:
-                                item_name = self.item_master[category][item_id]["name_jp"]
-                                slot["item"].set(item_name)
+                            # アイテム選択ありの場合（データ優先で表示。マスタ不一致でも item_name_jp があれば UI に出す）
+                            desired_item_name = ""
+                            item_id_norm = (item_id or "").strip()
+                            if item_id_norm and category in self.item_master:
+                                item_bucket = self.item_master[category]
+                                if item_id_norm in item_bucket:
+                                    desired_item_name = item_bucket[item_id_norm].get("name_jp", "") or ""
+                                else:
+                                    # 互換: 大文字小文字・前後空白差異を吸収
+                                    iid_l = item_id_norm.lower()
+                                    for mk, mv in item_bucket.items():
+                                        if (str(mk).strip().lower() == iid_l):
+                                            desired_item_name = (mv.get("name_jp", "") or "").strip()
+                                            break
+                            if not desired_item_name:
+                                desired_item_name = (cat_data.get("item_name_jp") or "").strip()
+                            if not desired_item_name:
+                                # 最後の保険: CSV に item_name_jp が無い場合でも item_id を表示値として残す
+                                desired_item_name = (item_id or "").strip()
+                            if desired_item_name:
+                                try:
+                                    cur_vals = list(slot["item"].cget("values") or [])
+                                except Exception:
+                                    cur_vals = []
+                                if desired_item_name not in cur_vals:
+                                    slot["item"].configure(values=cur_vals + [desired_item_name])
+                                slot["item"].set(desired_item_name)
                                 self.on_slot_item_changed(slot["frame"])
+                                slot.pop("_loaded_item_id", None)
                             
-                                # アイテム属性を設定
+                                # カテゴリ/アイテム属性を設定（キー表記ゆれを吸収）
                                 item_attrs = cat_data.get('attributes', {}) or cat_data.get('item_attributes', {})
-                                for attr_key, attr_val in item_attrs.items():
-                                    if attr_key in slot.get("attr_widgets", {}):
-                                        widget_data = slot["attr_widgets"][attr_key]
-                                        if isinstance(widget_data, dict):
-                                            attr_type = widget_data.get("type", "select")
-                                            if attr_type == "fixed":
-                                                # 固定値は設定不要
-                                                pass
-                                            elif attr_type == "number":
-                                                widget = widget_data.get("widget")
-                                                if widget:
-                                                    widget.delete(0, "end")
-                                                    widget.insert(0, str(attr_val))
-                                            else:  # select
-                                                w = widget_data.get("widget")
-                                                if w and hasattr(w, "set"):
-                                                    w.set(attr_val)
-                                        else:
-                                            if hasattr(widget_data, "set"):
-                                                widget_data.set(attr_val)
+                                attr_widgets = slot.get("attr_widgets", {}) or {}
+                                key_map = {}
+                                for k in attr_widgets.keys():
+                                    ks = str(k or "").strip()
+                                    if not ks:
+                                        continue
+                                    key_map[ks] = k
+                                    key_map[ks.lower()] = k
+                                for attr_key, attr_val in (item_attrs.items() if isinstance(item_attrs, dict) else []):
+                                    src_key = str(attr_key or "").strip()
+                                    dst_key = key_map.get(src_key) or key_map.get(src_key.lower()) or attr_key
+                                    if dst_key not in attr_widgets:
+                                        continue
+                                    widget_data = attr_widgets[dst_key]
+                                    if isinstance(widget_data, dict):
+                                        attr_type = widget_data.get("type", "select")
+                                        if attr_type == "fixed":
+                                            # 固定値は設定不要
+                                            pass
+                                        elif attr_type == "number":
+                                            widget = widget_data.get("widget")
+                                            if widget:
+                                                widget.delete(0, "end")
+                                                widget.insert(0, str(attr_val))
+                                        else:  # select
+                                            w = widget_data.get("widget")
+                                            if w and hasattr(w, "set"):
+                                                try:
+                                                    vals = list(w.cget("values") or [])
+                                                except Exception:
+                                                    vals = []
+                                                sval = str(attr_val)
+                                                if sval and vals and sval not in vals:
+                                                    try:
+                                                        w.configure(values=vals + [sval])
+                                                    except Exception:
+                                                        pass
+                                                w.set(sval)
+                                    else:
+                                        if hasattr(widget_data, "set"):
+                                            widget_data.set(attr_val)
                 except:
                     pass
         
@@ -7735,7 +8076,7 @@ class MapEditor(ctk.CTkToplevel):
             self.current_uid = None
             self.lbl_coords.configure(text="座標: ---")
         self._sync_parent_type_combo_from_row()
-        self._rebuild_pin_special_notes_ui()
+        self._schedule_special_notes_rebuild(0)
         self._schedule_pin_preview_refresh()
         self._refresh_parent_pin_ui_labels()
         self._pin_edit_baseline = self._build_pin_compare_snapshot()
@@ -7761,8 +8102,7 @@ class MapEditor(ctk.CTkToplevel):
         attribute = self.cmb_attribute.get()
         if not attribute or attribute == "(なし)":
             return None
-        rev = {v: k for k, v in self.cat_mapping.items()}
-        attribute_id = rev.get(attribute, "")
+        attribute_id = self._object_attr_id_from_pin_combo(attribute)
         obj_attributes = {}
         for attr_key, widget_data in self.obj_attr_widgets.items():
             if isinstance(widget_data, dict):

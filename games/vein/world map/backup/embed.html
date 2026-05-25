@@ -39,6 +39,9 @@
       #game-map に data-importance-visual="off|size|size+glow"
       URL なら ?importance_visual=size など。UIの「重要度で強調表示」でON/OFF切替可。
 
+    - 高さ: 地図は親の高さに追従（vh 固定なし）。800px 等は iframe の height 指定、または
+      外側 <div style="height:800px"> で包み .vein-map-embed-root に style="height:100%;min-height:100%" を付与。
+
     注意: テーマやセキュリティ設定によっては <script> がブロックされる。その場合は
     このHTMLを別URLで静的ホストし iframe で読み込む方法に切り替える。
   =============================================================================
@@ -48,11 +51,51 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <style>
-    .vein-map-embed-root { box-sizing: border-box; }
+    /*
+     * 高さ: vh / 固定 min に依存しない（800px・1000px 等はサイト側のラッパ or iframe height で指定）。
+     * body を縦 flex にし、root → #map-container → #game-map を flex:1 + min-height:0 で常に親いっぱいに伸ばす。
+     */
+    html { height: 100%; }
+    body {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+    .vein-map-embed-root {
+        box-sizing: border-box;
+        width: 100%;
+        flex: 1 1 auto;
+        min-height: 0;
+        height: 100%;
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
     .vein-map-embed-root * { box-sizing: border-box; }
-    .vein-map-embed-root #map-container { position: relative; width: 100%; min-height: 560px; height: 88vh; border: 1px solid #333; overflow: hidden; }
-    /* 左フィルター表示時は map.js が #map-container / #game-map の高さ下限を確保する（真っ白防止） */
-    .vein-map-embed-root #game-map { width: 100%; height: 100%; min-height: 520px; background: #0d0d0d; }
+    .vein-map-embed-root #map-container {
+        position: relative;
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        border: 1px solid #333;
+        overflow: hidden;
+    }
+    .vein-map-embed-root #game-map {
+        flex: 1 1 auto;
+        min-height: 0;
+        width: 100%;
+        height: auto;
+        background: #0d0d0d;
+    }
+    .vein-map-embed-root #game-map .leaflet-container {
+        width: 100% !important;
+        height: 100% !important;
+        background: #0d0d0d;
+    }
     .vein-map-embed-root .emoji-icon div {
         display: flex; justify-content: center; align-items: center;
         width: 100%; height: 100%;
@@ -113,10 +156,10 @@
              data-importance-visual="off"
              data-show-all-pins="true"
              data-demo-pin-marker-size="32"
-             style="width:100%;height:100%;"></div>
+             style="width:100%;min-height:0;flex:1 1 auto;"></div>
     </div>
 </div>
-<script src="map.js"></script>
+<script src="map.js?v=vein-filter-hierarchy"></script>
 <!-- VEIN_MAP_EMBED_COPY_END -->
 
 </body>

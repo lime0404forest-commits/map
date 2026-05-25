@@ -1,47 +1,6 @@
 {
   "areas": [
     {
-      "uid": "AREA_1",
-      "shape": "polygon",
-      "x": 0.0,
-      "y": 0.0,
-      "radius": 0.0,
-      "width": 0.0,
-      "height": 0.0,
-      "points": [
-        [
-          2700.0311401983517,
-          2476.3159952997994
-        ],
-        [
-          2732.4028937601274,
-          2604.8830828611303
-        ],
-        [
-          2886.03693896393,
-          2575.41078765526
-        ],
-        [
-          2875.4776578112987,
-          2504.7448291722676
-        ],
-        [
-          2829.9915236153497,
-          2429.2053563111376
-        ]
-      ],
-      "attribute": "POI",
-      "name_jp": "刑務所",
-      "name_en": "Clinton Correctional Facility",
-      "importance": "(なし)",
-      "memo_jp": "刑務所。武器やツールを集めるのに最適。",
-      "memo_en": "Prison – Best for Weapons & Tools",
-      "categories": [],
-      "updated_at": "2026-04-05T18:09:38",
-      "show_center_icon": true,
-      "category": ""
-    },
-    {
       "uid": "AREA_2",
       "shape": "polygon",
       "x": 0.0,
@@ -51,69 +10,50 @@
       "height": 0.0,
       "points": [
         [
-          1355.9362673395192,
-          2651.761276960414
+          1370.2721125281512,
+          2665.667781798873
         ],
         [
-          1339.1416734918566,
-          2661.55812337155
+          1347.9954246625591,
+          2679.426912539386
         ],
         [
-          1405.0950093850793,
-          2760.888439493489
+          1402.4024330206316,
+          2761.8712345463828
         ],
         [
-          1435.1046663360953,
-          2740.5247437052994
+          1432.4120899716477,
+          2741.5075387581933
         ],
         [
-          1386.7263560602337,
-          2666.2232883292345
+          1389.9280135860265,
+          2676.4785273807047
         ]
       ],
-      "attribute": "POI",
+      "attribute": "DEPLOYABLES",
       "name_jp": "",
-      "name_en": "Lyon Mtn. Quarantine Center",
+      "name_en": "",
       "importance": "5",
       "memo_jp": "",
       "memo_en": "",
       "categories": [
         {
-          "cat_id": "BUILDING",
-          "category": "建物",
-          "cat_name_en": "Building",
-          "item_id": "HOSPITAL",
-          "item_name_jp": "病院",
-          "item_name_en": "Hospital",
-          "qty": "1",
-          "attributes": {}
+          "cat_id": "MEDICAL_CONTAINER",
+          "category": "医療品コンテナ",
+          "cat_name_en": "Medical Container",
+          "item_id": "",
+          "item_name_jp": "",
+          "item_name_en": "",
+          "qty": "MANY",
+          "attributes": {
+            "special_rule_enabled_1": false
+          }
         }
       ],
       "fill_color_override": "",
       "show_center_icon": true,
-      "updated_at": "2026-04-05T18:24:25",
+      "updated_at": "2026-04-15T17:18:02",
       "category": "建物"
-    },
-    {
-      "uid": "AREA_3",
-      "shape": "circle",
-      "x": 1371.4948764662356,
-      "y": 3160.9632812630703,
-      "radius": 68.86159508991781,
-      "width": 0.0,
-      "height": 0.0,
-      "points": [],
-      "attribute": "POI",
-      "name_jp": "A1廃棄物集積場",
-      "name_en": "Mass Dump Site A1",
-      "importance": "",
-      "memo_jp": "",
-      "memo_en": "",
-      "categories": [],
-      "fill_color_override": "",
-      "show_center_icon": true,
-      "updated_at": "2026-04-10T10:27:57",
-      "category": ""
     }
   ]
 }

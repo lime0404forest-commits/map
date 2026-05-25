@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Map source images (tile generation only; runtime uses tiles/*.webp)
+**/_source/
+
+# Legacy filenames (moved under _source/)
+**/map.png
+**/map1.png

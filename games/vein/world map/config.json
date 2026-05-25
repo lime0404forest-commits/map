@@ -1,7 +1,7 @@
 {
     "orig_w": 5878,
     "orig_h": 5886,
-    "map_file": "map.png",
+    "map_file": "_source/map.png",
     "save_file": "master_data.csv",
     "wp_rest_guide_sources": [
         {
@@ -334,12 +334,12 @@
                 "attributes": {}
             },
             "DUNPED_MILITARY_CRATE": {
-                "name_jp": "捨てられた軍用クレート",
+                "name_jp": "捨てられた軍用コンテナ",
                 "name_en": "Dunped Military Crate",
                 "attributes": {}
             },
             "MILITARY_CRRATE": {
-                "name_jp": "軍用クレート",
+                "name_jp": "軍用コンテナ",
                 "name_en": "Military Crate",
                 "attributes": {}
             },
@@ -554,6 +554,16 @@
                 "name_jp": "作業小屋",
                 "name_en": "Service Shed",
                 "attributes": {}
+            },
+            "BARN": {
+                "name_jp": "納屋",
+                "name_en": "Barn",
+                "attributes": {}
+            },
+            "BROADCAST_STATION": {
+                "name_jp": "放送局",
+                "name_en": "Broadcast Station",
+                "attributes": {}
             }
         },
         "場所・エリア・スポット": {
@@ -627,8 +637,8 @@
                 "attributes": {}
             },
             "BAUXITE": {
-                "name_jp": "ボーキサイト",
-                "name_en": "Bauxite",
+                "name_jp": "ボーキサイトの鉱脈",
+                "name_en": "Bauxite Vein",
                 "attributes": {}
             },
             "SANDSTONE_DEPOSITE": {
@@ -644,6 +654,11 @@
             "LIMESTONE_VEIN": {
                 "name_jp": "石灰岩の鉱脈",
                 "name_en": "Limestone Vein",
+                "attributes": {}
+            },
+            "MINABLE_GEODE": {
+                "name_jp": "採掘可能なジオード（クリスタル）",
+                "name_en": "Minable Geode",
                 "attributes": {}
             }
         },
@@ -729,18 +744,15 @@
                 "name_jp": "Tadellini Cobra",
                 "name_en": "Tadellini Cobra",
                 "attributes": {}
+            },
+            "GO_KART": {
+                "name_jp": "ゴーカート",
+                "name_en": "Go Kart",
+                "attributes": {}
             }
         }
     },
-    "pin_marker_by_attribute": {
-        "POI": {
-            "svg_icon_id": "marker-POI",
-            "svg_icon_scope": "common",
-            "icon_color": "#ffffff",
-            "background_color": "#2ecc71",
-            "display_style": "icon_only"
-        }
-    },
+    "pin_marker_by_attribute": {},
     "pin_marker_by_category_id": {
         "BUILDING": {
             "svg_icon_id": "marker-building",
@@ -758,7 +770,7 @@
         "SITE": {
             "svg_icon_id": "marker-POI",
             "svg_icon_scope": "common",
-            "icon_color": "#ffffff",
+            "icon_color": "#c0392b",
             "background_color": "#16a085",
             "display_style": "icon_only"
         },
@@ -852,6 +864,13 @@
             "icon_color": "#ffffff",
             "background_color": "#3498db",
             "display_style": "standard"
+        },
+        "VEHICLE": {
+            "svg_icon_id": "marker-car",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
         }
     },
     "object_type_ui_order": [
@@ -900,14 +919,14 @@
             "display_style": "standard"
         },
         "DUNPED_MILITARY_CRATE": {
-            "svg_icon_id": "marker-crate3",
+            "svg_icon_id": "marker-crate",
             "svg_icon_scope": "common",
             "icon_color": "#ffffff",
             "background_color": "#ff0000",
             "display_style": "standard"
         },
         "MILITARY_CRRATE": {
-            "svg_icon_id": "marker-crate3",
+            "svg_icon_id": "marker-crate",
             "svg_icon_scope": "common",
             "icon_color": "#ffffff",
             "background_color": "#ff0000",
@@ -951,7 +970,7 @@
         "CHURCH": {
             "svg_icon_id": "marker-church",
             "svg_icon_scope": "common",
-            "icon_color": "#ffb9dc",
+            "icon_color": "#caa8d9",
             "background_color": "#3498db",
             "display_style": "icon_only"
         },
@@ -979,7 +998,7 @@
         "STORAGE": {
             "svg_icon_id": "marker-storage",
             "svg_icon_scope": "common",
-            "icon_color": "#ffc8c8",
+            "icon_color": "#f8c761",
             "background_color": "#2ecc71",
             "display_style": "icon_only"
         },
@@ -1028,7 +1047,7 @@
         "CAVE": {
             "svg_icon_id": "marker-cave",
             "svg_icon_scope": "common",
-            "icon_color": "#ffffff",
+            "icon_color": "#7f8c8d",
             "background_color": "#747474",
             "display_style": "icon_only"
         },
@@ -1170,7 +1189,7 @@
             "svg_icon_scope": "common",
             "icon_color": "#ffffff",
             "background_color": "#95a5a6",
-            "display_style": "standard"
+            "display_style": "icon_only"
         },
         "MILITARY_SITE": {
             "svg_icon_id": "marker-military-base",
@@ -1212,6 +1231,20 @@
             "svg_icon_scope": "common",
             "icon_color": "#ffffff",
             "background_color": "#9b59b6",
+            "display_style": "standard"
+        },
+        "BROADCAST_STATION": {
+            "svg_icon_id": "marker-broadcast-station",
+            "svg_icon_scope": "common",
+            "icon_color": "#f1c40f",
+            "background_color": "#ffffff",
+            "display_style": "icon_only"
+        },
+        "MINABLE_GEODE": {
+            "svg_icon_id": "marker-crystal",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#9fd7ff",
             "display_style": "standard"
         }
     },

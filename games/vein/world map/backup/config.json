@@ -1,24 +1,40 @@
 {
     "orig_w": 5878,
     "orig_h": 5886,
-    "map_file": "map.png",
+    "map_file": "_source/map.png",
     "save_file": "master_data.csv",
+    "wp_rest_guide_sources": [
+        {
+            "ja": "https://lost-in-games.com/wp-json/wp/v2/posts?lang=jp",
+            "en": "https://lost-in-games.com/wp-json/wp/v2/posts?lang=en"
+        }
+    ],
     "cat_mapping": {
         "POI": "POI",
-        "DEPLOYABLES": "コンテナ・アイテムなど"
+        "DEPLOYABLES": "コンテナ",
+        "RESOURCE": "資源ノード",
+        "ITEMS": "アイテム",
+        "EQUIPMENT_AND_VEHICLE": "設備・車両"
     },
     "category_list": [
         "建物",
         "地形",
         "場所・エリア・スポット",
         "武器コンテナ",
-        "医療品コンテナ",
+        "装備コンテナ",
         "ツールコンテナ",
+        "医療品コンテナ",
+        "資源コンテナ",
         "武器",
+        "装備",
         "ツール",
+        "本",
+        "その他のアイテム",
         "発電機",
-        "スキルブック",
-        "その他のアイテム"
+        "採掘ノード",
+        "解体",
+        "カー用品コンテナ",
+        "車両"
     ],
     "attr_mapping": {
         "POI": {
@@ -29,8 +45,29 @@
             "use_category_slots": true
         },
         "DEPLOYABLES": {
-            "name_jp": "コンテナ・アイテムなど",
-            "name_en": "Deployables",
+            "name_jp": "コンテナ",
+            "name_en": "Container",
+            "type": "loot",
+            "attributes": {},
+            "use_category_slots": true
+        },
+        "RESOURCE": {
+            "name_jp": "資源ノード",
+            "name_en": "Resource",
+            "type": "loot",
+            "attributes": {},
+            "use_category_slots": true
+        },
+        "ITEMS": {
+            "name_jp": "アイテム",
+            "name_en": "Items",
+            "type": "loot",
+            "attributes": {},
+            "use_category_slots": true
+        },
+        "EQUIPMENT_AND_VEHICLE": {
+            "name_jp": "設備・車両",
+            "name_en": "Equipment and Vehicle",
             "type": "loot",
             "attributes": {},
             "use_category_slots": true
@@ -45,9 +82,6 @@
             "poi_type": "building",
             "input_type": "item_select",
             "show_qty": false,
-            "object_ids": [
-                "POI"
-            ],
             "object_attr_id": "POI"
         },
         "地形": {
@@ -58,9 +92,6 @@
             "poi_type": "terrain",
             "input_type": "item_select",
             "show_qty": false,
-            "object_ids": [
-                "POI"
-            ],
             "object_attr_id": "POI"
         },
         "場所・エリア・スポット": {
@@ -71,9 +102,6 @@
             "poi_type": "site",
             "input_type": "item_select",
             "show_qty": false,
-            "object_ids": [
-                "POI"
-            ],
             "object_attr_id": "POI"
         },
         "武器コンテナ": {
@@ -83,10 +111,7 @@
             "type": "loot",
             "input_type": "item_select",
             "show_qty": false,
-            "object_ids": [
-                "DEPLOYABLES"
-            ],
-            "object_attr_id": "POI",
+            "object_attr_id": "DEPLOYABLES",
             "special_notes": [
                 {
                     "kind": "required_lenient",
@@ -111,25 +136,14 @@
                 }
             ]
         },
-        "医療品コンテナ": {
-            "id": "MEDICAL_CONTAINER",
-            "name_jp": "医療品コンテナ",
-            "name_en": "Medical Container",
+        "装備コンテナ": {
+            "id": "EQUIPMENT_CONTAINER",
+            "name_jp": "装備コンテナ",
+            "name_en": "Equipment Container",
             "type": "loot",
+            "object_attr_id": "DEPLOYABLES",
             "input_type": "item_select",
-            "show_qty": false,
-            "object_ids": [
-                "DEPLOYABLES"
-            ],
-            "object_attr_id": "POI",
-            "special_notes": [
-                {
-                    "kind": "memo",
-                    "memo_jp": "テスト",
-                    "memo_en": "",
-                    "default_enabled": false
-                }
-            ]
+            "show_qty": true
         },
         "ツールコンテナ": {
             "id": "TOOL_CONTAINER",
@@ -138,10 +152,43 @@
             "type": "loot",
             "input_type": "item_select",
             "show_qty": false,
-            "object_ids": [
-                "DEPLOYABLES"
-            ],
-            "object_attr_id": "POI"
+            "object_attr_id": "DEPLOYABLES",
+            "special_notes": [
+                {
+                    "kind": "required_lenient",
+                    "detail_kind": "skill_level",
+                    "default_enabled": false,
+                    "skill_id": "SKILL_19221",
+                    "skill_level_value": 25
+                }
+            ]
+        },
+        "医療品コンテナ": {
+            "id": "MEDICAL_CONTAINER",
+            "name_jp": "医療品コンテナ",
+            "name_en": "Medical Container",
+            "type": "loot",
+            "input_type": "item_select",
+            "show_qty": false,
+            "object_attr_id": "DEPLOYABLES",
+            "special_notes": [
+                {
+                    "kind": "required_lenient",
+                    "detail_kind": "skill_level",
+                    "default_enabled": true,
+                    "skill_id": "SKILL_19221",
+                    "skill_level_value": 25
+                }
+            ]
+        },
+        "資源コンテナ": {
+            "id": "RESOURCE_CONTAINER",
+            "name_jp": "資源コンテナ",
+            "name_en": "Resource Container",
+            "type": "loot",
+            "object_attr_id": "DEPLOYABLES",
+            "input_type": "item_select",
+            "show_qty": true
         },
         "武器": {
             "id": "WEAPON",
@@ -150,15 +197,29 @@
             "type": "loot",
             "input_type": "item_select",
             "show_qty": true,
-            "object_ids": [
-                "DEPLOYABLES"
-            ],
-            "object_attr_id": "POI",
+            "object_attr_id": "ITEMS",
             "special_notes": [
                 {
                     "kind": "memo",
-                    "memo_jp": "位置は固定。",
-                    "memo_en": "",
+                    "memo_jp": "位置は固定。常に出現するとは限らない。",
+                    "memo_en": "Fixed location. May not always spawn",
+                    "default_enabled": true
+                }
+            ]
+        },
+        "装備": {
+            "id": "GEAR",
+            "name_jp": "装備",
+            "name_en": "Gear",
+            "type": "loot",
+            "object_attr_id": "ITEMS",
+            "input_type": "item_select",
+            "show_qty": true,
+            "special_notes": [
+                {
+                    "kind": "memo",
+                    "memo_jp": "位置は固定。常に出現するとは限らない。",
+                    "memo_en": "Fixed location. May not always spawn.",
                     "default_enabled": true
                 }
             ]
@@ -170,34 +231,32 @@
             "type": "loot",
             "input_type": "item_select",
             "show_qty": false,
-            "object_ids": [
-                "DEPLOYABLES"
-            ],
-            "object_attr_id": "POI"
+            "object_attr_id": "ITEMS",
+            "special_notes": [
+                {
+                    "kind": "memo",
+                    "memo_jp": "位置は固定。常に出現するとは限らない。",
+                    "memo_en": "Fixed location. May not always spawn",
+                    "default_enabled": true
+                }
+            ]
         },
-        "発電機": {
-            "id": "POWER_GENERATOR",
-            "name_jp": "発電機",
-            "name_en": "Power Generator",
+        "本": {
+            "id": "BOOK",
+            "name_jp": "本",
+            "name_en": "Book",
             "type": "loot",
+            "object_attr_id": "ITEMS",
             "input_type": "item_select",
             "show_qty": true,
-            "object_ids": [
-                "DEPLOYABLES"
-            ],
-            "object_attr_id": "POI"
-        },
-        "スキルブック": {
-            "id": "SKILL_BOOK",
-            "name_jp": "スキルブック",
-            "name_en": "Skill Book",
-            "type": "loot",
-            "input_type": "item_select",
-            "show_qty": true,
-            "object_ids": [
-                "DEPLOYABLES"
-            ],
-            "object_attr_id": "POI"
+            "special_notes": [
+                {
+                    "kind": "memo",
+                    "memo_jp": "位置は固定。常に出現するとは限らない。",
+                    "memo_en": "Fixed location. May not always spawn.",
+                    "default_enabled": true
+                }
+            ]
         },
         "その他のアイテム": {
             "id": "MISC",
@@ -206,10 +265,60 @@
             "type": "loot",
             "input_type": "item_select",
             "show_qty": true,
-            "object_ids": [
-                "DEPLOYABLES"
-            ],
-            "object_attr_id": "POI"
+            "object_attr_id": "ITEMS",
+            "special_notes": [
+                {
+                    "kind": "memo",
+                    "memo_jp": "位置は固定。常に出現するとは限らない。",
+                    "memo_en": "Fixed location. May not always spawn.",
+                    "default_enabled": true
+                }
+            ]
+        },
+        "発電機": {
+            "id": "POWER_GENERATOR",
+            "name_jp": "発電機",
+            "name_en": "Power Generator",
+            "type": "loot",
+            "input_type": "item_select",
+            "show_qty": true,
+            "object_attr_id": "EQUIPMENT_AND_VEHICLE"
+        },
+        "採掘ノード": {
+            "id": "Mining Node",
+            "name_jp": "採掘ノード",
+            "name_en": "Mining Node",
+            "type": "loot",
+            "object_attr_id": "RESOURCE",
+            "input_type": "item_select",
+            "show_qty": true
+        },
+        "解体": {
+            "id": "SALVAGE",
+            "name_jp": "解体",
+            "name_en": "Salvage",
+            "type": "loot",
+            "object_attr_id": "EQUIPMENT_AND_VEHICLE",
+            "input_type": "item_select",
+            "show_qty": true
+        },
+        "カー用品コンテナ": {
+            "id": "VEHICLE_PARTS_CONTAINER",
+            "name_jp": "カー用品コンテナ",
+            "name_en": "Vehicle Parts Container",
+            "type": "loot",
+            "object_attr_id": "DEPLOYABLES",
+            "input_type": "item_select",
+            "show_qty": true
+        },
+        "車両": {
+            "id": "VEHICLE",
+            "name_jp": "車両",
+            "name_en": "Vehicle",
+            "type": "loot",
+            "object_attr_id": "EQUIPMENT_AND_VEHICLE",
+            "input_type": "item_select",
+            "show_qty": true
         }
     },
     "item_master": {
@@ -217,11 +326,6 @@
             "WEAPON_CASE": {
                 "name_jp": "ウェポンケース",
                 "name_en": "Weapon Case",
-                "attributes": {}
-            },
-            "FOOT_LCOKER": {
-                "name_jp": "フットロッカー",
-                "name_en": "Foot Lcoker",
                 "attributes": {}
             },
             "DUMPED_FOOT_LOCKER": {
@@ -240,12 +344,12 @@
                 "attributes": {}
             },
             "AMMO_BOX": {
-                "name_jp": "弾薬ボックス",
+                "name_jp": "弾薬箱",
                 "name_en": "Ammo Box",
                 "attributes": {}
             },
             "EXPLOSIVE_BOX": {
-                "name_jp": "爆発物ボックス",
+                "name_jp": "爆発物の箱",
                 "name_en": "Explosive Box",
                 "attributes": {}
             },
@@ -258,12 +362,49 @@
                 "name_jp": "ダッフルバッグ",
                 "name_en": "Duffle Bag",
                 "attributes": {}
+            },
+            "DUMPED_DUFFLE_BAG": {
+                "name_jp": "捨てられたダッフルバッグ",
+                "name_en": "Dumped Duffle Bag",
+                "attributes": {}
+            },
+            "DUMPED_AMMO_BOX": {
+                "name_jp": "捨てられた弾薬箱",
+                "name_en": "Dumped Ammo Box",
+                "attributes": {}
+            },
+            "FOOT_LCOKER": {
+                "name_jp": "フットロッカー",
+                "name_en": "Foot Lcoker",
+                "attributes": {}
+            }
+        },
+        "装備コンテナ": {
+            "RIOT_LOCKER": {
+                "name_jp": "暴動ロッカー",
+                "name_en": "Riot Locker",
+                "attributes": {}
+            },
+            "FIRE_DEPT_EQUIPMENT_LOCKER": {
+                "name_jp": "消防署の装備品ロッカー",
+                "name_en": "Fire Dept Equipment Locker",
+                "attributes": {}
             }
         },
         "医療品コンテナ": {
-            "QUARANTINE_CRATE": {
-                "name_jp": "医療品クレート",
-                "name_en": "Quarantine Crate",
+            "MEDICAL_CRATE": {
+                "name_jp": "医薬品箱",
+                "name_en": "Medical Crate",
+                "attributes": {}
+            },
+            "PHARMACY_CABINET": {
+                "name_jp": "薬棚",
+                "name_en": "Pharmacy Cabinet",
+                "attributes": {}
+            },
+            "PARAMEDIC_BAG": {
+                "name_jp": "応急処置バッグ",
+                "name_en": "Paramedic Bag",
                 "attributes": {}
             }
         },
@@ -278,19 +419,9 @@
                 "name_en": "Bow",
                 "attributes": {}
             },
-            "SLEDGE_HAMMER": {
-                "name_jp": "スレッジハンマー",
-                "name_en": "Sledge Hammer",
-                "attributes": {}
-            },
             "MACHETE": {
                 "name_jp": "マチェーテ",
                 "name_en": "Machete",
-                "attributes": {}
-            },
-            "CANNABIS_SEEDS": {
-                "name_jp": "大麻の種",
-                "name_en": "Cannabis seeds",
                 "attributes": {}
             },
             "MOSINNAGANT": {
@@ -322,11 +453,43 @@
                 "name_jp": "木製斧",
                 "name_en": "Wood Axe",
                 "attributes": {}
+            },
+            "SANWERK_SRG": {
+                "name_jp": "SanWerk SRG",
+                "name_en": "SanWerk SRG",
+                "attributes": {}
+            },
+            "LONESTAR_VIPER": {
+                "name_jp": "LoneStar Viper",
+                "name_en": "LoneStar Viper",
+                "attributes": {}
+            }
+        },
+        "ツール": {
+            "SLEDGE_HAMMER": {
+                "name_jp": "スレッジハンマー",
+                "name_en": "Sledge Hammer",
+                "attributes": {}
+            },
+            "IMPROVED_PICKAXE": {
+                "name_jp": "改良されたつるはし",
+                "name_en": "Improved Pickaxe",
+                "attributes": {}
+            },
+            "INDUSTRIAL_WELDER": {
+                "name_jp": "業務用溶接機",
+                "name_en": "Industrial Welder",
+                "attributes": {}
+            },
+            "NAIL_GUN": {
+                "name_jp": "ネイルガン",
+                "name_en": "Nail Gun",
+                "attributes": {}
             }
         },
         "発電機": {
             "GAS_GENERATOR": {
-                "name_jp": "発電機",
+                "name_jp": "ガソリン発電機",
                 "name_en": "Gas Generator",
                 "attributes": {}
             },
@@ -377,18 +540,33 @@
                 "name_en": "Lookout",
                 "attributes": {}
             },
+            "FACTORY": {
+                "name_jp": "工場",
+                "name_en": "Factory",
+                "attributes": {}
+            },
+            "WATER_TOWER": {
+                "name_jp": "給水塔",
+                "name_en": "Water Tower",
+                "attributes": {}
+            },
+            "SERVICE_SHED": {
+                "name_jp": "作業小屋",
+                "name_en": "Service Shed",
+                "attributes": {}
+            },
+            "BARN": {
+                "name_jp": "納屋",
+                "name_en": "Barn",
+                "attributes": {}
+            }
+        },
+        "場所・エリア・スポット": {
             "FARM": {
                 "name_jp": "農場・牧場",
                 "name_en": "Farm",
                 "attributes": {}
             },
-            "FACTORY": {
-                "name_jp": "工場",
-                "name_en": "Factory",
-                "attributes": {}
-            }
-        },
-        "場所・エリア・スポット": {
             "SHIPWRECK": {
                 "name_jp": "沈没船",
                 "name_en": "Shipwreck",
@@ -397,6 +575,85 @@
             "PARK": {
                 "name_jp": "公園",
                 "name_en": "Park",
+                "attributes": {}
+            },
+            "QUARRY": {
+                "name_jp": "採石場",
+                "name_en": "Quarry",
+                "attributes": {}
+            },
+            "LANDMARK": {
+                "name_jp": "ランドマーク",
+                "name_en": "Landmark",
+                "attributes": {}
+            },
+            "POI_MISC": {
+                "name_jp": "POI",
+                "name_en": "POI",
+                "attributes": {}
+            },
+            "MILITARY_SITE": {
+                "name_jp": "軍事施設",
+                "name_en": "Military Site",
+                "attributes": {}
+            },
+            "RESIDENTIAL": {
+                "name_jp": "住宅地",
+                "name_en": "Residential",
+                "attributes": {}
+            }
+        },
+        "本": {
+            "SKILL_BOOK": {
+                "name_jp": "スキルブック",
+                "name_en": "Skill Book",
+                "attributes": {}
+            }
+        },
+        "採掘ノード": {
+            "BOG_IRON_DEPOSIT": {
+                "name_jp": "沼鉄鉱の鉱床",
+                "name_en": "Bog Iron Deposit",
+                "attributes": {}
+            },
+            "HEMATITE_VEIN": {
+                "name_jp": "ヘマタイトの鉱脈",
+                "name_en": "Hematite Vein",
+                "attributes": {}
+            },
+            "COAL_VEIN": {
+                "name_jp": "石炭の鉱脈",
+                "name_en": "Coal Vein",
+                "attributes": {}
+            },
+            "CHARCOPYRITEVEIN": {
+                "name_jp": "黄銅鉱の鉱脈",
+                "name_en": "Charcopyrite Vein",
+                "attributes": {}
+            },
+            "BAUXITE": {
+                "name_jp": "ボーキサイトの鉱脈",
+                "name_en": "Bauxite Vein",
+                "attributes": {}
+            },
+            "SANDSTONE_DEPOSITE": {
+                "name_jp": "砂岩の鉱床",
+                "name_en": "Sandstone Deposite",
+                "attributes": {}
+            },
+            "GRAPHITE_VEIN": {
+                "name_jp": "グラファイトの鉱脈",
+                "name_en": "Graphite Vein",
+                "attributes": {}
+            },
+            "LIMESTONE_VEIN": {
+                "name_jp": "石灰岩の鉱脈",
+                "name_en": "Limestone Vein",
+                "attributes": {}
+            },
+            "MINABLE_GEODE": {
+                "name_jp": "採掘可能なジオード",
+                "name_en": "Minable Geode",
                 "attributes": {}
             }
         },
@@ -422,12 +679,70 @@
                 "name_jp": "スチール製ツールシェルフ",
                 "name_en": "Steel Tool Shelf",
                 "attributes": {}
+            },
+            "STRONG_TOOLBOX": {
+                "name_jp": "頑丈なツールボックス",
+                "name_en": "Strong Toolbox",
+                "attributes": {}
             }
         },
-        "ツール": {
-            "IMPROVED_PICKAXE": {
-                "name_jp": "改良されたつるはし",
-                "name_en": "Improved Pickaxe",
+        "その他のアイテム": {
+            "CANNABIS_SEEDS": {
+                "name_jp": "大麻の種",
+                "name_en": "Cannabis seeds",
+                "attributes": {}
+            },
+            "CRYSTAL_METH": {
+                "name_jp": "クリスタルメス",
+                "name_en": "Crystal Meth",
+                "attributes": {}
+            }
+        },
+        "資源コンテナ": {
+            "LIMESTONE_BRICK_PILE": {
+                "name_jp": "石灰岩レンガの山",
+                "name_en": "Limestone Brick Pile",
+                "attributes": {}
+            },
+            "CONCRETE_PIPE": {
+                "name_jp": "コンクリート管",
+                "name_en": "Concrete Pipe",
+                "attributes": {}
+            }
+        },
+        "装備": {
+            "HEADLAMP": {
+                "name_jp": "ヘッドランプ",
+                "name_en": "Headlamp",
+                "attributes": {}
+            },
+            "FISHING_ROD": {
+                "name_jp": "釣り竿",
+                "name_en": "Fishing Rod",
+                "attributes": {}
+            },
+            "HAZMAT_SUIT": {
+                "name_jp": "防護服",
+                "name_en": "Hazmat Suit",
+                "attributes": {}
+            }
+        },
+        "解体": {
+            "LAWNMOWER": {
+                "name_jp": "芝刈り機",
+                "name_en": "Lawnmower",
+                "attributes": {}
+            }
+        },
+        "車両": {
+            "TADELLINI_COBRA": {
+                "name_jp": "Tadellini Cobra",
+                "name_en": "Tadellini Cobra",
+                "attributes": {}
+            },
+            "GO_KART": {
+                "name_jp": "ゴーカート",
+                "name_en": "Go Kart",
                 "attributes": {}
             }
         }
@@ -473,7 +788,7 @@
             "svg_icon_id": "marker-medic",
             "svg_icon_scope": "common",
             "icon_color": "#ffffff",
-            "background_color": "#ff0000",
+            "background_color": "#ff9fff",
             "display_style": "standard"
         },
         "TOOL_CONTAINER": {
@@ -509,6 +824,48 @@
             "svg_icon_scope": "common",
             "icon_color": "#ffffff",
             "background_color": "#2ecc71",
+            "display_style": "standard"
+        },
+        "Mining Node": {
+            "svg_icon_id": "marker-rock",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#95a5a6",
+            "display_style": "standard"
+        },
+        "EQUIPMENT_CONTAINER": {
+            "svg_icon_id": "marker-crate3",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#0080ff",
+            "display_style": "standard"
+        },
+        "BOOK": {
+            "svg_icon_id": "marker-book",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#2ecc71",
+            "display_style": "standard"
+        },
+        "VEHICLE_PARTS_CONTAINER": {
+            "svg_icon_id": "marker-tire",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#7f8c8d",
+            "display_style": "standard"
+        },
+        "RESOURCE_CONTAINER": {
+            "svg_icon_id": "marker-parts-container",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "SALVAGE": {
+            "svg_icon_id": "marker-nut",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
             "display_style": "standard"
         }
     },
@@ -550,13 +907,6 @@
             "background_color": "#ff0000",
             "display_style": "standard"
         },
-        "FOOT_LCOKER": {
-            "svg_icon_id": "marker-crate3",
-            "svg_icon_scope": "common",
-            "icon_color": "#ffffff",
-            "background_color": "#ff0000",
-            "display_style": "standard"
-        },
         "DUMPED_FOOT_LOCKER": {
             "svg_icon_id": "marker-crate3",
             "svg_icon_scope": "common",
@@ -565,21 +915,21 @@
             "display_style": "standard"
         },
         "DUNPED_MILITARY_CRATE": {
-            "svg_icon_id": "marker-crate3",
+            "svg_icon_id": "marker-crate",
             "svg_icon_scope": "common",
             "icon_color": "#ffffff",
             "background_color": "#ff0000",
             "display_style": "standard"
         },
         "MILITARY_CRRATE": {
-            "svg_icon_id": "marker-crate3",
+            "svg_icon_id": "marker-crate",
             "svg_icon_scope": "common",
             "icon_color": "#ffffff",
             "background_color": "#ff0000",
             "display_style": "standard"
         },
         "AMMO_BOX": {
-            "svg_icon_id": "marker-crate2",
+            "svg_icon_id": "marker-crate3",
             "svg_icon_scope": "common",
             "icon_color": "#ffffff",
             "background_color": "#ff0000",
@@ -599,15 +949,8 @@
             "background_color": "#ff0000",
             "display_style": "standard"
         },
-        "SLEDGE_HAMMER": {
-            "svg_icon_id": "marker-axe",
-            "svg_icon_scope": "common",
-            "icon_color": "#ffffff",
-            "background_color": "#b90746",
-            "display_style": "standard"
-        },
         "MACHETE": {
-            "svg_icon_id": "marker-axe",
+            "svg_icon_id": "marker-sword",
             "svg_icon_scope": "common",
             "icon_color": "#ffffff",
             "background_color": "#b90746",
@@ -617,7 +960,7 @@
             "svg_icon_id": "marker-axe",
             "svg_icon_scope": "common",
             "icon_color": "#ffffff",
-            "background_color": "#ff0000",
+            "background_color": "#c0392b",
             "display_style": "standard"
         },
         "CHURCH": {
@@ -679,8 +1022,8 @@
         "FARM": {
             "svg_icon_id": "marker-farm",
             "svg_icon_scope": "common",
-            "icon_color": "#ffffff",
-            "background_color": "#2ecc71",
+            "icon_color": "#ffab57",
+            "background_color": "#95a5a6",
             "display_style": "icon_only"
         },
         "SHIPWRECK": {
@@ -724,6 +1067,167 @@
             "icon_color": "#ffffff",
             "background_color": "#2ecc71",
             "display_style": "icon_only"
+        },
+        "N870": {
+            "svg_icon_id": "marker-shotgun",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#ff0000",
+            "display_style": "standard"
+        },
+        "DOUBLE_BARREL_SHOTGUN": {
+            "svg_icon_id": "marker-shotgun",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#ff0000",
+            "display_style": "standard"
+        },
+        "N4": {
+            "svg_icon_id": "marker-rifle",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#ff0000",
+            "display_style": "standard"
+        },
+        "MOSINNAGANT": {
+            "svg_icon_id": "marker-rifle",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#ff0000",
+            "display_style": "standard"
+        },
+        "MP5": {
+            "svg_icon_id": "marker-machinegun",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#ff0000",
+            "display_style": "standard"
+        },
+        "N1903": {
+            "svg_icon_id": "marker-rifle",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#ff0000",
+            "display_style": "standard"
+        },
+        "PHARMACY_CABINET": {
+            "svg_icon_id": "marker-medic",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#ff9fff",
+            "display_style": "standard"
+        },
+        "PARAMEDIC_BAG": {
+            "svg_icon_id": "marker-medic",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#ff9fff",
+            "display_style": "standard"
+        },
+        "STRONG_TOOLBOX": {
+            "svg_icon_id": "marker-wrench",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#808080",
+            "display_style": "standard"
+        },
+        "TEST": {
+            "svg_icon_id": "marker-wrench",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#808080",
+            "display_style": "standard"
+        },
+        "DUFFLE_BAG": {
+            "svg_icon_id": "marker-bag",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#ff0000",
+            "display_style": "standard"
+        },
+        "DUMPED_DUFFLE_BAG": {
+            "svg_icon_id": "marker-bag",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#ff0000",
+            "display_style": "standard"
+        },
+        "BOG_IRON_DEPOSIT": {
+            "svg_icon_id": "marker-rock",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#95a5a6",
+            "display_style": "standard"
+        },
+        "DUMPED_AMMO_BOX": {
+            "svg_icon_id": "marker-crate",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#ff0000",
+            "display_style": "standard"
+        },
+        "BOW": {
+            "svg_icon_id": "marker-bow-and-arrow",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#ff0000",
+            "display_style": "standard"
+        },
+        "SANWERK_SRG": {
+            "svg_icon_id": "marker-shotgun",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#ff0000",
+            "display_style": "standard"
+        },
+        "QUARRY": {
+            "svg_icon_id": "marker-ore-deposit",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#95a5a6",
+            "display_style": "icon_only"
+        },
+        "MILITARY_SITE": {
+            "svg_icon_id": "marker-military-base",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#16a085",
+            "display_style": "icon_only"
+        },
+        "WATER_TOWER": {
+            "svg_icon_id": "marker-water-tower",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "RESIDENTIAL": {
+            "svg_icon_id": "marker-residential",
+            "svg_icon_scope": "common",
+            "icon_color": "#2ecc71",
+            "background_color": "#95a5a6",
+            "display_style": "icon_only"
+        },
+        "SERVICE_SHED": {
+            "svg_icon_id": "marker-service-shed",
+            "svg_icon_scope": "common",
+            "icon_color": "#f1c40f",
+            "background_color": "#95a5a6",
+            "display_style": "icon_only"
+        },
+        "CANNABIS_SEEDS": {
+            "svg_icon_id": "marker-leaf",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#2ecc71",
+            "display_style": "standard"
+        },
+        "CRYSTAL_METH": {
+            "svg_icon_id": "marker-syringe",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#9b59b6",
+            "display_style": "standard"
         }
     },
     "category_special_rules": {
@@ -785,23 +1289,51 @@
                 }
             ]
         },
+        "ツールコンテナ": {
+            "rules": [
+                {
+                    "note_type": "必要条件",
+                    "applicability": "lenient",
+                    "default_enabled": false,
+                    "req_type": "スキルレベル",
+                    "skill_id": "SKILL_19221",
+                    "skill_level": "25"
+                }
+            ]
+        },
+        "TOOL_CONTAINER": {
+            "rules": [
+                {
+                    "note_type": "必要条件",
+                    "applicability": "lenient",
+                    "default_enabled": false,
+                    "req_type": "スキルレベル",
+                    "skill_id": "SKILL_19221",
+                    "skill_level": "25"
+                }
+            ]
+        },
         "医療品コンテナ": {
             "rules": [
                 {
-                    "note_type": "メモ",
-                    "memo_jp": "テスト",
-                    "memo_en": "",
-                    "default_enabled": false
+                    "note_type": "必要条件",
+                    "applicability": "lenient",
+                    "default_enabled": true,
+                    "req_type": "スキルレベル",
+                    "skill_id": "SKILL_19221",
+                    "skill_level": "25"
                 }
             ]
         },
         "MEDICAL_CONTAINER": {
             "rules": [
                 {
-                    "note_type": "メモ",
-                    "memo_jp": "テスト",
-                    "memo_en": "",
-                    "default_enabled": false
+                    "note_type": "必要条件",
+                    "applicability": "lenient",
+                    "default_enabled": true,
+                    "req_type": "スキルレベル",
+                    "skill_id": "SKILL_19221",
+                    "skill_level": "25"
                 }
             ]
         },
@@ -809,8 +1341,8 @@
             "rules": [
                 {
                     "note_type": "メモ",
-                    "memo_jp": "位置は固定。",
-                    "memo_en": "",
+                    "memo_jp": "位置は固定。常に出現するとは限らない。",
+                    "memo_en": "Fixed location. May not always spawn",
                     "default_enabled": true
                 }
             ]
@@ -819,8 +1351,88 @@
             "rules": [
                 {
                     "note_type": "メモ",
-                    "memo_jp": "位置は固定。",
-                    "memo_en": "",
+                    "memo_jp": "位置は固定。常に出現するとは限らない。",
+                    "memo_en": "Fixed location. May not always spawn",
+                    "default_enabled": true
+                }
+            ]
+        },
+        "装備": {
+            "rules": [
+                {
+                    "note_type": "メモ",
+                    "memo_jp": "位置は固定。常に出現するとは限らない。",
+                    "memo_en": "Fixed location. May not always spawn.",
+                    "default_enabled": true
+                }
+            ]
+        },
+        "GEAR": {
+            "rules": [
+                {
+                    "note_type": "メモ",
+                    "memo_jp": "位置は固定。常に出現するとは限らない。",
+                    "memo_en": "Fixed location. May not always spawn.",
+                    "default_enabled": true
+                }
+            ]
+        },
+        "ツール": {
+            "rules": [
+                {
+                    "note_type": "メモ",
+                    "memo_jp": "位置は固定。常に出現するとは限らない。",
+                    "memo_en": "Fixed location. May not always spawn",
+                    "default_enabled": true
+                }
+            ]
+        },
+        "TOOL": {
+            "rules": [
+                {
+                    "note_type": "メモ",
+                    "memo_jp": "位置は固定。常に出現するとは限らない。",
+                    "memo_en": "Fixed location. May not always spawn",
+                    "default_enabled": true
+                }
+            ]
+        },
+        "本": {
+            "rules": [
+                {
+                    "note_type": "メモ",
+                    "memo_jp": "位置は固定。常に出現するとは限らない。",
+                    "memo_en": "Fixed location. May not always spawn.",
+                    "default_enabled": true
+                }
+            ]
+        },
+        "BOOK": {
+            "rules": [
+                {
+                    "note_type": "メモ",
+                    "memo_jp": "位置は固定。常に出現するとは限らない。",
+                    "memo_en": "Fixed location. May not always spawn.",
+                    "default_enabled": true
+                }
+            ]
+        },
+        "その他のアイテム": {
+            "rules": [
+                {
+                    "note_type": "メモ",
+                    "memo_jp": "位置は固定。常に出現するとは限らない。",
+                    "memo_en": "Fixed location. May not always spawn.",
+                    "default_enabled": true
+                }
+            ]
+        },
+        "MISC": {
+            "rules": [
+                {
+                    "note_type": "メモ",
+                    "memo_jp": "位置は固定。常に出現するとは限らない。",
+                    "memo_en": "Fixed location. May not always spawn.",
                     "default_enabled": true
                 }
             ]

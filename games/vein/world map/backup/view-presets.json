@@ -1,14 +1,49 @@
 {
   "presets": {
     "weapons": {
-      "allowed_object_ids": ["POI", "DEPLOYABLES"],
-      "allowed_category_ids": ["LOOT_CONTAINER", "WEAPON"],
+      "allowed_object_ids": [
+        "POI",
+        "DEPLOYABLES",
+        "ITEMS"
+      ],
+      "allowed_category_ids": [
+        "WEAPON",
+        "LOOT_CONTAINER"
+      ],
       "allowed_item_ids": [],
-      "default_on_object_ids": ["DEPLOYABLES"],
-      "default_off_object_ids": ["POI"],
+      "default_on_object_ids": [
+        "DEPLOYABLES",
+        "ITEMS"
+      ],
+      "default_off_object_ids": [
+        "POI"
+      ],
       "default_on_category_ids": [],
       "default_on_item_ids": [],
-      "collapsed_object_ids": ["POI"]
+      "collapsed_object_ids": [
+        "POI"
+      ]
+    },
+    "tools": {
+      "allowed_object_ids": [
+        "POI",
+        "DEPLOYABLES",
+        "ITEMS"
+      ],
+      "allowed_category_ids": [
+        "TOOL",
+        "TOOL_CONTAINER"
+      ],
+      "allowed_item_ids": [],
+      "default_on_object_ids": [
+        "DEPLOYABLES",
+        "ITEMS"
+      ],
+      "default_off_object_ids": [
+        "POI"
+      ],
+      "default_on_category_ids": [],
+      "default_on_item_ids": []
     }
   }
 }

@@ -1,0 +1,1044 @@
+{
+    "orig_w": 9167,
+    "orig_h": 12333,
+    "map_file": "_source/map.png",
+    "save_file": "master_data.csv",
+    "object_types": {
+        "loot": {
+            "name_jp": "アイテム",
+            "name_en": "Item"
+        },
+        "landmark": {
+            "name_jp": "ランドマーク",
+            "name_en": "Landmark"
+        },
+        "colony": {
+            "name_jp": "群生地",
+            "name_en": "Colony"
+        },
+        "other": {
+            "name_jp": "その他",
+            "name_en": "Other"
+        }
+    },
+    "attr_mapping": {
+        "DEAD_BODY": {
+            "name_jp": "遺体",
+            "name_en": "Dead Body",
+            "type": "loot",
+            "attributes": {
+                "場所": {
+                    "type": "select",
+                    "options": [
+                        "地上",
+                        "洞窟内"
+                    ]
+                }
+            },
+            "use_category_slots": true
+        },
+        "STORAGE_BOX": {
+            "name_jp": "ストレージボックス",
+            "name_en": "Storage Box",
+            "type": "loot",
+            "attributes": {},
+            "use_category_slots": true
+        },
+        "DRONE_WRECK": {
+            "name_jp": "ドローンの残骸",
+            "name_en": "Drone Wreck",
+            "type": "loot",
+            "attributes": {},
+            "use_category_slots": true
+        },
+        "RUBBLE_PILE": {
+            "name_jp": "がれきの山",
+            "name_en": "Rubble Pile",
+            "type": "loot",
+            "attributes": {},
+            "use_category_slots": true
+        },
+        "PERSONAL_STORAGE": {
+            "name_jp": "パーソナルストレージ",
+            "name_en": "Personal Storage",
+            "type": "loot",
+            "attributes": {},
+            "use_category_slots": true
+        },
+        "CONSOLE": {
+            "name_jp": "コンソール",
+            "name_en": "Console",
+            "type": "loot",
+            "attributes": {},
+            "use_category_slots": true
+        },
+        "UNDERGROUND_CAVE": {
+            "name_jp": "地下洞窟",
+            "name_en": "Underground Cave",
+            "type": "landmark",
+            "attributes": {},
+            "use_category_slots": true
+        },
+        "MONOLITH": {
+            "name_jp": "モノリス",
+            "name_en": "Monolith",
+            "type": "landmark",
+            "attributes": {},
+            "use_category_slots": true
+        },
+        "GEO_SCANNER": {
+            "name_jp": "ジオスキャナー",
+            "name_en": "Geo Scanner",
+            "type": "landmark",
+            "attributes": {},
+            "use_category_slots": true
+        },
+        "SPACESHIP": {
+            "name_jp": "宇宙船",
+            "name_en": "Spaceship",
+            "type": "landmark",
+            "attributes": {},
+            "use_category_slots": true
+        },
+        "COLONY": {
+            "name_jp": "群生地",
+            "name_en": "Colony",
+            "type": "colony",
+            "attributes": {},
+            "use_category_slots": true
+        },
+        "ITEM_PRINTER": {
+            "name_jp": "アイテムプリンター",
+            "name_en": "Item Printer",
+            "type": "other",
+            "attributes": {},
+            "use_category_slots": true
+        },
+        "SEARCH": {
+            "name_jp": "サーチ",
+            "name_en": "Search",
+            "type": "other",
+            "attributes": {},
+            "use_category_slots": true
+        },
+        "KEYCARD": {
+            "name_jp": "キーカード",
+            "name_en": "Keycard",
+            "type": "other",
+            "attributes": {},
+            "use_category_slots": true
+        }
+    },
+    "cat_mapping": {
+        "DEAD_BODY": "遺体",
+        "STORAGE_BOX": "ストレージボックス",
+        "DRONE_WRECK": "ドローンの残骸",
+        "RUBBLE_PILE": "がれきの山",
+        "PERSONAL_STORAGE": "パーソナルストレージ",
+        "CONSOLE": "コンソール",
+        "UNDERGROUND_CAVE": "地下洞窟",
+        "MONOLITH": "モノリス",
+        "GEO_SCANNER": "ジオスキャナー",
+        "SPACESHIP": "宇宙船",
+        "COLONY": "群生地",
+        "ITEM_PRINTER": "アイテムプリンター",
+        "SEARCH": "サーチ",
+        "KEYCARD": "キーカード"
+    },
+    "category_master": {
+        "設計図": {
+            "id": "blueprint",
+            "name_jp": "設計図",
+            "name_en": "Blueprint",
+            "type": "loot",
+            "input_type": "item_select",
+            "show_qty": true,
+            "object_attr_id": "",
+            "attributes": {}
+        },
+        "LEM": {
+            "id": "lem",
+            "name_jp": "LEM",
+            "name_en": "LEM",
+            "type": "loot",
+            "input_type": "item_select",
+            "show_qty": true,
+            "attributes": {
+                "ランク": {
+                    "type": "select",
+                    "options": [
+                        "下級",
+                        "標準",
+                        "上級"
+                    ],
+                    "options_en": [],
+                    "affix_position": "prefix"
+                },
+                "装備枠": {
+                    "type": "select",
+                    "options": [
+                        "サバイバル",
+                        "戦闘",
+                        "移動"
+                    ],
+                    "options_en": [],
+                    "affix_position": "prefix"
+                }
+            },
+            "object_attr_id": ""
+        },
+        "戦時債権": {
+            "id": "war_bonds",
+            "name_jp": "戦時債権",
+            "name_en": "War Bonds",
+            "type": "loot",
+            "input_type": "qty_only",
+            "show_qty": true,
+            "object_attr_id": "",
+            "attributes": {}
+        },
+        "交換アイテム": {
+            "id": "trade_item",
+            "name_jp": "交換アイテム",
+            "name_en": "Trade Item",
+            "type": "loot",
+            "input_type": "item_select",
+            "show_qty": false,
+            "object_attr_id": "",
+            "attributes": {}
+        },
+        "植物": {
+            "id": "plant",
+            "name_jp": "植物",
+            "name_en": "Plant",
+            "type": "loot",
+            "input_type": "item_select",
+            "show_qty": false,
+            "object_attr_id": "",
+            "attributes": {}
+        }
+    },
+    "category_list": [
+        "設計図",
+        "LEM",
+        "戦時債権",
+        "交換アイテム",
+        "植物"
+    ],
+    "item_master": {
+        "設計図": {
+            "Rotor": {
+                "name_jp": "ローター",
+                "name_en": "Rotor",
+                "attributes": {}
+            },
+            "Tube": {
+                "name_jp": "チューブ",
+                "name_en": "Tube",
+                "attributes": {}
+            },
+            "Stator": {
+                "name_jp": "ステーター",
+                "name_en": "Stator",
+                "attributes": {}
+            },
+            "Stabilizer": {
+                "name_jp": "スタビライザー",
+                "name_en": "Stabilizer",
+                "attributes": {}
+            },
+            "Synthetic Silicon": {
+                "name_jp": "合成シリコン",
+                "name_en": "Synthetic Silicon",
+                "attributes": {}
+            },
+            "Hardening Agent": {
+                "name_jp": "硬化剤",
+                "name_en": "Hardening Agent",
+                "attributes": {}
+            },
+            "Valve": {
+                "name_jp": "バルブ",
+                "name_en": "Valve",
+                "attributes": {}
+            },
+            "Electronics": {
+                "name_jp": "電子部品",
+                "name_en": "Electronics",
+                "attributes": {}
+            },
+            "Chemicals": {
+                "name_jp": "化学物質",
+                "name_en": "Chemicals",
+                "attributes": {}
+            },
+            "Turbine": {
+                "name_jp": "タービン",
+                "name_en": "Turbine",
+                "attributes": {}
+            },
+            "Electromagnetic Coil": {
+                "name_jp": "電磁コイル",
+                "name_en": "Electromagnetic Coil",
+                "attributes": {}
+            },
+            "Pressure Tank": {
+                "name_jp": "加圧タンク",
+                "name_en": "Pressure Tank",
+                "attributes": {}
+            },
+            "Condenser": {
+                "name_jp": "蓄電器",
+                "name_en": "Condenser",
+                "attributes": {}
+            },
+            "Laser Emitter": {
+                "name_jp": "レーザーエミッター",
+                "name_en": "Laser Emitter",
+                "attributes": {}
+            },
+            "Scanner": {
+                "name_jp": "スキャナー",
+                "name_en": "Scanner",
+                "attributes": {}
+            },
+            "CONDENSER": {
+                "name_jp": "蓄電機",
+                "name_en": "Condenser",
+                "attributes": {}
+            },
+            "GOETHITE_LATTICE": {
+                "name_jp": "ゲーサイト格子",
+                "name_en": "Goethite Lattice",
+                "attributes": {}
+            },
+            "UBERFILAMENT": {
+                "name_jp": "ウーバーフィラメント",
+                "name_en": "Uberfilament",
+                "attributes": {}
+            },
+            "EXPLOSIVE_CHARGE": {
+                "name_jp": "爆発物",
+                "name_en": "Explosive Charge",
+                "attributes": {}
+            },
+            "NANOSYRINGE": {
+                "name_jp": "ナノシリンジ",
+                "name_en": "Nanosyringe",
+                "attributes": {}
+            },
+            "HEAT_SHIELD": {
+                "name_jp": "熱シールド",
+                "name_en": "Heat Shield",
+                "attributes": {}
+            },
+            "PLASTIC_DUST": {
+                "name_jp": "プラスチックダスト",
+                "name_en": "Plastic Dust",
+                "attributes": {}
+            },
+            "ANTIRADIATION_COVERS": {
+                "name_jp": "耐放射線カバー",
+                "name_en": "Anti-Radiation Covers",
+                "attributes": {}
+            }
+        },
+        "交換アイテム": {
+            "DAMAGED_SPECIMAN_SAMPLE": {
+                "name_jp": "損傷した標本サンプル",
+                "name_en": "Damaged Speciman Sample",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": "7500"
+                    }
+                }
+            },
+            "FLORA_CONTAINMENT_SAFE": {
+                "name_jp": "Flora Containment Safe",
+                "name_en": "Flora Containment Safe",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": "13000"
+                    }
+                }
+            },
+            "Unknown Logic Board": {
+                "name_jp": "不明なロジックボード",
+                "name_en": "Unknown Logic Board",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": 200
+                    }
+                }
+            },
+            "Damaged Logic Board": {
+                "name_jp": "損傷したロジックボード",
+                "name_en": "Damaged Logic Board",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": 400
+                    }
+                }
+            },
+            "Damaged Energy Storage": {
+                "name_jp": "損傷したエネルギーストレージ",
+                "name_en": "Damaged Energy Storage",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": 2000
+                    }
+                }
+            },
+            "Damaged Personal Interface": {
+                "name_jp": "損傷したパーソナルインターフェース",
+                "name_en": "Damaged Personal Interface",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": 500
+                    }
+                }
+            },
+            "Damaged Local Scanner": {
+                "name_jp": "損傷したローカルスキャナー",
+                "name_en": "Damaged Local Scanner",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": 3500
+                    }
+                }
+            },
+            "Damaged Memory Module": {
+                "name_jp": "損傷したメモリモジュール",
+                "name_en": "Damaged Memory Module",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": 350
+                    }
+                }
+            },
+            "Unknown Casing": {
+                "name_jp": "不明なケース",
+                "name_en": "Unknown Casing",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": 1000
+                    }
+                }
+            },
+            "Unknown Module": {
+                "name_jp": "不明なモジュール",
+                "name_en": "Unknown Module",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": 2000
+                    }
+                }
+            },
+            "Unknown Vial": {
+                "name_jp": "不明なバイアル",
+                "name_en": "Unknown Vial",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": 350
+                    }
+                }
+            },
+            "Damaged Lab Dish": {
+                "name_jp": "損傷したシャーレ",
+                "name_en": "Damaged Lab Dish",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": 5000
+                    }
+                }
+            },
+            "Damaged Specimen Sample": {
+                "name_jp": "損傷した標本サンプル",
+                "name_en": "Damaged Specimen Sample",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": 4000
+                    }
+                }
+            },
+            "Damaged Memory Core": {
+                "name_jp": "損傷したメモリーコア",
+                "name_en": "Damaged Memory Core",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": 70000
+                    }
+                }
+            },
+            "Security Logger": {
+                "name_jp": "セキュリティログ",
+                "name_en": "Security Logger",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": 1500
+                    }
+                }
+            },
+            "Frame Memory Module": {
+                "name_jp": "フレームメモリモジュール",
+                "name_en": "Frame Memory Module",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": 7000
+                    }
+                }
+            },
+            "UNKNOWN_SOLAR_CELL_ARRAY": {
+                "name_jp": "不明な太陽電池アレイ",
+                "name_en": "Unknown Solar Cell Array",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": "3500"
+                    }
+                }
+            },
+            "UNKNOWN_TOOL": {
+                "name_jp": "不明なツール",
+                "name_en": "Unknown Tool",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": "5000"
+                    }
+                }
+            },
+            "DAMAGED_DATA_STORAGE": {
+                "name_jp": "損傷したデータストレージ",
+                "name_en": "Damaged Data Storage",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": "7000"
+                    }
+                }
+            },
+            "TESTING_PARAMETER_RECORDER": {
+                "name_jp": "試験パラメーター記録装置",
+                "name_en": "Testing Parameter Recorder",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": "20000"
+                    }
+                }
+            },
+            "DAMAGED_FLORA_SAMPLE_SET": {
+                "name_jp": "損傷したフローラサンプルセット",
+                "name_en": "Damaged Flora Sample Set",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": "10000"
+                    }
+                }
+            },
+            "DAMAGED_NAVIGATION_UNIT": {
+                "name_jp": "損傷したナビゲーションユニット",
+                "name_en": "Damaged Navigation Unit",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": "7000"
+                    }
+                }
+            },
+            "DAMADED_SPECTRAL_ANALYZER": {
+                "name_jp": "損傷したスペクトラムアナライザー",
+                "name_en": "Damaded Spectral Analyzer",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": "5000"
+                    }
+                }
+            },
+            "UNKNOWN_DEVICE": {
+                "name_jp": "不明なデバイス",
+                "name_en": "Unknown Device",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": "3500"
+                    }
+                }
+            },
+            "UNKNOWN_ENERGY_STORAGE": {
+                "name_jp": "不明なエネルギーストレージ",
+                "name_en": "Unknown Energy Storage",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": "2000"
+                    }
+                }
+            },
+            "DAMAGED_FRIGHT_CONTROL_UNIT": {
+                "name_jp": "損傷したフライトコントロールユニット",
+                "name_en": "Damaged Fright Control Unit",
+                "attributes": {
+                    "ポイント": {
+                        "type": "fixed",
+                        "value": "4000"
+                    }
+                }
+            }
+        },
+        "LEM": {
+            "Swapper LEM": {
+                "name_jp": "スワッパーLEM",
+                "name_en": "Swapper LEM",
+                "attributes": {
+                    "ランク": {
+                        "type": "select",
+                        "options": [
+                            "上級",
+                            "下級"
+                        ]
+                    }
+                }
+            },
+            "Lifegiver LEM": {
+                "name_jp": "ライフギバーLEM",
+                "name_en": "Lifegiver LEM",
+                "attributes": {}
+            },
+            "Air Jumper LEM": {
+                "name_jp": "エアジャンパーLEM",
+                "name_en": "Air Jumper LEM",
+                "attributes": {}
+            },
+            "Deatheater LEM": {
+                "name_jp": "デスイーターLEM",
+                "name_en": "Deatheater LEM",
+                "attributes": {}
+            },
+            "Infiltrator LEM": {
+                "name_jp": "インフィルトレーターLEM",
+                "name_en": "Infiltrator LEM",
+                "attributes": {}
+            },
+            "Immuner LEM": {
+                "name_jp": "イミューナーLEM",
+                "name_en": "Immuner LEM",
+                "attributes": {}
+            },
+            "Miner LEM": {
+                "name_jp": "マイナーLEM",
+                "name_en": "Miner LEM",
+                "attributes": {}
+            },
+            "Runner LEM": {
+                "name_jp": "ランナーLEM",
+                "name_en": "Runner LEM",
+                "attributes": {}
+            },
+            "Dodger LEM": {
+                "name_jp": "ドッジャーLEM",
+                "name_en": "Dodger LEM",
+                "attributes": {}
+            },
+            "Shieldgiver LEM": {
+                "name_jp": "シールドギバーLEM",
+                "name_en": "Shieldgiver LEM",
+                "attributes": {}
+            },
+            "Fallguy LEM": {
+                "name_jp": "フォールガイLEM",
+                "name_en": "Fallguy LEM",
+                "attributes": {}
+            },
+            "Dietician LEM": {
+                "name_jp": "ダイエティシャンLEM",
+                "name_en": "Dietician LEM",
+                "attributes": {}
+            },
+            "Resister LEM": {
+                "name_jp": "レジスターLEM",
+                "name_en": "Resister LEM",
+                "attributes": {}
+            },
+            "Slider LEM": {
+                "name_jp": "スライダーLEM",
+                "name_en": "Slider LEM",
+                "attributes": {}
+            },
+            "Resurrector LEM": {
+                "name_jp": "レズレクターLEM",
+                "name_en": "Resurrector LEM",
+                "attributes": {}
+            },
+            "Scalper LEM": {
+                "name_jp": "スカルパーLEM",
+                "name_en": "Scalper LEM",
+                "attributes": {}
+            },
+            "Reloader LEM": {
+                "name_jp": "リローダーLEM",
+                "name_en": "Reloader LEM",
+                "attributes": {}
+            },
+            "Irrigator LEM": {
+                "name_jp": "イリゲーターLEM",
+                "name_en": "Irrigator LEM",
+                "attributes": {}
+            },
+            "Shieldfixer LEM": {
+                "name_jp": "シールドフィクサーLEM",
+                "name_en": "Shieldfixer LEM",
+                "attributes": {}
+            },
+            "Detoxifier LEM": {
+                "name_jp": "デトキシファイアーLEM",
+                "name_en": "Detoxifier LEM",
+                "attributes": {}
+            },
+            "Reprinter LEM": {
+                "name_jp": "レプリンターLEM",
+                "name_en": "Reprinter LEM",
+                "attributes": {}
+            },
+            "Fixer LEM": {
+                "name_jp": "フィクサーLEM",
+                "name_en": "Fixer LEM",
+                "attributes": {}
+            },
+            "Companion LEM": {
+                "name_jp": "コンパニオンLEM",
+                "name_en": "Companion LEM",
+                "attributes": {}
+            },
+            "Aimer LEM": {
+                "name_jp": "エイマーLEM",
+                "name_en": "Aimer LEM",
+                "attributes": {}
+            },
+            "Endurancegiver LEM": {
+                "name_jp": "エンデュランスギバーLEM",
+                "name_en": "Endurancegiver LEM",
+                "attributes": {}
+            },
+            "Glutton LEM": {
+                "name_jp": "グルトンLEM",
+                "name_en": "Glutton LEM",
+                "attributes": {}
+            }
+        },
+        "戦時債権": {
+            "War Bonds": {
+                "name_jp": "戦時債権",
+                "name_en": "War Bonds",
+                "attributes": {}
+            }
+        },
+        "植物": {
+            "Prism Herb": {
+                "name_jp": "プリズムハーブ",
+                "name_en": "Prism Herb",
+                "attributes": {}
+            }
+        }
+    },
+    "skill_name_master": [],
+    "category_special_rules": {},
+    "pin_marker_by_attribute": {
+        "DEAD_BODY": {
+            "svg_icon_id": "marker-skull",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#ff0000",
+            "display_style": "standard"
+        },
+        "STORAGE_BOX": {
+            "svg_icon_id": "marker-crate2",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "DRONE_WRECK": {
+            "svg_icon_id": "marker-parts-container",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#95a5a6",
+            "display_style": "standard"
+        },
+        "RUBBLE_PILE": {
+            "svg_icon_id": "marker-nut",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#95a5a6",
+            "display_style": "standard"
+        },
+        "PERSONAL_STORAGE": {
+            "svg_icon_id": "marker-crate2",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#95a5a6",
+            "display_style": "standard"
+        },
+        "CONSOLE": {
+            "svg_icon_id": "marker-crate2",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#95a5a6",
+            "display_style": "standard"
+        },
+        "UNDERGROUND_CAVE": {
+            "svg_icon_id": "marker-cave",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#95a5a6",
+            "display_style": "standard"
+        },
+        "MONOLITH": {
+            "svg_icon_id": "marker-monolith",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#95a5a6",
+            "display_style": "standard"
+        },
+        "GEO_SCANNER": {
+            "svg_icon_id": "marker-braodcast-tower",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#2ecc71",
+            "display_style": "standard"
+        },
+        "KEYCARD": {
+            "svg_icon_id": "marker-key2",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#ccabda",
+            "display_style": "standard"
+        },
+        "SPACESHIP": {
+            "svg_icon_id": "marker-star",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        }
+    },
+    "pin_marker_by_category_id": {
+        "blueprint": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "lem": {
+            "svg_icon_id": "marker-circuit",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#f1c40f",
+            "display_style": "standard"
+        },
+        "war_bonds": {
+            "svg_icon_id": "marker-bill",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#16a085",
+            "display_style": "standard"
+        },
+        "trade_item": {
+            "svg_icon_id": "marker-star2",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#e74c3c",
+            "display_style": "standard"
+        },
+        "keycard": {
+            "svg_icon_id": "marker-key2",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#c199d2",
+            "display_style": "standard"
+        }
+    },
+    "pin_marker_by_item_id": {
+        "Rotor": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "Tube": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "Stator": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "Stabilizer": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "Synthetic Silicon": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "Hardening Agent": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "Valve": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "Electronics": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "Chemicals": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "Turbine": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "Electromagnetic Coil": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "Pressure Tank": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "Condenser": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "Laser Emitter": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "Scanner": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "CONDENSER": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "GOETHITE_LATTICE": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "UBERFILAMENT": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "EXPLOSIVE_CHARGE": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "NANOSYRINGE": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "HEAT_SHIELD": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "PLASTIC_DUST": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        },
+        "ANTIRADIATION_COVERS": {
+            "svg_icon_id": "marker-blueprint",
+            "svg_icon_scope": "common",
+            "icon_color": "#ffffff",
+            "background_color": "#3498db",
+            "display_style": "standard"
+        }
+    }
+}

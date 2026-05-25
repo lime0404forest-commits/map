@@ -61,7 +61,37 @@ def item_name_from_entry(c: Optional[Dict], is_ja: bool) -> str:
         v = c.get("item_name_jp") or c.get("item_jp") or c.get("item_name_en") or c.get("item_en")
     else:
         v = c.get("item_name_en") or c.get("item_en") or c.get("item_name_jp") or c.get("item_jp")
-    return _s(v).strip()
+    base = _s(v).strip()
+    if not base:
+        return ""
+    attrs = c.get("attributes")
+    if not isinstance(attrs, dict):
+        return base
+
+    cat_id = _s(c.get("cat_id")).strip().lower()
+    cat_name = _s(c.get("category")).strip().lower()
+    is_lem = (cat_id == "lem") or ("lem" in cat_name)
+    if not is_lem:
+        return base
+
+    rank = _s(attrs.get("ランク") or attrs.get("rank")).strip()
+    if rank == "接頭語なし":
+        rank = ""
+    affix_pos = _s(
+        attrs.get("語位置")
+        or attrs.get("接頭語or接尾語")
+        or attrs.get("prefix_suffix_position")
+    ).strip()
+    slot = _s(attrs.get("装備枠") or attrs.get("slot")).strip()
+
+    if rank:
+        if affix_pos == "接尾語":
+            base = f"{base}{rank}" if is_ja else f"{base} {rank}"
+        else:
+            base = f"{rank}{base}" if is_ja else f"{rank} {base}"
+    if slot:
+        base = f"{base} [{slot}]"
+    return base
 
 
 def lockpick_req_suffix(c: Optional[Dict], is_ja: bool) -> str:
@@ -160,6 +190,30 @@ def build_pin_headline(pin: Dict, is_ja: bool, contents: List[Dict], legacy_cate
     )
     if obj_part and name_part:
         return f"{obj_part}：{name_part}"
+    if name_part:
+        return name_part
+
+    # name 空でも categories（中身スロット）から見出しを組む（LEM 種類などはここに載る）
+    slot_parts: List[str] = []
+    for c in contents or []:
+        if not c:
+            continue
+        item_name = item_name_from_entry(c, is_ja)
+        cat = category_label_from_entry(c, is_ja)
+        if item_name:
+            slot_parts.append(item_name)
+        elif cat:
+            slot_parts.append(cat)
+        if len(slot_parts) >= 4:
+            break
+    if slot_parts:
+        tail = "・".join(slot_parts[:3])
+        if len(slot_parts) > 3:
+            tail += "…"
+        if obj_part:
+            return f"{obj_part}：{tail}"
+        return tail
+
     if obj_part:
         return obj_part
     cats = category_labels_from_contents(contents, is_ja, legacy_category or "")
@@ -170,9 +224,10 @@ def build_pin_headline(pin: Dict, is_ja: bool, contents: List[Dict], legacy_cate
 
 
 def build_pin_description(pin: Dict, is_ja: bool) -> str:
+    """ピン個別メモのみ。JP/EN はフォールバックしない（map.js と一致）。"""
     if is_ja:
         return _s(pin.get("memo_jp")).strip()
-    return _s(pin.get("memo_en") or pin.get("memo_jp")).strip()
+    return _s(pin.get("memo_en")).strip()
 
 
 def normalize_parent_relation_type(raw_type: Any, has_parent: bool) -> str:
@@ -564,6 +619,8 @@ def build_preview_bundle(
     pin = {
         "obj_jp": resolved_pin.get("obj_jp", ""),
         "obj_en": resolved_pin.get("obj_en", ""),
+        "name_jp": _s(csv_row.get("name_jp")),
+        "name_en": _s(csv_row.get("name_en")),
         "memo_jp": _s(csv_row.get("memo_jp")),
         "memo_en": _s(csv_row.get("memo_en")),
         "category": _s(csv_row.get("category")),

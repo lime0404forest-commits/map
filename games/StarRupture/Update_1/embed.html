@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Rupture — Update 1 Map</title>
+</head>
+<body style="margin:0;background:#0d0d0d;color:#fff;">
+<!--
+  =============================================================================
+  Star Rupture Update 1 — Vein 準拠の埋め込み（実装は Vein world map と同じ map.js 系）
+  =============================================================================
+  ■ ローカル確認
+    リポジトリルートで py -m http.server 8080 などを立て、
+    http://127.0.0.1:8080/games/starrupture/Update_1/embed.html を開く。
+    （map.js・config.json・master_data.csv・tiles・areas.json と同じ階層にこの embed.html を置く想定）
+
+  ■ WordPress など「カスタムHTMLブロック」にそのまま貼る場合
+    下の 「VEIN_MAP_EMBED_COPY_START」から「VEIN_MAP_EMBED_COPY_END」までを
+    まるごとコピー（マーカー行ごと削除してもよい）。
+
+    本番サイトでは次を必ず自環境に合わせて書き換え:
+    - 最後の <script src="map.js"> を、公開中の map.js の絶対URLへ
+      （例: https://example.com/vein-map/map.js）
+    - SVG は既定で「map.js と同じ階層の assets/icons/」を参照（フォルダごとアップロードで可）。
+      別URLの共通アイコンを第2候補にしたいときだけ、任意で data-svg-icons-common-base を付ける
+      （末尾スラッシュ付き。例: https://cdn.example.com/vein-icons/）。
+      リポジトリ直下で py -m http.server して確認するときは SVG が /assets/icons/ にしか無く、
+      Update_1 配下に assets/icons が無い。その場合は #game-map に data-svg-icons-common-base="/assets/icons/"
+      を付けるとアイコンが読める（第1候補は引き続き「map と同じ assets/icons」なので本番でそこに置けば優先される）。
+    - WP 等で map.js の実URLから csv/config/tiles の解決がずれるときは data-map-base-url に map フォルダのURL（末尾 / 可）を指定。
+    - CSV のみ使うなら data-pins は付けない（既定）。pins_export.json を使うときだけ
+      data-pins="pins_export.json" または絶対URLを追加。
+    - 言語切替は iframe の URL クエリで指定可能（推奨）:
+      embed.html?lang=ja / embed.html?lang=en
+      （map.js は ?lang を最優先で判定。次点で #game-map の data-lang）
+    - 表示プリセット（同一DBでデチューン版）:
+      embed.html?preset=weapons
+      （view-presets.json のルールを適用。必要なら #game-map に
+      data-view-preset="weapons" を付けても同等）
+    - 重要度表示（既定OFF）:
+      #game-map に data-importance-visual="off|size|size+glow"
+      URL なら ?importance_visual=size など。UIの「重要度で強調表示」でON/OFF切替可。
+
+    - 高さ: 地図は親の高さに追従（vh 固定なし）。800px 等は iframe の height 指定、または
+      外側 <div style="height:800px"> で包み .vein-map-embed-root に style="height:100%;min-height:100%" を付与。
+
+    注意: テーマやセキュリティ設定によっては <script> がブロックされる。その場合は
+    このHTMLを別URLで静的ホストし iframe で読み込む方法に切り替える。
+
+    ■ SVG ピンが真っ白／アイコンだけ出ない（Network は marker-*.svg が 200）
+    Vein 自前ホストでは blob: で問題ないことも多いが、WordPress では CSP やテーマ CSS で
+    blob:/data: の <img> だけ弾かれることがある（fetch は 200 のまま）。
+    map.js は (1) まず data:、(2) <img> の error で実ファイル URL に差し替え。
+    それでもダメなら #game-map に data-svg-icons-img-primary="http" を付け、最初から .svg のURLを img に使う
+    （アイコン色は SVG ファイルの色のまま。pin の背景色は従来どおり）。
+  =============================================================================
+-->
+
+<!-- VEIN_MAP_EMBED_COPY_START -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<style>
+    /*
+     * 高さ: vh / 固定 min に依存しない（800px・1000px 等はサイト側のラッパ or iframe height で指定）。
+     * body を縦 flex にし、root → #map-container → #game-map を flex:1 + min-height:0 で常に親いっぱいに伸ばす。
+     */
+    html { height: 100%; }
+    body {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+    .vein-map-embed-root {
+        box-sizing: border-box;
+        width: 100%;
+        flex: 1 1 auto;
+        min-height: 0;
+        height: 100%;
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .vein-map-embed-root * { box-sizing: border-box; }
+    .vein-map-embed-root #map-container {
+        position: relative;
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        border: 1px solid #333;
+        overflow: hidden;
+    }
+    .vein-map-embed-root #game-map {
+        flex: 1 1 auto;
+        min-height: 0;
+        width: 100%;
+        height: auto;
+        background: #0d0d0d;
+    }
+    .vein-map-embed-root #game-map .leaflet-container {
+        width: 100% !important;
+        height: 100% !important;
+        background: #0d0d0d;
+    }
+    .vein-map-embed-root .emoji-icon div {
+        display: flex; justify-content: center; align-items: center;
+        width: 100%; height: 100%;
+        filter: drop-shadow(0 0 2px rgba(0,0,0,0.8));
+        cursor: pointer;
+    }
+    .vein-map-embed-root #game-map.zoom-level-0 .emoji-icon div { font-size: 10px !important; }
+    .vein-map-embed-root #game-map.zoom-level-1 .emoji-icon div { font-size: 11px !important; }
+    .vein-map-embed-root #game-map.zoom-level-2 .emoji-icon div { font-size: 13px !important; }
+    .vein-map-embed-root #game-map.zoom-level-3 .emoji-icon div { font-size: 17px !important; }
+    .vein-map-embed-root #game-map.zoom-level-4 .emoji-icon div { font-size: 21px !important; }
+    .vein-map-embed-root #game-map.zoom-level-5 .emoji-icon div { font-size: 24px !important; }
+    .vein-map-embed-root #game-map.zoom-level-6 .emoji-icon div { font-size: 26px !important; }
+    .vein-map-embed-root .item-tooltip {
+        background: rgba(0, 0, 0, 0.85) !important; border: 1px solid #777 !important; color: #fff !important;
+        font-weight: bold !important; padding: 4px 8px !important; border-radius: 4px !important;
+        font-size: 12px !important; white-space: nowrap; box-shadow: 2px 2px 6px rgba(0,0,0,0.5);
+    }
+    .vein-map-embed-root .demo-svg-inner { filter: drop-shadow(0 0 2px rgba(0,0,0,0.85)); }
+    .vein-map-embed-root .map-pin-leaflet-shell { background: transparent !important; border: none !important; }
+    .vein-map-embed-root .map-pin-svg-composite { background: transparent !important; border: none !important; }
+    .vein-map-embed-root .map-pin-svg-composite.demo-pin-zoom-adapt {
+        transform-origin: 50% 100%;
+        transition: transform 0.12s ease-out;
+    }
+    .vein-map-embed-root #game-map.zoom-level-0 .map-pin-svg-composite.demo-pin-zoom-adapt { transform: scale(0.22); }
+    .vein-map-embed-root #game-map.zoom-level-1 .map-pin-svg-composite.demo-pin-zoom-adapt { transform: scale(0.28); }
+    .vein-map-embed-root #game-map.zoom-level-2 .map-pin-svg-composite.demo-pin-zoom-adapt { transform: scale(0.38); }
+    .vein-map-embed-root #game-map.zoom-level-3 .map-pin-svg-composite.demo-pin-zoom-adapt { transform: scale(0.54); }
+    .vein-map-embed-root #game-map.zoom-level-4 .map-pin-svg-composite.demo-pin-zoom-adapt { transform: scale(0.72); }
+    .vein-map-embed-root #game-map.zoom-level-5 .map-pin-svg-composite.demo-pin-zoom-adapt { transform: scale(0.88); }
+    .vein-map-embed-root #game-map.zoom-level-6 .map-pin-svg-composite.demo-pin-zoom-adapt { transform: scale(0.94); }
+    .vein-map-embed-root .map-pin-icon-only { background: transparent !important; border: none !important; }
+    .vein-map-embed-root .map-pin-icon-only-img {
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 6px rgba(0, 0, 0, 0.4)) !important;
+        -webkit-filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 6px rgba(0, 0, 0, 0.4)) !important;
+    }
+    .vein-map-embed-root .map-pin-icon-only.demo-pin-zoom-adapt {
+        transform-origin: 50% 50%;
+        transition: transform 0.12s ease-out;
+    }
+    .vein-map-embed-root #game-map.zoom-level-0 .map-pin-icon-only.demo-pin-zoom-adapt { transform: scale(0.22); }
+    .vein-map-embed-root #game-map.zoom-level-1 .map-pin-icon-only.demo-pin-zoom-adapt { transform: scale(0.28); }
+    .vein-map-embed-root #game-map.zoom-level-2 .map-pin-icon-only.demo-pin-zoom-adapt { transform: scale(0.38); }
+    .vein-map-embed-root #game-map.zoom-level-3 .map-pin-icon-only.demo-pin-zoom-adapt { transform: scale(0.54); }
+    .vein-map-embed-root #game-map.zoom-level-4 .map-pin-icon-only.demo-pin-zoom-adapt { transform: scale(0.72); }
+    .vein-map-embed-root #game-map.zoom-level-5 .map-pin-icon-only.demo-pin-zoom-adapt { transform: scale(0.88); }
+    .vein-map-embed-root #game-map.zoom-level-6 .map-pin-icon-only.demo-pin-zoom-adapt { transform: scale(0.94); }
+    .vein-map-embed-root .demo-pin-icon-img {
+        width: 24px !important; height: 24px !important; max-width: 24px !important; max-height: 24px !important;
+        object-fit: contain !important; box-sizing: border-box !important;
+        filter: drop-shadow(0 0 1px rgba(0,0,0,0.6));
+    }
+    /* WP テーマが img を隠すルール（display:none / opacity:0 等）への保険 */
+    .vein-map-embed-root .leaflet-marker-icon img.demo-pin-icon-img,
+    .vein-map-embed-root .leaflet-marker-icon img.map-pin-icon-only-img,
+    .vein-map-embed-root .leaflet-marker-icon img.vein-chip-svg-img {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+</style>
+<div class="vein-map-embed-root">
+    <div id="map-container">
+        <div id="game-map"
+             data-zoom="3"
+             data-center-x="4583"
+             data-center-y="6166"
+             data-importance-visual="off"
+             data-show-all-pins="true"
+             data-demo-pin-marker-size="32"
+             data-svg-icons-common-base="/assets/icons/"
+             style="width:100%;min-height:0;flex:1 1 auto;"></div>
+    </div>
+</div>
+<script>
+  (function () {
+    var s = document.createElement('script');
+    s.src = 'map.js' + (window.location.search || '');
+    document.body.appendChild(s);
+  })();
+</script>
+<!-- VEIN_MAP_EMBED_COPY_END -->
+
+</body>
+</html>
