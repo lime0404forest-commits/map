@@ -3,7 +3,12 @@
     // VEIN world map — フィルターは Star Rupture 向けではなく config.json の attr_mapping（オブジェクト種）基準
     // ピン: marker_display_style (icon_only) / CSV ヘッダー対応 / JSON ピンは config でスタイル補完（要アップロード同期）
 
-    var maxZoom = 5;
+    // 操作できる最大ズーム（タイル無しでも +1 段拡大）
+    var maxZoom = 6;
+    // 実タイルがある最深ズーム（tiles/ は 0..5 のまま）
+    var maxNativeZoom = 5;
+    // ピン座標・画像境界の unproject はタイル最深に合わせる（maxZoom と分離）
+    var crsZoom = maxNativeZoom;
     var imgW = 5878;
     var imgH = 5886;
     var mapPadding = 1500;
@@ -116,10 +121,10 @@
             '.vein-filter-drawer.vein-filter-drawer--collapsed{width:0;min-width:0;border-right:none;background:transparent;}',
             '.vein-filter-drawer__head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 12px 8px;border-bottom:1px solid rgba(255,255,255,0.04);flex-shrink:0;min-width:0;}',
             '.vein-filter-drawer__title{font-size:10px;font-weight:500;letter-spacing:0.2em;text-transform:uppercase;color:#5a5855;}',
-            '.vein-filter-drawer__toggle{position:absolute;top:14px;right:-28px;width:28px;height:54px;border-radius:0 10px 10px 0;',
-            'border:1px solid rgba(255,255,255,0.075);border-left:none;background:#121214;color:#8e8c88;cursor:pointer;',
+            '.vein-filter-drawer__toggle{position:absolute;top:50%;right:-28px;width:28px;height:54px;border-radius:0 10px 10px 0;',
+            'transform:translateY(-50%);border:1px solid rgba(255,255,255,0.075);border-left:none;background:#121214;color:#8e8c88;cursor:pointer;',
             'display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;z-index:760;',
-            'box-shadow:3px 2px 12px rgba(0,0,0,0.36);transition:background 0.15s,color 0.15s,border-color 0.15s;}',
+            'box-shadow:3px 2px 12px rgba(0,0,0,0.36);transition:background 0.15s,color 0.15s,border-color 0.15s,transform 0.15s;}',
             '.vein-filter-drawer__toggle:hover{background:#1a1a1d;color:#c9c6c1;border-color:rgba(255,255,255,0.12);}',
             '.vein-filter-drawer__scroll{flex:1 1 auto!important;min-height:0!important;max-height:100%!important;overflow-y:auto!important;overflow-x:hidden!important;padding:8px 10px 12px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.12) transparent;-webkit-overflow-scrolling:touch;}',
             '#map-container.vein-map-with-filter{overflow:hidden!important;}',
@@ -163,7 +168,7 @@
             '.vein-filter-group__collapse-label{letter-spacing:0.04em;}',
             '.vein-filter-drawer--collapsed .vein-filter-drawer__head{padding:0;border-bottom:none;height:0;overflow:visible;}',
             '.vein-filter-drawer--collapsed .vein-filter-drawer__scroll{display:none!important;}',
-            '.vein-filter-drawer--collapsed .vein-filter-drawer__toggle{right:-28px;top:14px;background:#121214;border-left:1px solid rgba(255,255,255,0.075);border-radius:0 10px 10px 0;}',
+            '.vein-filter-drawer--collapsed .vein-filter-drawer__toggle{right:-28px;top:50%;transform:translateY(-50%);background:#121214;border-left:1px solid rgba(255,255,255,0.075);border-radius:0 10px 10px 0;}',
             '.vein-filter-drawer--collapsed .vein-filter-group__collapse{display:none;}',
             '.vein-filter-drawer--collapsed .vein-filter-group__head,.vein-filter-drawer--collapsed .vein-filter-group__title{display:none;}',
             '.vein-filter-drawer--collapsed .vein-filter-row--nested{margin-left:0;border-left:none;padding-left:6px;}',
@@ -657,21 +662,22 @@
     L.control.zoom({ position: 'topright' }).addTo(map);
 
     var imageBounds = new L.LatLngBounds(
-        map.unproject([0, imgH], maxZoom),
-        map.unproject([imgW, 0], maxZoom)
+        map.unproject([0, imgH], crsZoom),
+        map.unproject([imgW, 0], crsZoom)
     );
     var paddedBounds = new L.LatLngBounds(
-        map.unproject([-mapPadding, imgH + mapPadding], maxZoom),
-        map.unproject([imgW + mapPadding, -mapPadding], maxZoom)
+        map.unproject([-mapPadding, imgH + mapPadding], crsZoom),
+        map.unproject([imgW + mapPadding, -mapPadding], crsZoom)
     );
 
     map.setMaxBounds(paddedBounds);
     map.fitBounds(imageBounds);
-    map.setView(map.unproject([defaultCenterX, defaultCenterY], maxZoom), defaultZoom);
+    map.setView(map.unproject([defaultCenterX, defaultCenterY], crsZoom), defaultZoom);
 
     L.tileLayer(tileUrl, {
         minZoom: 0,
         maxZoom: maxZoom,
+        maxNativeZoom: maxNativeZoom,
         tileSize: 256,
         noWrap: true,
         bounds: imageBounds,
@@ -869,7 +875,7 @@
         var py = parseFloat(mapDiv.getAttribute('data-demo-svg-y'), 10);
         if (isNaN(px)) px = Math.round(imgW * 0.48);
         if (isNaN(py)) py = Math.round(imgH * 0.42);
-        var latLng = map.unproject([px, py], maxZoom);
+        var latLng = map.unproject([px, py], crsZoom);
 
         function placeDemoMarker(html) {
             var demoIcon = L.divIcon({
@@ -1530,7 +1536,7 @@
     function resetMarkersToDataImageCoords() {
         allMarkers.forEach(function (item) {
             if (!item.marker || typeof item.imgX !== 'number' || typeof item.imgY !== 'number') return;
-            var ll = map.unproject([item.imgX, item.imgY], maxZoom);
+            var ll = map.unproject([item.imgX, item.imgY], crsZoom);
             item.marker.setLatLng(ll);
         });
     }
@@ -2028,7 +2034,7 @@
             var Rp = groupedViewRadiusForChipCount(R, n);
             var cx = parentItem.imgX;
             var cy = parentItem.imgY;
-            var parLl = map.unproject([cx, cy], maxZoom);
+            var parLl = map.unproject([cx, cy], crsZoom);
             var parentOnMap = markerIsOnMap(parentItem);
             var hiddenMainForUid = {};
             var si;
@@ -2037,7 +2043,7 @@
                 var ang = (2 * Math.PI * si) / n - Math.PI / 2;
                 var px = cx + Math.cos(ang) * Rp;
                 var py = cy + Math.sin(ang) * Rp;
-                var newLl = map.unproject([px, py], maxZoom);
+                var newLl = map.unproject([px, py], crsZoom);
                 if (slot.kind === 'whole') {
                     slot.item.marker.setLatLng(newLl);
                     overlayParts.push(L.polyline([parLl, newLl], GROUPED_VIEW_LINE_STYLE));
@@ -2101,7 +2107,7 @@
             var cxL = lone.imgX;
             var cyL = lone.imgY;
             if (typeof cxL !== 'number' || typeof cyL !== 'number') continue;
-            var parLlLone = map.unproject([cxL, cyL], maxZoom);
+            var parLlLone = map.unproject([cxL, cyL], crsZoom);
             var hiddenMainLone = {};
             var sj;
             for (sj = 0; sj < nLone; sj++) {
@@ -2109,7 +2115,7 @@
                 var angL = (2 * Math.PI * sj) / nLone - Math.PI / 2;
                 var pxL = cxL + Math.cos(angL) * RL;
                 var pyL = cyL + Math.sin(angL) * RL;
-                var newLlLone = map.unproject([pxL, pyL], maxZoom);
+                var newLlLone = map.unproject([pxL, pyL], crsZoom);
                 var uidL = String(lone.pinUid || '');
                 if (!hiddenMainLone[uidL]) {
                     if (map.hasLayer(lone.marker)) map.removeLayer(lone.marker);
@@ -3047,7 +3053,7 @@
         var x = coords[0], y = coords[1];
         if (typeof x !== 'number' || typeof y !== 'number') return null;
 
-        var latLng = map.unproject([x, y], maxZoom);
+        var latLng = map.unproject([x, y], crsZoom);
         var displayStyle = normalizeMarkerDisplayStyle(pin.marker_display_style);
         var pinSvgId = (pin.svg_icon_id || '').trim();
         var symHex = (pin.marker_icon_color || '#ffffff').trim();
@@ -3920,11 +3926,16 @@
 
     /**
      * オブジェクト階層（Vein=従属）: 親オブジェクトの ON/OFF を category_master.object_attr_id 配下へ伝播する。
+     * 単一オブジェクトの変更時はその配下のみ更新し、他オブジェクト配下のカテゴリ／アイテムは維持する。
      */
     function veinApplyObjectCascadeToCategoryItemFilters(styleKey, checked, opts) {
-        // 差分更新だと過去の手動操作や旧状態に引きずられるため、
-        // 親オブジェクトの変更時は「現在 ON の親」から子・孫を毎回作り直す。
-        syncActiveCategoryAndItemFiltersToActiveObjects();
+        opts = opts || {};
+        if (opts.bulkAllObjectToggle) {
+            syncActiveCategoryAndItemFiltersToActiveObjects();
+        } else {
+            var sk = String(styleKey || '').trim();
+            if (sk) veinCascadeObjectToCategoryAndItem(sk, !!checked);
+        }
         syncVeinFilterDrawerCategoryAndItemInputsFromState();
     }
 
@@ -3942,6 +3953,15 @@
         setTimeout(function() {
             try { map.invalidateSize(); } catch (e2) { /* ignore */ }
         }, 280);
+    }
+
+    function shouldStartFilterDrawerCollapsed() {
+        var w = window.innerWidth || document.documentElement.clientWidth || 0;
+        if (w && w <= 700) return true;
+        if (window.matchMedia) {
+            return window.matchMedia('(pointer: coarse) and (max-width: 900px)').matches;
+        }
+        return false;
     }
 
     function addOverlayControls() {
@@ -3963,6 +3983,10 @@
         var aside = document.createElement('aside');
         aside.className = 'vein-filter-drawer';
         aside.setAttribute('aria-label', isJa ? '地図の表示フィルター' : 'Map display filters');
+        var startCollapsed = shouldStartFilterDrawerCollapsed();
+        if (startCollapsed) {
+            aside.classList.add('vein-filter-drawer--collapsed');
+        }
 
         var head = document.createElement('div');
         head.className = 'vein-filter-drawer__head';
@@ -3974,9 +3998,9 @@
         var toggleBtn = document.createElement('button');
         toggleBtn.type = 'button';
         toggleBtn.className = 'vein-filter-drawer__toggle';
-        toggleBtn.setAttribute('aria-expanded', 'true');
-        toggleBtn.title = isJa ? 'パネルを畳む' : 'Collapse panel';
-        toggleBtn.innerHTML = '&#8249;';
+        toggleBtn.setAttribute('aria-expanded', startCollapsed ? 'false' : 'true');
+        toggleBtn.title = startCollapsed ? (isJa ? 'パネルを開く' : 'Expand panel') : (isJa ? 'パネルを畳む' : 'Collapse panel');
+        toggleBtn.innerHTML = startCollapsed ? '&#8250;' : '&#8249;';
         toggleBtn.addEventListener('click', function() {
             var collapsed = aside.classList.toggle('vein-filter-drawer--collapsed');
             toggleBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
@@ -4511,7 +4535,10 @@
                         onApply(r, turnOn);
                     });
                     if (cascadeOpts && cascadeOpts.objectCascade) {
-                        syncActiveCategoryAndItemFiltersToActiveObjects();
+                        rows.forEach(function (r) {
+                            if (!r || !r.key) return;
+                            veinCascadeObjectToCategoryAndItem(r.key, turnOn);
+                        });
                     }
                     syncVeinFilterDrawerCategoryAndItemInputsFromState();
                     updateVisibleMarkers();
@@ -5091,7 +5118,7 @@
         if (!ri) return null;
         var xy = areaCenterIconImageXY(a);
         if (!xy) return null;
-        var latLng = map.unproject(xy, maxZoom);
+        var latLng = map.unproject(xy, crsZoom);
         var marker = L.marker(latLng);
         if (normalizeImportanceLevel(a.importance) === 1) {
             marker.setIcon(buildImportanceOneDotIcon(pickDotMarkerColor(ri.symHex, ri.bgHex)));
@@ -5175,7 +5202,7 @@
                 if (typeof cx !== 'number' || typeof cy !== 'number' || typeof radius !== 'number') return;
                 if (radius <= 0) return;
                 var cPts = circlePointsFromImage(cx, cy, radius, 48);
-                latlngs = cPts.map(function (pt) { return map.unproject(pt, maxZoom); });
+                latlngs = cPts.map(function (pt) { return map.unproject(pt, crsZoom); });
             }
 
             else if (shape === 'rect') {
@@ -5187,13 +5214,13 @@
                     [x + w, y + h],
                     [x, y + h]
                 ];
-                latlngs = rectPts.map(function (pt) { return map.unproject(pt, maxZoom); });
+                latlngs = rectPts.map(function (pt) { return map.unproject(pt, crsZoom); });
             } else {
                 var pts = a.points || [];
                 if (!Array.isArray(pts) || pts.length < 3) return;
                 latlngs = pts.map(function (pt) {
                     if (!Array.isArray(pt) || pt.length < 2) return null;
-                    return map.unproject([pt[0], pt[1]], maxZoom);
+                    return map.unproject([pt[0], pt[1]], crsZoom);
                 }).filter(Boolean);
             }
 
